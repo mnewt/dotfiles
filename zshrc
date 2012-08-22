@@ -63,3 +63,11 @@ setopt CORRECT CORRECT_ALL
 
 # Enable extended globbing
 setopt EXTENDED_GLOB
+
+# RVM
+# Add RVM to PATH for scripting
+PATH=$PATH:$HOME/.rvm/bin 
+# Load RVM into a shell session *as a function*
+#echo "loading RVM"
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" 
+__rvm_project_rvmrc
