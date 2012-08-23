@@ -10,7 +10,7 @@ ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="prose"
+ZSH_THEME="thoughtbot"
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -40,7 +40,6 @@ source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
 
-PATH=$PATH:$HOME/bin
 NODE_PATH=$NODE_PATH:/usr/local/lib/node_modules
 
 # private environment variables
@@ -49,7 +48,7 @@ if [ -e "$HOME/.private" ]; then
 fi
 
 alias dom='nocorrect dom '
-PATH=$PATH:$HOME/bin
+PATH="$HOME/bin:$HOME/.bin:"
 
 
 export CLICOLOR=1
@@ -58,4 +57,8 @@ export LSCOLORS=ExFxCxDxBxegedabagacad
 alias ls='ls -Fh'
 alias ll='ls -Fhl'
 
+export PAGER=vimpager
+alias less=$PAGER
+
+PATH=$HOME/bin:$HOME/.bin:$PATH
 
