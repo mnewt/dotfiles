@@ -95,6 +95,76 @@ source $ZSH/oh-my-zsh.sh
 # interactive shell customizations
 ############################################################
 
+
+# load our own completion functions
+fpath=(~/.zsh/completion $fpath)
+
+# completion
+autoload -U compinit
+compinit
+
+# automatically enter directories without cd
+setopt auto_cd
+
+# use vim as an editor
+export EDITOR=vim
+
+# aliases
+if [ -e "$HOME/.aliases" ]; then
+  source "$HOME/.aliases"
+fi
+
+# use incremental search
+bindkey "^R" history-incremental-search-backward
+
+# add some readline keys back
+bindkey "^A" beginning-of-line
+bindkey "^E" end-of-line
+
+# handy keybindings
+bindkey "^P" history-search-backward
+bindkey "^Y" accept-and-hold
+bindkey "^N" insert-last-word
+bindkey -s "^T" "^[Isudo ^[A" # "t" for "toughguy"
+
+# expand functions in the prompt
+# setopt prompt_subst
+
+# ignore duplicate history entries
+setopt histignoredups
+
+# keep TONS of history
+export HISTSIZE=40960
+
+# look for ey config in project dirs
+export EYRC=./.eyrc
+
+# automatically pushd
+setopt auto_pushd
+export dirstacksize=5
+
+# awesome cd movements from zshkit
+setopt AUTOCD
+setopt AUTOPUSHD PUSHDMINUS PUSHDSILENT PUSHDTOHOME
+setopt cdablevars
+
+# Try to correct command line spelling
+#setopt CORRECT CORRECT_ALL
+
+# Enable extended globbing
+setopt EXTENDED_GLOB
+
+# Enable zmv command
+autoload zmv
+
+# recommended by brew doctor
+export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+
+# GRC
+source "`brew --prefix`/etc/grc.bashrc"
+
+
+
 # ZSH
 # disable auto correct
 unsetopt CORRECT CORRECT_ALL
@@ -106,8 +176,6 @@ bindkey -e
 if [ -e "$HOME/.private" ]; then
   source "$HOME/.private"
 fi
-
-alias dom='nocorrect dom '
 
 # add formatting and color to `ls`
 export CLICOLOR=1
