@@ -10,6 +10,7 @@ alias l='ls'
 alias ll='ls -al'
 alias lh='ls -Alh'
 alias -g G='| grep'
+alias grep='grep --color=auto'
 alias -g M='| less'
 alias -g L='| wc -l'
 alias -g ONE="| awk '{ print \$1}'"
@@ -57,3 +58,6 @@ alias db-backup-production='heroku pgbackups:capture --remote production'
 
 # Network
 alias whats-my-ip="curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'"
+
+# GRC colourify
+alias arp='colourify -c conf.ping arp'

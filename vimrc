@@ -16,20 +16,20 @@ endif
 
 filetype plugin indent on
 
-augroup vimrcEx
-  au!
+"augroup vimrcEx
+"  au!
 
   " For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
+"  autocmd FileType text setlocal textwidth=78
 
   " When editing a file, always jump to the last known cursor position.
   " Don't do it when the position is invalid or when inside an event handler
   " (happens when dropping a file on gvim).
-  autocmd BufReadPost *
+"  autocmd BufReadPost *
     \ if line("'\"") > 0 && line("'\"") <= line("$") |
     \   exe "normal g`\"" |
     \ endif
-augroup END
+"augroup END
 
 " Softtabs, 2 spaces
 set tabstop=2
@@ -38,11 +38,6 @@ set expandtab
 
 " Display extra whitespace
 set list listchars=tab:»·,trail:·
-
-" Local config
-if filereadable("~/.vimrc.local")
-  source ~/.vimrc.local
-endif
 
 " Use Ack instead of Grep when available
 if executable("ack")
@@ -103,4 +98,14 @@ au BufRead,BufNewFile *.md set filetype=markdown
 " Leader: set to <Space>
 " Space is inserted via <C-v><Space>
 " see ':h map_space' in vim for further info
-let mapleader = " "
+"let mapleader = " "
+
+
+" Local config
+if filereadable("~/.vimrc.local")
+  source ~/.vimrc.local
+endif
+
+
+set nonumber
+set mouse=a

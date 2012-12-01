@@ -9,3 +9,5 @@
 [user]
 	name = Matthew Sojourner Newton
 	email = matt@knosis.org
+[core]
+	excludesfile = /Users/matt/.gitignore_global

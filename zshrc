@@ -59,15 +59,22 @@ setopt AUTOPUSHD PUSHDMINUS PUSHDSILENT PUSHDTOHOME
 setopt cdablevars
 
 # Try to correct command line spelling
-setopt CORRECT CORRECT_ALL
+#setopt CORRECT CORRECT_ALL
 
 # Enable extended globbing
 setopt EXTENDED_GLOB
 
+# Enable zmv command
+autoload zmv
+
+# recommended by brew doctor
+export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+
+# GRC
+source "`brew --prefix`/etc/grc.bashrc"
+
 # RVM
 # Add RVM to PATH for scripting
-PATH=$PATH:$HOME/.rvm/bin 
 # Load RVM into a shell session *as a function*
 #echo "loading RVM"
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" 
-__rvm_project_rvmrc
+#__rvm_project_rvmrc
