@@ -1,6 +1,3 @@
-# Todo
-alias todo='$EDITOR ~/.todo'
-
 # Unix
 alias tlf="tail -f"
 alias ln='ln -v'
@@ -61,3 +58,5 @@ alias whats-my-ip="curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'"
 
 # GRC colourify
 alias arp='colourify -c conf.ping arp'
+alias tail='colourify -c conf.log tail'
+alias ps='colourify -c conf.log ps'
