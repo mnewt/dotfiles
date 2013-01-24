@@ -55,8 +55,14 @@ alias db-backup-production='heroku pgbackups:capture --remote production'
 
 # Network
 alias whats-my-ip="curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'"
+alias dis='dig +nocmd +noall +answer'
 
 # GRC colourify
-alias arp='colourify -c conf.ping arp'
+alias arp='colourify -c conf.traceroute arp'
 alias tail='colourify -c conf.log tail'
-alias ps='colourify -c conf.log ps'
+alias ps='colourify -c conf.ps ps'
+alias ifconfig='colourify -c conf.traceroute ifconfig'
+alias nmap='colourify -c conf.log nmap'
+alias lsof='colourify -c conf.traceroute lsof'
+alias dig='colourify -c conf.traceroute dig'
+alias host='colourify -c conf.traceroute host'

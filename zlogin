@@ -29,31 +29,6 @@
 
 
 
-
-############################################################
-# thoughtbot
-############################################################
-
-
-# adds the current branch name in green
-# git_prompt_info() {
-#   ref=$(git symbolic-ref HEAD 2> /dev/null)
-#   if [[ -n $ref ]]; then
-#     echo "[%{$fg_bold[magenta]%}${ref#refs/heads/}%{$reset_color%}]"
-#   fi
-# }
-
-# makes color constants available
-autoload -U colors
-colors
-
-# expand functions in the prompt
-# setopt prompt_subst
-
-# prompt
-# export PS1='$(git_prompt_info)[${SSH_CONNECTION+"%{$fg_bold[green]%}%n@%m:"}%{$fg_bold[blue]%}%1~%{$reset_color%}] '
-
-
 ############################################################
 # oh-my-zsh
 ############################################################
@@ -63,7 +38,7 @@ ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="prose-vcprompt"
+ZSH_THEME="prose-knosis"
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -96,23 +71,26 @@ source $ZSH/oh-my-zsh.sh
 ############################################################
 
 
-# load our own completion functions
-fpath=(~/.zsh/completion $fpath)
+# ZSH
+# disable auto correct
+unsetopt CORRECT CORRECT_ALL
+
+# enable zsh emacs mode
+bindkey -e
+
+# makes color constants available
+autoload -U colors
+colors
 
 # completion
 autoload -U compinit
 compinit
 
+# load our own completion functions
+fpath=(~/.zsh/completion $fpath)
+
 # automatically enter directories without cd
 setopt auto_cd
-
-# use vim as an editor
-export EDITOR=vim
-
-# aliases
-if [ -e "$HOME/.aliases" ]; then
-  source "$HOME/.aliases"
-fi
 
 # use incremental search
 bindkey "^R" history-incremental-search-backward
@@ -136,9 +114,6 @@ setopt histignoredups
 # keep TONS of history
 export HISTSIZE=40960
 
-# look for ey config in project dirs
-export EYRC=./.eyrc
-
 # automatically pushd
 setopt auto_pushd
 export dirstacksize=5
@@ -157,24 +132,18 @@ setopt EXTENDED_GLOB
 # Enable zmv command
 autoload zmv
 
-# recommended by brew doctor
-export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
-
 # GRC
 source "`brew --prefix`/etc/grc.bashrc"
 
 
-
-# ZSH
-# disable auto correct
-unsetopt CORRECT CORRECT_ALL
-
-# enable zsh emacs mode
-bindkey -e
-
 # load private environment variables
 if [ -e "$HOME/.private" ]; then
   source "$HOME/.private"
+fi
+
+# aliases
+if [ -e "$HOME/.aliases" ]; then
+  source "$HOME/.aliases"
 fi
 
 # add formatting and color to `ls`
@@ -186,15 +155,17 @@ alias ll='ls -Fhl'
 # use vim as pager / less replacement
 export PAGER=vimpager
 alias less=$PAGER
+# use vim as an editor
+export EDITOR=vim
 
 # include various package management locations in path
 export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
 export PATH="/usr/local/share/npm/bin:$PATH"
 export PATH="/usr/local/share/python:$PATH"
-export PATH="$HOME/bin:$HOME/.bin:$PATH"
+export PATH="$HOME/bin:$PATH"
 
 # npm packages
-NODE_PATH="$NODE_PATH:/usr/local/lib/node_modules"
+NODE_PATH="/usr/local/lib/node_modules:$NODE_PATH"
 
 # rvm
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
