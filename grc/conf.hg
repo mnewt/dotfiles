@@ -1,0 +1,27 @@
+# revisions
+regexp=\b[0-9a-f]{12}\b
+colours=bold yellow
+count=more
+=======
+# hg diff:
+regexp=^\+(.*$)
+colours=bold green
+count=more
+=======
+regexp=^\-(--.+$|[^\-].*$)
+colours=bold red
+count=more
+=======
+regexp=^@@ .* @@$
+colours=magenta
+count=more
+=======
+# hg st:
+regexp=^R .*
+colours=red bold
+=======
+regexp=^M .*
+colours=yellow bold
+=======
+regexp=^A .*
+colours=green bold

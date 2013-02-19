@@ -1,8 +1,8 @@
-# configuration file for ps
-# grey everything out
-regexp=^[a-zA-Z]+ .*$
+# darken root's processes
+regexp=^root .*$
 colours=bold black
-======
-# highlight my processes in green
-regexp=^matt.*$
-colours=green
+=======
+# everything in brakets
+regexp=\[.+?\]
+colours=cyan
+count=more
