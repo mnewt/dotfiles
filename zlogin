@@ -62,7 +62,7 @@ COMPLETION_WAITING_DOTS="true"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(autojump brew bundler cake compleat cparm dircycle dirpersist extract gem git git-flow github gnu-utils heroku history-substring-search node npm osx rails3 rake ruby rvm screen sublime terminalapp zsh-syntax-highlighting)
+plugins=(autojump brew bundler cake compleat cparm dircycle dirpersist extract gem git git-flow github gnu-utils heroku history-substring-search node npm osx rails3 rake ruby rvm sublime terminalapp zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -167,6 +167,5 @@ export PATH="$HOME/bin:$PATH"
 # npm packages
 NODE_PATH="/usr/local/lib/node_modules:$NODE_PATH"
 
-# rvm
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-
+# rbenv
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
