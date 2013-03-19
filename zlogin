@@ -1,3 +1,4 @@
+#!/bin/zsh
 # +----------------+-----------+-----------+------+
 # |                |Interactive|Interactive|Script|
 # |                |login      |non-login  |      |
@@ -32,46 +33,84 @@
 ############################################################
 # oh-my-zsh
 ############################################################
-ZSH=$HOME/.oh-my-zsh
-
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="prose-knosis"
-
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
-# Set to this to use case-sensitive completion
-# CASE_SENSITIVE="true"
-
-# Comment this out to disable weekly auto-update checks
-DISABLE_AUTO_UPDATE="true"
-
-# Uncomment following line if you want to disable colors in ls
-# DISABLE_LS_COLORS="true"
-
-# Uncomment following line if you want to disable autosetting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment following line if you want red dots to be displayed while waiting for completion
-COMPLETION_WAITING_DOTS="true"
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(autojump brew bundler cake compleat cparm dircycle dirpersist extract gem git git-flow github gnu-utils heroku history-substring-search node npm osx rails3 rake ruby rvm sublime terminalapp zsh-syntax-highlighting)
+# plugins=(autojump brew bundler cake compleat cparm dircycle dirpersist extract gem git git-flow github gnu-utils heroku history-substring-search node npm osx rails3 rake ruby rvm sublime terminalapp zsh-syntax-highlighting)
 
-source $ZSH/oh-my-zsh.sh
+
+############################################################
+# antigen (zsh package manager)
+############################################################
+source $HOME/code/antigen/antigen.zsh
+
+# Load the oh-my-zsh's library.
+antigen-lib
+
+# Bundles from the default repo (robbyrussell's oh-my-zsh).
+antigen-bundles <<EOBUNDLES
+
+autojump
+brew
+# bundler
+command-not-found
+compleat
+dircycle
+dirpersist
+extract
+# gem
+git
+github
+gnu-utils
+# heroku
+history-substring-search
+history
+# jake-node
+last-working-dir
+# mercurial
+node
+npm
+osx
+per-directory-history
+# pip
+# python
+# rails
+# rails3
+# rbenv
+rsync
+# ruby
+themes
+urltools
+
+EOBUNDLES
+
+# nicoulaj's moar completion files for zsh
+antigen-bundle zsh-users/zsh-completions src
+
+# ZSH port of Fish shell's history search feature.
+antigen-bundle zsh-users/zsh-history-substring-search
+
+# Syntax highlighting bundle.
+antigen-bundle zsh-users/zsh-syntax-highlighting
+
+# Load my custom plugins
+antigen-bundle $HOME/.zsh/plugins
+
+# Load the theme.
+antigen-theme $HOME/.zsh/themes/prose-knosis.zsh-theme
+
+# Tell antigen that you're done.
+antigen-apply
+
+
 
 ############################################################
 # interactive shell customizations
 ############################################################
 
 
-# ZSH
+# ZSH ######################################################
 # disable auto correct
 unsetopt CORRECT CORRECT_ALL
 
@@ -132,9 +171,19 @@ setopt EXTENDED_GLOB
 # Enable zmv command
 autoload zmv
 
-# GRC
+# Red dots to be displayed while waiting for completion
+COMPLETION_WAITING_DOTS="true"
+
+
+# GRC ######################################################
 source "`brew --prefix`/etc/grc.bashrc"
 
+
+# rbenv #####################################################
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+
+
+# Other Shell Customizations ################################
 
 # load private environment variables
 if [ -e "$HOME/.private" ]; then
@@ -158,6 +207,9 @@ alias less=$PAGER
 # use vim as an editor
 export EDITOR=vim
 
+
+# PATH #####################################################
+
 # include various package management locations in path
 export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
 export PATH="/usr/local/share/npm/bin:$PATH"
@@ -167,5 +219,4 @@ export PATH="$HOME/bin:$PATH"
 # npm packages
 NODE_PATH="/usr/local/lib/node_modules:$NODE_PATH"
 
-# rbenv
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+

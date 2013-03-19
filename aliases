@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # Unix
 alias tlf="tail -f"
 alias ln='ln -v'
@@ -11,6 +13,8 @@ alias grep='grep --color=auto'
 alias -g M='| less'
 alias -g L='| wc -l'
 alias -g ONE="| awk '{ print \$1}'"
+alias findit='grep -v "denied" `find / -name "*monokai*"` 2>/dev/null'
+alias df='df -h'
 
 # git
 alias g="git"
