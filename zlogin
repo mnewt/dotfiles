@@ -32,6 +32,9 @@
 
 # try to speed up zsh / oh-my-zsh / antigen loading
 skip_global_compinit=1
+# completion
+autoload -U compinit
+compinit
 
 ############################################################
 # oh-my-zsh
@@ -40,7 +43,7 @@ skip_global_compinit=1
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-# plugins=(autojump brew bundler cake compleat cparm dircycle dirpersist extract gem git git-flow github gnu-utils heroku history-substring-search node npm osx rails3 rake ruby rvm sublime terminalapp zsh-syntax-highlighting)
+# plugins=(autojump brew bundler cake compleat cparm dircycle dirpersist extract gem git git-flow github gnu-utils heroku history-substring-search node npm osx rails3 rake ruby sublime terminalapp zsh-syntax-highlighting)
 
 
 ############################################################
@@ -55,23 +58,15 @@ antigen-lib
 antigen-bundles <<EOBUNDLES
 
 autojump
-# brew
-# command-not-found
+brew
 dircycle
 dirpersist
-# extract
-# gem
+extract
 git
-# github
-# gnu-utils
-# heroku
-# history
-# mercurial
-# node
-# npm
-# osx
+gnu-utils
+npm
+osx
 # per-directory-history
-# urltools
 
 # nicoulaj's moar completion files for zsh
 zsh-users/zsh-completions src
@@ -106,13 +101,7 @@ antigen-apply
 # enable zsh emacs mode
 bindkey -e
 
-# makes color constants available
-# autoload -U colors
-# colors
 
-# completion
-# autoload -U compinit
-# compinit
 
 # load our own completion functions
 fpath=(~/.zsh/completion $fpath)
@@ -130,9 +119,6 @@ fpath=(~/.zsh/completion $fpath)
 # bindkey "^N" insert-last-word
 bindkey -s "^T" "^[Isudo ^[A" # "t" for "toughguy"
 
-# expand functions in the prompt
-# setopt prompt_subst
-
 # ignore duplicate history entries
 setopt histignoredups
 
@@ -140,18 +126,16 @@ setopt histignoredups
 export HISTSIZE=40960
 
 # automatically pushd
-# setopt auto_pushd
-# export dirstacksize=5
+setopt auto_pushd
+export dirstacksize=5
 
 # awesome cd movements from zshkit
-# setopt AUTOCD
-# setopt AUTOPUSHD PUSHDMINUS PUSHDSILENT PUSHDTOHOME
-# setopt cdablevars
+setopt AUTOCD
+setopt AUTOPUSHD PUSHDMINUS PUSHDSILENT PUSHDTOHOME
+setopt cdablevars
 
-# Try to correct command line spelling
-#setopt CORRECT CORRECT_ALL
 # disable auto correct
-# unsetopt CORRECT CORRECT_ALL
+unsetopt CORRECT CORRECT_ALL
 
 # Enable extended globbing
 setopt EXTENDED_GLOB
@@ -168,7 +152,7 @@ source "`brew --prefix`/etc/grc.bashrc"
 
 
 # rbenv ####################################################
-# if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # nvm ######################################################
 [[ -s /Users/matt/.nvm/nvm.sh ]] && . /Users/matt/.nvm/nvm.sh
@@ -201,8 +185,3 @@ export EDITOR=vim
 
 # include various package management locations in path
 export PATH="$HOME/bin:/usr/local/share/npm/bin:/usr/local/lib/node_modules:/usr/local/share/python:/usr/local/bin:/usr/local/sbin:$PATH"
-
-
-
-
-

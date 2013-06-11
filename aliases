@@ -62,6 +62,9 @@ alias gci="git pull --rebase && rake && git push"
 alias whats-my-ip="curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'"
 alias dis='dig +nocmd +noall +answer'
 
+# Dash
+dash() { open "dash://$*" }
+
 # GRC colourify
 alias arp='colourify -c conf.traceroute arp'
 alias tail='colourify -c conf.log tail'
