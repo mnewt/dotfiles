@@ -32,9 +32,7 @@
 
 # try to speed up zsh / oh-my-zsh / antigen loading
 skip_global_compinit=1
-# completion
-autoload -U compinit
-compinit
+
 
 ############################################################
 # oh-my-zsh
@@ -62,7 +60,7 @@ brew
 dircycle
 dirpersist
 extract
-git
+# git
 gnu-utils
 npm
 osx
@@ -89,7 +87,9 @@ antigen-theme $HOME/.zsh/themes/prose-knosis.zsh-theme
 # Tell antigen that you're done.
 antigen-apply
 
-
+# completion
+autoload -U compinit
+compinit
 
 ############################################################
 # interactive shell customizations
@@ -184,4 +184,4 @@ export EDITOR=vim
 # PATH #####################################################
 
 # include various package management locations in path
-export PATH="$HOME/bin:/usr/local/share/npm/bin:/usr/local/lib/node_modules:/usr/local/share/python:/usr/local/bin:/usr/local/sbin:$PATH"
+export PATH="$HOME/bin:/usr/local/share/npm/bin:/usr/local/lib/node_modules:/usr/local/bin:/usr/local/sbin:$PATH"
