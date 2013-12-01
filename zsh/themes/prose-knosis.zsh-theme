@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# vcprompt: https://github.com/djl/vcprompt
+
 # virtualenv
 VIRTUAL_ENV_DISABLE_PROMPT="true"
 function virtualenv_info {

@@ -47,23 +47,24 @@ skip_global_compinit=1
 ############################################################
 # antigen (zsh package manager)
 ############################################################
-source $HOME/code/antigen/antigen.zsh
+
+source $HOME/.antigen/antigen.zsh
 
 # Load the oh-my-zsh's library.
-antigen-lib
+antigen use oh-my-zsh
 
 # Bundles from the default repo (robbyrussell's oh-my-zsh).
 antigen-bundles <<EOBUNDLES
 
 autojump
 brew
+command-not-found
 dircycle
 dirpersist
 extract
-# git
+git
 gnu-utils
 npm
-osx
 # per-directory-history
 
 # nicoulaj's moar completion files for zsh
@@ -77,6 +78,10 @@ zsh-users/zsh-syntax-highlighting
 
 EOBUNDLES
 
+# Detect Mac OS X
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  antigen-bundle osx
+fi
 
 # Customized Sublime Text plugin (for version 3)
 source $HOME/.zsh/plugins/sublime/sublime.plugin.zsh
