@@ -48,7 +48,7 @@ skip_global_compinit=1
 # antigen (zsh package manager)
 ############################################################
 
-source $HOME/.antigen/antigen.zsh
+source $HOME/.antigen/antigen/antigen.zsh
 
 # Load the oh-my-zsh's library.
 antigen use oh-my-zsh
