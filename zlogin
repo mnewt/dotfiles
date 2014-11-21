@@ -103,10 +103,13 @@ compinit
 
 # ZSH ######################################################
 
+# enable zsh online help
+unalias run-help
+autoload run-help
+HELPDIR=/usr/local/share/zsh/helpfiles
+
 # enable zsh emacs mode
 bindkey -e
-
-
 
 # load our own completion functions
 fpath=(~/.zsh/completion $fpath)
@@ -153,7 +156,11 @@ COMPLETION_WAITING_DOTS="true"
 
 
 # GRC ######################################################
-source "`brew --prefix`/etc/grc.bashrc"
+GRC=`which grc`
+if [ "$TERM" != dumb ] && [ -n "$GRC" ]
+then
+	source "`brew --prefix`/etc/grc.bashrc"
+fi
 
 
 # rbenv ####################################################
@@ -161,6 +168,10 @@ if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # nvm ######################################################
 [[ -s /Users/matt/.nvm/nvm.sh ]] && . /Users/matt/.nvm/nvm.sh
+
+
+# vagrant ##################################################
+export VAGRANT_DEFAULT_PROVIDER=parallels
 
 
 # Other Shell Customizations ###############################
@@ -187,6 +198,4 @@ export EDITOR=vim
 
 
 # PATH #####################################################
-
-# include various package management locations in path
 export PATH="$HOME/bin:/usr/local/share/npm/bin:/usr/local/lib/node_modules:/usr/local/bin:/usr/local/sbin:$PATH"

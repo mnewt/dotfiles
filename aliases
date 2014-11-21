@@ -14,12 +14,10 @@ alias grep='grep --color=auto'
 alias -g M='| less'
 alias -g L='| wc -l'
 alias -g ONE="| awk '{ print \$1}'"
-alias findit='grep -v "denied" `find / -name "*monokai*"` 2>/dev/null'
 alias df='df -h'
 
 # git
 alias g="git"
-alias gci="git pull --rebase && rake && git push"
 
 # # Bundler
 # alias b="bundle"
@@ -59,18 +57,57 @@ alias gci="git pull --rebase && rake && git push"
 # alias db-backup-production='heroku pgbackups:capture --remote production'
 
 # Network
-alias whats-my-ip="curl -s checkip.dyndns.org | grep -Eo '[0-9\.]+'"
+alias whats-my-ip="dig +short myip.opendns.com @208.67.222.222 @208.67.220.220"
 alias dis='dig +nocmd +noall +answer'
+alias listening-ports='netstat -ntlp | grep LISTEN'
+
+# Change Directory to the active Finder window (else ~/Desktop)
+function cdf()
+   {
+      local fPath=`osascript -e '
+      tell app "finder"
+         try
+            set folderPath to (folder of the front window as alias)
+         on error
+            set folderPath to (path to desktop folder as alias)
+         end try
+         POSIX path of folderPath
+      end tell'
+      `;
+      echo "cd $fPath";
+      cd "$fPath" > /dev/null
+   }
+
+#ip shows ip addresses for eth0, eth1 and external
+function ip()
+   {
+      echo -e "WiFi:\t `ipconfig getifaddr en0 2> /dev/null`"
+      echo -e "Ethernet:\t\t `ipconfig getifaddr en1 2> /dev/null`"
+      echo -e "External:\t `dig +short myip.opendns.com @208.67.222.222 @208.67.220.220`"
+      echo ""
+   }
+
+# open man page in Preview
+pman()
+{
+	man -t "${1}" | open -f -a /Appllication/Preview.app/
+}
 
 # Dash
 dash() { open "dash://$*" }
 
 # GRC colourify
-alias arp='colourify -c conf.traceroute arp'
-alias tail='colourify -c conf.log tail'
-alias ps='colourify -c conf.ps ps'
-alias ifconfig='colourify -c conf.traceroute ifconfig'
-alias nmap='colourify -c conf.nmap nmap'
-alias lsof='colourify -c conf.traceroute lsof'
-alias dig='colourify -c conf.traceroute dig'
-alias host='colourify -c conf.traceroute host'
+GRC=`which grc`
+if [ "$TERM" != dumb ] && [ -n "$GRC" ]
+then
+	alias arp='colourify -c conf.traceroute arp'
+	alias tail='colourify -c conf.log tail'
+	alias ps='colourify -c conf.ps ps'
+	alias ifconfig='colourify -c conf.traceroute ifconfig'
+	alias nmap='colourify -c conf.nmap nmap'
+	alias lsof='colourify -c conf.traceroute lsof'
+	alias dig='colourify -c conf.traceroute dig'
+	alias host='colourify -c conf.traceroute host'
+	alias curl='colourify -c conf.curl curl'
+fi
+
