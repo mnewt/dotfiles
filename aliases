@@ -15,6 +15,9 @@ alias -g L='| wc -l'
 alias -g ONE="| awk '{ print \$1}'"
 alias df='df -h'
 
+# vim
+alias vi='vim'
+
 # git
 alias g="git"
 
@@ -89,3 +92,23 @@ then
 	alias curl='colourify -c conf.curl curl'
 fi
 
+# Sublime Text #############################################
+
+if [[ $('uname') == 'Linux' ]]; then
+  if [ -f '/usr/bin/sublime_text' ]; then
+    st_run() { nohup /usr/bin/sublime_text $@ > /dev/null & }
+  else
+    st_run() { nohup /usr/bin/sublime-text $@ > /dev/null & }
+  fi
+  alias st=st_run
+elif  [[ $('uname') == 'Darwin' ]]; then
+  local _sublime_darwin_subl=/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl
+  # Check if Sublime is installed in user's home application directory
+  if [[ -a $HOME/${_sublime_darwin_subl} ]]; then
+    alias st='$HOME/${_sublime_darwin_subl}'
+  else
+    alias st='${_sublime_darwin_subl}'
+  fi
+elif  [[ $('uname') == 'CYGWIN' ]]; then
+  alias st=`which subl`
+fi

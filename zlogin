@@ -159,8 +159,7 @@ COMPLETION_WAITING_DOTS="true"
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # nvm ######################################################
-[[ -s /Users/matt/.nvm/nvm.sh ]] && . /Users/matt/.nvm/nvm.sh
-
+[[ -s /$HOME/.nvm/nvm.sh ]] && . /$HOME/.nvm/nvm.sh
 
 # vagrant ##################################################
 export VAGRANT_DEFAULT_PROVIDER=parallels
@@ -179,9 +178,11 @@ function virtualenv_info {
 }
 
 function vcprompt_info {
-  vcprompt --format-git "on λ %{$fg[blue]%}%b%{$reset_color%}%{$fg[green]%}%u%m%a%{$reset_color%}" \
-           --format-hg  "on ☿ %{$fg[magenta]%}%b%{$reset_color%}%{$fg[green]%}%u%m%{$reset_color%}" \
-           --format    "on %s %{$fg[magenta]%}%b%{$reset_color%}%{$fg[green]%}%u%m%{$reset_color%}"
+  if hash vcprompt 2>/dev/null; then
+    vcprompt --format-git "on λ %{$fg[blue]%}%b%{$reset_color%}%{$fg[green]%}%u%m%a%{$reset_color%}" \
+             --format-hg  "on ☿ %{$fg[magenta]%}%b%{$reset_color%}%{$fg[green]%}%u%m%{$reset_color%}" \
+             --format    "on %s %{$fg[magenta]%}%b%{$reset_color%}%{$fg[green]%}%u%m%{$reset_color%}"
+  fi
 }
 
 function box_name {
@@ -215,7 +216,7 @@ export LSCOLORS=ExFxCxDxBxegedabagacad
 export GREP_OPTIONS='--color=auto'
 
 # use vim as pager / less replacement
-if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+if hash vimpager 2>/dev/null; then
 	export PAGER=vimpager
 	alias less=$PAGER
 	# use vim as an editor
