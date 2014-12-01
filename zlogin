@@ -112,7 +112,12 @@ HELPDIR=/usr/local/share/zsh/helpfiles
 bindkey -e
 
 # load our own completion functions
-fpath=(~/.zsh/completion $fpath)
+fpath=($HOME/.zsh/completions $fpath)
+
+# load all executable scripts from plugins directory
+for file in $(find $HOME/.zsh/plugins -maxdepth 1 -name "*.zsh"); do
+  source $file
+done
 
 # use incremental search
 # bindkey "^R" history-incremental-search-backward
