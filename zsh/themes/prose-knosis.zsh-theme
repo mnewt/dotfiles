@@ -2,6 +2,9 @@
 
 # vcprompt: https://github.com/djl/vcprompt
 
+setopt prompt_subst
+autoload -Uz colors && colors
+
 # virtualenv
 VIRTUAL_ENV_DISABLE_PROMPT="true"
 function virtualenv_info {

@@ -9,7 +9,7 @@ if [[ $('uname') == 'Linux' ]]; then
 	else
 		st_run() { nohup /usr/bin/sublime-text $@ > /dev/null & }
 	fi
-alias st=st_run
+	alias st=st_run
 elif  [[ $('uname') == 'Darwin' ]]; then
 	# Check if Sublime is installed in user's home application directory
 	if [[ -a $HOME/${_sublime_darwin_subl} ]]; then
