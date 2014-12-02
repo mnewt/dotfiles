@@ -222,7 +222,6 @@ fi
 
 # enabling only git detection - for all backends supported, run `vcs_info_printsys`
 zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:*' check-for-changes true
 
 # check-for-changes can be really slow.
 # you should disable it, if you work with large repositories
@@ -238,7 +237,7 @@ zstyle ':vcs_info:*:prompt:*' check-for-changes true
 PR_RST="%{${reset_color}%}"
 FMT_BRANCH="on %{$turquoise%}%b%u%c${PR_RST}"
 FMT_ACTION="on %{$limegreen%}%a${PR_RST}"
-FMT_UNSTAGED="%{$orange%}●"
+FMT_UNSTAGED="%{$yellow%}●"
 FMT_STAGED="%{$limegreen%}+"
 
 zstyle ':vcs_info:*:prompt:*' unstagedstr   "${FMT_UNSTAGED}"
@@ -283,7 +282,7 @@ function steeef_precmd {
 add-zsh-hook precmd steeef_precmd
 
 
-PROMPT='%{$fg[magenta]%}%n%{$reset_color%} at %{$fg[orange]%}%m%{$reset_color%} in %{$fg[green]%}${PWD/#$HOME/~}%{$reset_color%} ${vcs_info_msg_0_} $(virtualenv_info)
+PROMPT='%{$purple%}%n%{$reset_color%} at %{$orange%}%m%{$reset_color%} in %{$limegreen%}${PWD/#$HOME/~}%{$reset_color%} ${vcs_info_msg_0_} $(virtualenv_info)
 %(?,,%{${bg[red]}%}%{$fg[white]%}[%?]%{$reset_color%} )%# '
 
 
@@ -299,10 +298,6 @@ if [ -e "$HOME/.aliases" ]; then
   source "$HOME/.aliases"
 fi
 
-# add formatting and color to `ls`
-export CLICOLOR=1
-export LSCOLORS=ExFxCxDxBxegedabagacad
-
 # use vim as pager / less replacement
 if hash vimpager 2>/dev/null; then
 	export PAGER=vimpager
@@ -313,4 +308,4 @@ fi
 
 
 # PATH #####################################################
-export PATH="$HOME/bin:/usr/local/share/npm/bin:/usr/local/lib/node_modules:/usr/local/bin:/usr/local/sbin:$PATH"
+export PATH="$HOME/.bin:$HOME/bin:$PATH"
