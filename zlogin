@@ -171,34 +171,120 @@ export VAGRANT_DEFAULT_PROVIDER=parallels
 
 
 # prompt ###################################################
-# vcprompt: https://github.com/djl/vcprompt
+
+
+zstyle ':vcs_info:*' actionformats 'on %s %b running %a %u%c%R%r%m'
+zstyle ':vcs_info:*' formats 'on %s %b %u%c%m %i'
+precmd () { vcs_info }
+
+
+
+# prompt style and colors based on Steve Losh's Prose theme:
+# http://github.com/sjl/oh-my-zsh/blob/master/themes/prose.zsh-theme
+#
+# vcs_info modifications from Bart Trojanowski's zsh prompt:
+# http://www.jukie.net/bart/blog/pimping-out-zsh-prompt
+#
+# git untracked files modification from Brian Carper:
+# http://briancarper.net/blog/570/git-info-in-your-zsh-prompt
+# 
+# sliced up from 
+# https://github.com/robbyrussell/oh-my-zsh/blob/master/themes/steeef.zsh-theme
+
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+function virtualenv_info {
+    [ $VIRTUAL_ENV ] && echo '('$fg[blue]`basename $VIRTUAL_ENV`%{$reset_color%}') '
+}
+PR_GIT_UPDATE=1
 
 setopt prompt_subst
-autoload -Uz colors && colors
+autoload colors
+colors
 
-# virtualenv
-VIRTUAL_ENV_DISABLE_PROMPT="true"
-function virtualenv_info {
-  [ $VIRTUAL_ENV ] && echo '('%{$fg_bold[grey]%}`basename $VIRTUAL_ENV`%{$reset_color%}') '
+autoload -U add-zsh-hook
+autoload -Uz vcs_info
+
+#use extended color pallete if available
+if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
+    turquoise="%F{81}"
+    orange="%F{166}"
+    purple="%F{135}"
+    hotpink="%F{161}"
+    limegreen="%F{118}"
+else
+    turquoise="$fg[cyan]"
+    orange="$fg[yellow]"
+    purple="$fg[magenta]"
+    hotpink="$fg[red]"
+    limegreen="$fg[green]"
+fi
+
+# enabling only git detection - for all backends supported, run `vcs_info_printsys`
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:*' check-for-changes true
+
+# check-for-changes can be really slow.
+# you should disable it, if you work with large repositories
+zstyle ':vcs_info:*:prompt:*' check-for-changes true
+
+# set formats
+# %b - branchname
+# %u - unstagedstr (see below)
+# %c - stagedstr (see below)
+# %a - action (e.g. rebase-i)
+# %R - repository path
+# %S - path in the repository
+PR_RST="%{${reset_color}%}"
+FMT_BRANCH="on %{$turquoise%}%b%u%c${PR_RST}"
+FMT_ACTION="on %{$limegreen%}%a${PR_RST}"
+FMT_UNSTAGED="%{$orange%}●"
+FMT_STAGED="%{$limegreen%}+"
+
+zstyle ':vcs_info:*:prompt:*' unstagedstr   "${FMT_UNSTAGED}"
+zstyle ':vcs_info:*:prompt:*' stagedstr     "${FMT_STAGED}"
+zstyle ':vcs_info:*:prompt:*' actionformats "${FMT_BRANCH}${FMT_ACTION}"
+zstyle ':vcs_info:*:prompt:*' formats       "${FMT_BRANCH}"
+zstyle ':vcs_info:*:prompt:*' nvcsformats   ""
+
+
+function steeef_preexec {
+    case "$(history $HISTCMD)" in
+        *git*)
+            PR_GIT_UPDATE=1
+            ;;
+        *svn*)
+            PR_GIT_UPDATE=1
+            ;;
+    esac
 }
+add-zsh-hook preexec steeef_preexec
 
-function vcprompt_info {
-  if hash vcprompt 2>/dev/null; then
-    vcprompt --format-git "on λ %{$fg[blue]%}%b%{$reset_color%}%{$fg[green]%}%u%m%a%{$reset_color%}" \
-             --format-hg  "on ☿ %{$fg[magenta]%}%b%{$reset_color%}%{$fg[green]%}%u%m%{$reset_color%}" \
-             --format    "on %s %{$fg[magenta]%}%b%{$reset_color%}%{$fg[green]%}%u%m%{$reset_color%}"
-  fi
+function steeef_chpwd {
+    PR_GIT_UPDATE=1
 }
+add-zsh-hook chpwd steeef_chpwd
 
-function box_name {
-  hostname -s
+function steeef_precmd {
+    if [[ -n "$PR_GIT_UPDATE" ]] ; then
+        # check for untracked files or updated submodules, since vcs_info doesn't
+        if git ls-files --other --exclude-standard 2> /dev/null | grep -q "."; then
+            PR_GIT_UPDATE=1
+            FMT_BRANCH="on %{$turquoise%}%b%u%c%{$hotpink%}=${PR_RST}"
+        else
+            FMT_BRANCH="on %{$turquoise%}%b%u%c${PR_RST}"
+        fi
+        zstyle ':vcs_info:*:prompt:*' formats "${FMT_BRANCH} "
+
+        vcs_info 'prompt'
+        PR_GIT_UPDATE=
+    fi
 }
+add-zsh-hook precmd steeef_precmd
 
-PROMPT='%{$fg[magenta]%}%n%{$reset_color%} at %{$fg[yellow]%}$(box_name)%{$reset_color%} in %{$fg[green]%}${PWD/#$HOME/~}%{$reset_color%} $(vcprompt_info) $(virtualenv_info)
+
+PROMPT='%{$fg[magenta]%}%n%{$reset_color%} at %{$fg[orange]%}%m%{$reset_color%} in %{$fg[green]%}${PWD/#$HOME/~}%{$reset_color%} ${vcs_info_msg_0_} $(virtualenv_info)
 %(?,,%{${bg[red]}%}%{$fg[white]%}[%?]%{$reset_color%} )%# '
-
-# local return_status="%{$fg[red]%}%(?..×)%{$reset_color%}"
-# RPROMPT='${return_status}%{$reset_color%}'
 
 
 # Other Shell Customizations ###############################
@@ -216,9 +302,6 @@ fi
 # add formatting and color to `ls`
 export CLICOLOR=1
 export LSCOLORS=ExFxCxDxBxegedabagacad
-
-# add color to grep
-export GREP_OPTIONS='--color=auto'
 
 # use vim as pager / less replacement
 if hash vimpager 2>/dev/null; then
