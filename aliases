@@ -48,6 +48,11 @@ alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 # Reload the shell (i.e. invoke as a login shell)
 alias reload="exec $SHELL -l"
 
+if [[ "$OSTYPE" == "CYGWIN"* ]]; then
+  # Flush Directory Service cache
+  alias flush="ipconfig /flushdns"
+fi
+
 
 # Mac OS X #################################################
 if [[ "$OSTYPE" == "darwin"* ]]; then

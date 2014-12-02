@@ -273,7 +273,7 @@ function steeef_precmd {
         else
             FMT_BRANCH="on %{$turquoise%}%b%u%c${PR_RST}"
         fi
-        zstyle ':vcs_info:*:prompt:*' formats "${FMT_BRANCH} "
+        zstyle ':vcs_info:*:prompt:*' formats "on %{$turquoise%}%b%u%c${PR_RST}"
 
         vcs_info 'prompt'
         PR_GIT_UPDATE=
