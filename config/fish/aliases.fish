@@ -37,6 +37,13 @@ alias lsd="ls -lF "$colorflag" | grep --color=never '^d'"
 
 # vim
 alias vi='vim'
+# use vim as editor
+set -xU EDITOR=vim
+# use vim as pager / less replacement
+if hash vimpager >/dev/null 2>&1
+  set -xU PAGER (which vimpager)
+  alias less $PAGER
+end
 
 # git
 alias g="git"
@@ -67,6 +74,15 @@ switch (uname)
     alias flush="ipconfig /flushdns"
 
   case Darwin
+    # Set where to install casks
+    set -x HOMEBREW_CASK_OPTS "--appdir=/Applications"
+
+    # GNU coreutils: replace mac builtins
+    if test -d /usr/local/opt/coreutils/libexec/gnubin
+      set -x PATH /usr/local/opt/coreutils/libexec/gnubin $HOME/.bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin
+      set -gx MANPATH :/usr/local/opt/coreutils/libexec/gnuman
+    end
+
     alias listening-ports='lsof -i -n -P | grep LISTEN'
 
     # open man page in Preview
