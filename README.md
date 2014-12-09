@@ -1,10 +1,14 @@
-thoughtbot dotfiles
+Matt's dotfiles
 ===================
+
+Targeted at [fish shell](http://fishshell.com/)
+
+Older `zsh` dotfiles are still present at this time
 
 Install
 -------
 
-[Fork this repo](https://github.com/thoughtbot/dotfiles/fork_select) on Github.
+[Fork this repo](https://github.com/mnewt/dotfiles) on Github.
 
 Clone your fork (replace `your-github-name` with your Github name).
 
@@ -18,43 +22,15 @@ Run the installer.
 It creates symlinks for all dotfiles in your home directory. You can safely run
 this file multiple times to update.
 
-Included are `zsh` dotfiles. To switch your shell to `zsh` on OS X:
+Included are `fish` dotfiles. To install and switch your shell to `fish` on OS X:
 
-    chsh -s /bin/zsh
+    # Install GNU coreutils, fish, grc, and vimpager
+    brew coreutils install fish grc vimpager
+    echo "/usr/local/bin/fish" | sudo tee -a /etc/shells
+    chsh -s /usr/local/bin/fish
 
-Why fork?
----------
+And then run fish
 
-Your master branch is meant for your customizations. Use the `upstream` branch
-to get thoughtbot's updates.
+    fish -l
+    fish_update_completions
 
-Set up upstream
----------------
-
-Do this once:
-
-    git remote add upstream git@github.com:thoughtbot/dotfiles.git
-    git fetch upstream
-    git checkout -b upstream upstream/master
-
-Update upstream
----------------
-
-Make changes in files that are not in thoughtbot's dotfiles.
-
-For example, to customize your `zsh` config, make your changes in `~/.zshenv`:
-
-    # RVM
-    [[ -s '/Users/croaky/.rvm/scripts/rvm' ]] && source '/Users/croaky/.rvm/scripts/rvm'
-
-    # recommended by brew doctor
-    export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
-
-Commit those kinds of things in your master branch.
-
-Then, each time you want to update thoughtbot's changes.
-
-    git checkout upstream
-    git pull
-    git checkout master
-    git rebase upstream
