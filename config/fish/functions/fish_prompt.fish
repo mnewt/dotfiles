@@ -99,7 +99,7 @@ test $ruby_info; and set ruby_info "$normal""using $magenta‹$ruby_info›"
 
   # WTB: time spend on last command (if ≥ 1s)
 
-  ##################################################
+  # #################################################
   # Output
   if [ -n $status_info ]
     echo -s $status_info

@@ -40,7 +40,7 @@ alias vi='vim'
 # use vim as editor
 set -xU EDITOR=vim
 # use vim as pager / less replacement
-if hash vimpager >/dev/null 2>&1
+if which vimpager >/dev/null 2>&1
   set -xU PAGER (which vimpager)
   alias less $PAGER
 end
@@ -148,8 +148,8 @@ end
 
 
 # GRC ######################################################
-set -l GRC (which grc)
-if test -e $GRC
+set -l GRC (which grc >/dev/null 2>&1)
+if not set -q $GRC
   alias colourify=$GRC" -es --colour=auto"
   alias configure='colourify ./configure'
   alias diff='colourify diff'
@@ -179,7 +179,7 @@ switch (uname)
   case Linux
     alias st="nohup /usr/bin/sublime_text $argv > /dev/null &"
   case CYGWIN'*'
-    alias st=(which subl) $argv
+    alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe' $argv
   case Darwin
     alias st="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "$argv
 end
