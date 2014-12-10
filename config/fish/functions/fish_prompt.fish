@@ -113,7 +113,7 @@ function fish_prompt --description "Write out the prompt - mnewt"
   case CYGWIN'*'
     echo -n -s $main_prompt $status_info $delim
   case '*'
-    echo -n -s $main_prompt
+    echo $main_prompt
     echo -n -s $status_info $delim
   end
 end
