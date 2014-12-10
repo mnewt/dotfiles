@@ -32,6 +32,7 @@ end
 if not set -q __fish_git_prompt_showstashstate
   set -g __fish_git_prompt_showstashstate 1
   set -g __fish_git_prompt_showuntrackedfiles 1
+  set -g __fish_git_prompt_showdirtystate 1
   set -g __fish_git_prompt_showupstream 'auto'
   set -g __fish_git_prompt_showcolorhints 1
   # set -g __fish_git_prompt_color_branch (set_color 0075cd)
@@ -112,7 +113,7 @@ function fish_prompt --description "Write out the prompt - mnewt"
   case CYGWIN'*'
     echo -n -s $main_prompt $status_info $delim
   case '*'
-    _rprint $main_prompt $job_info
+    echo -n -s $main_prompt
     echo -n -s $status_info $delim
   end
 end
