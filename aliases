@@ -48,6 +48,61 @@ alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 # Reload the shell (i.e. invoke as a login shell)
 alias reload="exec $SHELL -l"
 
+# transmission-remote-cli
+if hash transmission-remote-cli 2>/dev/null; then
+  alias trcli='transmission-remote-cli'
+fi
+
+# GRC ######################################################
+GRC=`which grc`
+if [ "$TERM" != dumb ] && [ -n "$GRC" ]
+then
+  alias colourify="$GRC -es --colour=auto"
+   alias configure='colourify ./configure'
+   alias diff='colourify diff'
+   alias make='colourify make'
+   alias gcc='colourify gcc'
+   alias g++='colourify g++'
+   alias as='colourify as'
+   alias gas='colourify gas'
+   alias ld='colourify ld'
+   alias netstat='colourify netstat'
+   alias ping='colourify ping'
+   alias traceroute='colourify /usr/sbin/traceroute'
+   alias arp='colourify -c conf.traceroute arp'
+  alias tail='colourify -c conf.log tail'
+  alias ps='colourify -c conf.ps ps'
+  alias ifconfig='colourify -c conf.traceroute ifconfig'
+  alias nmap='colourify -c conf.nmap nmap'
+  alias lsof='colourify -c conf.traceroute lsof'
+  alias dig='colourify -c conf.traceroute dig'
+  alias host='colourify -c conf.traceroute host'
+  alias curl='colourify -c conf.curl curl'
+fi
+
+# Sublime Text #############################################
+
+if [[ $('uname') == 'Linux' ]]; then
+  if [ -f '/usr/bin/sublime_text' ]; then
+    st_run() { nohup /usr/bin/sublime_text $@ > /dev/null & }
+  else
+    st_run() { nohup /usr/bin/sublime-text $@ > /dev/null & }
+  fi
+  alias st=st_run
+elif  [[ $('uname') == 'Darwin' ]]; then
+  local _sublime_darwin_subl=/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl
+  # Check if Sublime is installed in user's home application directory
+  if [[ -a $HOME/${_sublime_darwin_subl} ]]; then
+    alias st='$HOME/${_sublime_darwin_subl}'
+  else
+    alias st='${_sublime_darwin_subl}'
+  fi
+elif  [[ $('uname') == 'CYGWIN' ]]; then
+  alias st=`which subl`
+fi
+
+# CYGWIN ###################################################
+
 if [[ "$OSTYPE" == "CYGWIN"* ]]; then
   # Flush Directory Service cache
   alias flush="ipconfig /flushdns"
@@ -109,52 +164,4 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   # Enable Spotlight
   alias spoton="sudo mdutil -a -i on"
 
-fi
-
-# GRC ######################################################
-GRC=`which grc`
-if [ "$TERM" != dumb ] && [ -n "$GRC" ]
-then
-	alias colourify="$GRC -es --colour=auto"
-   alias configure='colourify ./configure'
-   alias diff='colourify diff'
-   alias make='colourify make'
-   alias gcc='colourify gcc'
-   alias g++='colourify g++'
-   alias as='colourify as'
-   alias gas='colourify gas'
-   alias ld='colourify ld'
-   alias netstat='colourify netstat'
-   alias ping='colourify ping'
-   alias traceroute='colourify /usr/sbin/traceroute'
-   alias arp='colourify -c conf.traceroute arp'
-	alias tail='colourify -c conf.log tail'
-	alias ps='colourify -c conf.ps ps'
-	alias ifconfig='colourify -c conf.traceroute ifconfig'
-	alias nmap='colourify -c conf.nmap nmap'
-	alias lsof='colourify -c conf.traceroute lsof'
-	alias dig='colourify -c conf.traceroute dig'
-	alias host='colourify -c conf.traceroute host'
-	alias curl='colourify -c conf.curl curl'
-fi
-
-# Sublime Text #############################################
-
-if [[ $('uname') == 'Linux' ]]; then
-  if [ -f '/usr/bin/sublime_text' ]; then
-    st_run() { nohup /usr/bin/sublime_text $@ > /dev/null & }
-  else
-    st_run() { nohup /usr/bin/sublime-text $@ > /dev/null & }
-  fi
-  alias st=st_run
-elif  [[ $('uname') == 'Darwin' ]]; then
-  local _sublime_darwin_subl=/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl
-  # Check if Sublime is installed in user's home application directory
-  if [[ -a $HOME/${_sublime_darwin_subl} ]]; then
-    alias st='$HOME/${_sublime_darwin_subl}'
-  else
-    alias st='${_sublime_darwin_subl}'
-  fi
-elif  [[ $('uname') == 'CYGWIN' ]]; then
-  alias st=`which subl`
 fi

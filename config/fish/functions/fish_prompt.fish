@@ -1,5 +1,5 @@
 # name: mnewt
-# based on: Numist, https://gist.github.com/douglascamata/e409fd77e9c61dcbdc44
+# inspired by: Numist, https://gist.github.com/douglascamata/e409fd77e9c61dcbdc44
 # and: https://gist.github.com/gak/5747159
 #
 # requires: fish, ncurses
@@ -39,22 +39,22 @@ if not set -q __fish_git_prompt_showstashstate
 end
 
 # Outputs first argument left-aligned, second argument right-aligned, newline
-function _rprint
-  if [ (count $argv) = 1 ]
-    echo -s $argv
-  else
-    set -l arglength (expr length + $argv[1]$argv[2])
-    set -l termwidth (tput cols)
-    set -l padding " "
-    if [ $arglength -lt $termwidth ]
-      set padding (printf "%"(math $termwidth - $arglength)"s")
-    end
+# function _rprint
+#   if [ (count $argv) = 1 ]
+#     echo -s $argv
+#   else
+#     set -l arglength (expr length + $argv[1]$argv[2])
+#     set -l termwidth (tput cols)
+#     set -l padding " "
+#     if [ $arglength -lt $termwidth ]
+#       set padding (printf "%"(math $termwidth - $arglength)"s")
+#     end
 
-    echo -n "$argv[1]$padding$argv[2]"
-  end
-end
+#     echo -n "$argv[1]$padding$argv[2]"
+#   end
+# end
 
-function fish_prompt --description "Write out the prompt - mnewt"
+function fish_prompt --description "Write out the prompt for mnewt"
   # Last command
   set -l last_status $status
 
