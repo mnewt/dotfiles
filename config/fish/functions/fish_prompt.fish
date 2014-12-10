@@ -1,73 +1,87 @@
-# name: Numist
-function fish_prompt
+# name: mnewt
+# based on: Numist, https://gist.github.com/douglascamata/e409fd77e9c61dcbdc44
+# and: https://gist.github.com/gak/5747159
+#
+# requires: fish, ncurses
+
+# Just calculate these once, to save a few cycles when displaying the prompt
+if not set -q __fish_prompt_hostname
+  set -g __fish_prompt_hostname (hostname|cut -d . -f 1)
+end
+
+if not set -q cyan
+  # Colours
+  set -g cyan (set_color -o cyan)
+  set -g yellow (set_color -o yellow)
+  set -g green (set_color -o green)
+  set -g red (set_color -o red)
+  set -g blue (set_color -o blue)
+  set -g magenta (set_color magenta)
+  set -g white (set_color white)
+  set -g normal (set_color normal)
+  # c0 to c4 progress from dark to bright
+  # ce is the error colour
+  set -g c0 (set_color 005284)
+  set -g c1 (set_color 0075cd)
+  set -g c2 (set_color 009eff)
+  set -g c3 (set_color 6dc7ff)
+  set -g c4 (set_color ffffff)
+  set -g ce (set_color $fish_color_error)
+end
+
+if not set -q __fish_git_prompt_showstashstate
+  set -g __fish_git_prompt_showstashstate 1
+  set -g __fish_git_prompt_showuntrackedfiles 1
+  set -g __fish_git_prompt_showupstream 'auto'
+  set -g __fish_git_prompt_showcolorhints 1
+  # set -g __fish_git_prompt_color_branch (set_color 0075cd)
+end
+
+# Outputs first argument left-aligned, second argument right-aligned, newline
+function _rprint
+  if [ (count $argv) = 1 ]
+    echo -s $argv
+  else
+    set -l arglength (expr length + $argv[1]$argv[2])
+    set -l termwidth (tput cols)
+    set -l padding " "
+    if [ $arglength -lt $termwidth ]
+      set padding (printf "%"(math $termwidth - $arglength)"s")
+    end
+
+    echo -n "$argv[1]$padding$argv[2]"
+  end
+end
+
+function fish_prompt --description "Write out the prompt - mnewt"
+  # Last command
   set -l last_status $status
 
-  # Colours
-  set -l cyan (set_color -o cyan)
-  set -l yellow (set_color -o yellow)
-  set -l green (set_color -o green)
-  set -l red (set_color -o red)
-  set -l blue (set_color -o blue)
-  set -l magenta (set_color magenta)
-  set -l white (set_color white)
-  set -l normal (set_color normal)
-
-  # Prints first argument left-aligned, second argument right-aligned, newline
-  function _rprint
-    if [ (count $argv) = 1 ]
-      echo -s $argv
-    else
-      set -l arglength (echo -n -s "$argv[1]$argv[2]" | perl -le 'while (<>) {
-        s/ \e[ #%()*+\-.\/]. |
-           (?:\e\[|\x9b) [ -?]* [@-~] | # CSI ... Cmd
-           (?:\e\]|\x9d) .*? (?:\e\\|[\a\x9c]) | # OSC ... (ST|BEL)
-           (?:\e[P^_]|[\x90\x9e\x9f]) .*? (?:\e\\|\x9c) | # (DCS|PM|APC) ... ST
-           \e.|[\x80-\x9f] //xg;
-        print;
-      }' | awk '{printf length;}')
-
-      set -l termwidth (tput cols)
-
-      set -l padding
-      if [ $arglength -lt $termwidth ]
-        set padding (printf "%0"(math $termwidth - $arglength)"d"|tr "0" " ")
-      end
-
-      echo -s "$argv[1]$padding$argv[2]"
-    end
+  set -e status_info
+  if [ $last_status -ne 0 ]
+    set status_info "$ce$last_status"
   end
 
-  # Unconditional stuff
-  set -l path $blue(pwd | sed "s:^$HOME:~:")
-  set -l basic_prompt $yellow(whoami)$normal" at "$green(hostname -s)$normal" in "$blue$path" "
+  # Current Directory
+  # 1st sed colorizes forward slashes
+  # 2nd sed colorizes the deepest path (the 'm' is the last char in the
+  # ANSI color code that needs to be stripped)
+  set -l path $c1(prompt_pwd | sed "s,/,$c0/$c1,g" | sed "s,\(.*\)/[^m]*m,\1/$c3,")
+  set -l basic_prompt $yellow$USER$normal" at "$green$__fish_prompt_hostname$normal" in "$blue$path$normal
 
-  # Prompt
-  set -l prompt
-  set -l UID (id -u $USER)
-  if [ "$UID" = "0" ]
-    set prompt "$red# "
-  else
-    set prompt "$normal% "
-  end
+  # Git
+  set -l git_info (__fish_git_prompt "$normal on $c0%s")
 
-  # Git stuff
-  set -l git_info
-  if [ (command git rev-parse --is-inside-work-tree ^/dev/null) ]
-    # Get the current branch name/commit
-    set -l git_branch_name (command git symbolic-ref HEAD ^/dev/null | sed -e 's|^refs/heads/||')
-    if [ -z $git_branch_name ]
-      set git_branch_name (command git show-ref --head -s --abbrev | head -n1 2> /dev/null)
-    end
-
-    # Unconditional git component
-    set git_info "$normal""on $white$git_branch_name"
-
-    if [ (command git status -s --ignore-submodules=dirty | wc -l) -gt 0 ]
-      set git_info "$git_info$yellow*"
-    end
-
-    set git_info "$git_info "
-  end
+  # Ruby
+  # set -l ruby_info
+  # if which rvm-prompt >/dev/null ^&1
+  #   set ruby_info (rvm-prompt i v g)
+  # else
+  #   if which rbenv >/dev/null ^&1
+  #     set ruby_info (rbenv version-name)
+  #   end
+  # end
+  # test $ruby_info; and set ruby_info "$normal""using $magenta‹$ruby_info›"
 
   # Job count
   set -l job_info
@@ -80,31 +94,25 @@ function fish_prompt
     end
   end
 
-  # Last command
-  set -l status_info ""
-  if [ $last_status -ne 0 ]
-    set status_info "$red""command failed with status: $last_status"
-  end
-
-  set -l ruby_info
-  if which rvm-prompt >/dev/null ^&1
-    set ruby_info (rvm-prompt i v g)
+  # Prompt Delimiter
+  set -l delim
+  set -l UID (id -u $USER)
+  if [ "$UID" = "0" ]
+    set delim "$red# "
   else
-    if which rbenv >/dev/null ^&1
-      set ruby_info (rbenv version-name)
-    end
+    set delim "$normal> "
   end
-
-test $ruby_info; and set ruby_info "$normal""using $magenta‹$ruby_info›"
-
-  # WTB: time spend on last command (if ≥ 1s)
 
   # #################################################
   # Output
-  if [ -n $status_info ]
-    echo -s $status_info
+  
+  set -l main_prompt "$basic_prompt$git_info"
+  # cygwin + fish just don't seem to like newlines in the prompt...
+  switch (uname)
+  case CYGWIN'*'
+    echo -n -s $main_prompt $status_info $delim
+  case '*'
+    _rprint $main_prompt $job_info
+    echo -n -s $status_info $delim
   end
-  _rprint "$basic_prompt$git_info$ruby_info" $job_info
-  echo -n -s $prompt
-
 end

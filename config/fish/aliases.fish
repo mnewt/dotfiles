@@ -59,7 +59,8 @@ alias dis='dig +nocmd +noall +answer'
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 
 # Reload the shell (i.e. invoke as a login shell)
-alias reload="exec $SHELL -l"
+# set $SHELL (which fish)
+# alias reload="exec $SHELL -l"
 
 # OS Specific ##############################################
 
@@ -67,8 +68,14 @@ switch (uname)
   case Linux
     alias listening-ports='netstat -ntlp | grep LISTEN'
 
+    function update
+      sudo aptitude update
+      sudo aptitude upgrade -y
+      sudo aptitude clean
+    end
+
   case CYGWIN'*'
-    alias listening-ports='netstat -an | grep LISTEN'
+    alias listening-ports='netstat -an | grep LISTENING'
     alias ips ipconfig | awk -F" ." '/Address/ {print $NF}'
     # Flush Directory Service cache
     alias flush="ipconfig /flushdns"
@@ -79,8 +86,8 @@ switch (uname)
 
     # GNU coreutils: replace mac builtins
     if test -d /usr/local/opt/coreutils/libexec/gnubin
-      set -x PATH /usr/local/opt/coreutils/libexec/gnubin $HOME/.bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin
-      set -gx MANPATH :/usr/local/opt/coreutils/libexec/gnuman
+      set -U fish_user_path /usr/local/opt/coreutils/libexec/gnubin $HOME/.bin 
+      set -U MANPATH :/usr/local/opt/coreutils/libexec/gnuman
     end
 
     alias listening-ports='lsof -i -n -P | grep LISTEN'
@@ -111,8 +118,11 @@ switch (uname)
       open "dash://"$argv[1]
     end
 
-    # Get OS X Software Updates, and update installed Ruby gems, Homebrew, npm, and their installed packages
-    function update-mac
+
+    # vagrant 
+    set -x VAGRANT_DEFAULT_PROVIDER=parallels
+
+    function update
       sudo softwareupdate -i -a
       brew update; brew upgrade; brew cleanup;
       npm install npm -g; npm update -g;

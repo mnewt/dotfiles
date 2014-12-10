@@ -4,7 +4,6 @@ set -gx fish_greeting ''
 
 # Setup terminal, and turn on colors
 set -x TERM xterm-256color
-
 set -x LANG en_US.UTF-8
 set -x LC_CTYPE "en_US.UTF-8"
 set -x LC_MESSAGES "en_US.UTF-8"
@@ -22,7 +21,3 @@ end
 
 # additional functions
 source functions/z.fish
-
-
-# vagrant ##################################################
-set -x VAGRANT_DEFAULT_PROVIDER=parallels
