@@ -10,13 +10,17 @@ alias df='df -h'
 # grep
 set -x GREP_COLOR '3;33'
 alias grep='grep --color=auto'
-# alias G='| grep'
-# alias M='| less'
-# alias L='| wc -l'
-# alias ONE="| awk '{ print \$1}'"
 
-# Enable aliases to be sudo’ed
-alias sudo='sudo '
+# sudo
+function sudo
+    if test "$argv" = !!
+        # bring back `sudo !!`
+        eval command sudo $history[1]
+    else
+        # allow aliases to be sudo'ed
+        command sudo $argv
+    end
+end
 
 # ls
 # add formatting and color to `ls`
