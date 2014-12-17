@@ -19,5 +19,7 @@ if test -e $HOME"/.config/fish/aliases.fish"
   source $HOME"/.config/fish/aliases.fish"
 end
 
-# additional functions
-source functions/z.fish
+# path
+if test -d $HOME"/.bin"
+  set -x PATH ./bin $PATH
+end
