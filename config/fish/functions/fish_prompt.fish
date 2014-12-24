@@ -77,13 +77,12 @@ function fish_prompt --description "Write out the prompt"
   set -l last_status $status
 
   # If in ssh session, print username and hostname
-  # I don't know why this doesn't work
-  if test -n $SSH_CLIENT
+  if test -n "$SSH_CLIENT"
     echo -ns $yellow$USER$normal " at " $green$__fish_prompt_hostname$normal " in "
   end
 
   # Current Directory
-  if test $OSTYPE = CYGWIN
+  if test "$OSTYPE" = CYGWIN
     # shorten the path for CYGWIN, since we want the whole prompt on one line
     echo -ns $c1(prompt_pwd | sed "s,/,$c0/$c1,g" | sed "s,\(.*\)/[^m]*m,\1/$c3,")
   else
@@ -110,7 +109,7 @@ function fish_prompt --description "Write out the prompt"
 
 
   # The Cygwin/mintty/fish combination doesn't handle multi-line prompts well
-  if test $OSTYPE != 'CYGWIN'
+  if test "$OSTYPE" != 'CYGWIN'
     echo
   end
 
