@@ -65,7 +65,7 @@ end
 #     set -l termwidth (tput cols)
 #     set -l padding " "
 #     if [ $arglength -lt $termwidth ]
-#       set padding (printf "%"(math $termwidth - $arglength)"s")
+#       set padding (printf "%"(expr $termwidth - $arglength)"s")
 #     end
 
 #     echo -n "$argv[1]$padding$argv[2]"
