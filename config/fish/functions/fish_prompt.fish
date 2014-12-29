@@ -9,7 +9,7 @@
 
 # Just calculate these once, to save a few cycles when displaying the prompt
 if not set -q __fish_prompt_hostname
-  set -g __fish_prompt_hostname (hostname|cut -d . -f 1)
+  set -g __fish_prompt_hostname (hostname -s)
 end
 
 if not set -q cyan
@@ -25,24 +25,30 @@ if not set -q cyan
   set -g cyan (set_color cyan)
   set -g white (set_color white)
   set -g normal (set_color normal)
-  # c0 to c4 progress from dark to bright
-  # ce is the error colour
-  set -g c0 (set_color 005284)
-  set -g c1 (set_color 0075cd)
-  set -g c2 (set_color 009eff)
-  set -g c3 (set_color 6dc7ff)
-  set -g c4 (set_color ffffff)
+
+  # non standard colors
+  set -g cyan (set_color 42f8ca)
+  set -g gray (set_color 707070)
+
+  # cyan gradient
+  set -g c1 (set_color 059b75)
+  set -g c2 (set_color 07cc9a)
+  set -g c3 (set_color 10f7bc)
+  set -g c4 (set_color 41f8ca)
+  set -g c5 (set_color 6ff0cf)
+  set -g c6 (set_color adf6e4)
+
   set -g ce (set_color $fish_color_error)
 end
 
-if not set -q __fish_git_prompt_showstashstate
-  set -g __fish_git_prompt_showstashstate 1
-  set -g __fish_git_prompt_showuntrackedfiles 1
-  set -g __fish_git_prompt_showdirtystate 1
-  set -g __fish_git_prompt_showupstream 'auto'
-  set -g __fish_git_prompt_showcolorhints 1
-  # set -g __fish_git_prompt_color_branch (set_color purple)
-end
+# if not set -q __fish_git_prompt_showstashstate
+#   set -g __fish_git_prompt_showstashstate 1
+#   set -g __fish_git_prompt_showuntrackedfiles 1
+#   set -g __fish_git_prompt_showdirtystate 1
+#   set -g __fish_git_prompt_showupstream 'auto'
+#   set -g __fish_git_prompt_showcolorhints 1
+#   # set -g __fish_git_prompt_color_branch (set_color purple)
+# end
 
 if not set -q OSTYPE
   switch (uname)
@@ -78,34 +84,36 @@ function fish_prompt --description "Write out the prompt"
 
   # If in ssh session, print username and hostname
   if test -n "$SSH_CLIENT"
-    echo -ns $yellow$USER$normal " at " $green$__fish_prompt_hostname$normal " in "
+    echo -ns $yellow$USER$gray " at " $green$__fish_prompt_hostname$gray " in "
   end
 
   # Current Directory
   if test "$OSTYPE" = CYGWIN
     # shorten the path for CYGWIN, since we want the whole prompt on one line
-    echo -ns $c1(prompt_pwd | sed "s,/,$c0/$c1,g" | sed "s,\(.*\)/[^m]*m,\1/$c3,")
+    echo -ns $c1(prompt_pwd | sed "s,/,$c1/$c3,g" | sed "s,\(.*\)/[^m]*m,\1/$c4,")
   else
     # 1st sed replaces home dir with '~'
     # 2nd sed colorizes forward slashes
     # 3rd sed colorizes the deepest path (the 'm' is the last char in the
     # ANSI color code that needs to be stripped)
-    echo -ns $c1(pwd | sed "s:^$HOME:~:" | sed "s,/,$c0/$c1,g" | sed "s,\(.*\)/[^m]*m,\1/$c3,")
+    echo -ns $c1(pwd | sed "s:^$HOME:~:" | sed "s,/,$c1/$c3,g" | sed "s,\(.*\)/[^m]*m,\1/$c4,")
   end
 
   # Git
-  # This method is nice and easy but slow
-  #echo -ns (__fish_git_prompt "$normal on $purple%s")
 
+  # This method is nice, easy, and detailed but slow (especially over SMB/NFS)
+  #echo -ns (__fish_git_prompt "$gray on $purple%s")
+
+  # bare bones, much faster git info
   # check if we're in a git repo
   if git rev-parse --is-inside-work-tree >/dev/null ^/dev/null
     # branch name
     set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed -e 's|^refs/heads/||')
-    echo -ns "$normal on $purple$git_branch"
+    echo -ns "$gray on $purple$git_branch"
     set -l git_dirty (git status --porcelain --ignore-submodules)
     if test -n "$git_dirty"
       # repo is dirty
-      echo -ns '*'
+      echo -ns (set_color -o purple) '*'
     end
   end
 
@@ -119,7 +127,7 @@ function fish_prompt --description "Write out the prompt"
   #     set ruby_info (rbenv version-name)
   #   end
   # end
-  # test $ruby_info; and set ruby_info "$normal""using $magenta‹$ruby_info›"
+  # test $ruby_info; and set ruby_info "$gray""using $magenta‹$ruby_info›"
 
 
   # The Cygwin/mintty/fish combination doesn't handle multi-line prompts well
@@ -129,15 +137,15 @@ function fish_prompt --description "Write out the prompt"
 
     # Print last command status if nonzero
   set -e status_info
-  if [ $last_status -ne 0 ]
-    echo -ns "$ce$last_status"
+  if test $last_status -ne 0
+    echo -ns "$gray" (set_color -b $fish_color_error) "$last_status" (set_color -b normal)
   end
 
   # Prompt delimiter
-  if [ (id -u $USER) = "0" ]
+  if test "$USER" = "root"
     echo -ns "$red# "
   else
-    echo -ns "$normal> "
+    echo -ns "$white> "
   end
 
 end
