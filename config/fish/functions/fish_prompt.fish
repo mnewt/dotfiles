@@ -94,7 +94,21 @@ function fish_prompt --description "Write out the prompt"
   end
 
   # Git
-  echo -ns (__fish_git_prompt "$normal on $purple%s")
+  # This method is nice and easy but slow
+  #echo -ns (__fish_git_prompt "$normal on $purple%s")
+
+  # check if we're in a git repo
+  if git rev-parse --is-inside-work-tree >/dev/null ^/dev/null
+    # branch name
+    set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed -e 's|^refs/heads/||')
+    echo -ns "$normal on $purple$git_branch"
+    set -l git_dirty (git status --porcelain --ignore-submodules)
+    if test -n "$git_dirty"
+      # repo is dirty
+      echo -ns '*'
+    end
+  end
+
 
   # Ruby
   # set -l ruby_info
