@@ -90,13 +90,13 @@ function fish_prompt --description "Write out the prompt"
   # Current Directory
   if test "$OSTYPE" = CYGWIN
     # shorten the path for CYGWIN, since we want the whole prompt on one line
-    echo -ns $c1(prompt_pwd | sed "s,/,$c1/$c3,g" | sed "s,\(.*\)/[^m]*m,\1/$c4,")
+    echo -ns $c1(prompt_pwd | sed -e "s,/,$c1/$c3,g" -e "s,\(.*\)/[^m]*m,\1/$c4,")
   else
-    # 1st sed replaces home dir with '~'
-    # 2nd sed colorizes forward slashes
-    # 3rd sed colorizes the deepest path (the 'm' is the last char in the
+    # 1st expression replaces home dir with '~'
+    # 2nd expression colorizes forward slashes
+    # 3rd expression colorizes the deepest path (the 'm' is the last char in the
     # ANSI color code that needs to be stripped)
-    echo -ns $c1(pwd | sed "s:^$HOME:~:" | sed "s,/,$c1/$c3,g" | sed "s,\(.*\)/[^m]*m,\1/$c4,")
+    echo -ns $c1(pwd | sed -e "s:^$HOME:~:" -e "s,/,$c1/$c3,g" -e "s,\(.*\)/[^m]*m,\1/$c4,")
   end
 
   # Git
@@ -106,9 +106,9 @@ function fish_prompt --description "Write out the prompt"
 
   # bare bones, much faster git info
   # check if we're in a git repo
-  if git rev-parse --is-inside-work-tree >/dev/null ^/dev/null
+  if git rev-parse --is-inside-work-tree ^/dev/null >/dev/null
     # branch name
-    set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed -e 's|^refs/heads/||')
+    set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed 's|^refs/heads/||')
     echo -ns "$gray on $purple$git_branch"
     set -l git_dirty (git status --porcelain --ignore-submodules)
     if test -n "$git_dirty"

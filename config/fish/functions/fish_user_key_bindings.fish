@@ -1,11 +1,11 @@
 function handle_input_bash_conditional --description 'Function used for binding to replace && and ||'
     # This function is expected to be called with a single argument of either & or |
     # The argument indicates which key was pressed to invoke this function
-    if begin; commandline --search-mode; or commandline --paging-mode; end
-        # search or paging mode; use normal behavior
-        commandline -i $argv[1]
-        return
-    end
+    # if begin; commandline --search-mode; or commandline --paging-mode; end
+    #     # search or paging mode; use normal behavior
+    #     commandline -i $argv[1]
+    #     return
+    # end
     # is our cursor positioned after a '&'/'|'?
     switch (commandline -c)[-1]
     case \*$argv[1]
