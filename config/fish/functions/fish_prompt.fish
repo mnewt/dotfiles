@@ -7,9 +7,26 @@
 # to benchmark, use the command:
 # time -p fish -c 'fish_prompt'
 
+# Cygwin is special
+if not set -q OSTYPE
+  switch (uname)
+    case CYGWIN'*'
+      set OSTYPE 'CYGWIN'
+    case 'Darwin'
+      set OSTYPE 'Darwin'
+    case 'Linux'
+      set OSTYPE 'Linux'
+  end
+end
+
 # Just calculate these once, to save a few cycles when displaying the prompt
 if not set -q __fish_prompt_hostname
-  set -g __fish_prompt_hostname (hostname -s)
+  if test "$OSTYPE" = CYGWIN
+    # I do not understand why this is necessary, but it is
+    set -g __fish_prompt_hostname (/bin/hostname)
+  else
+    set -g __fish_prompt_hostname (hostname -s)
+  end
 end
 
 if not set -q cyan
@@ -49,18 +66,6 @@ end
 #   set -g __fish_git_prompt_showcolorhints 1
 #   # set -g __fish_git_prompt_color_branch (set_color purple)
 # end
-
-if not set -q OSTYPE
-  switch (uname)
-    case CYGWIN'*'
-      set OSTYPE 'CYGWIN'
-    case 'Darwin'
-      set OSTYPE 'Darwin'
-    case 'Linux'
-      set OSTYPE 'Linux'
-  end
-end
-
 
 # Outputs first argument left-aligned, second argument right-aligned, newline
 # function _rprint
