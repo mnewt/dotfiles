@@ -8,10 +8,10 @@ alias ...='../..'
 alias df='df -h'
 
 # grep
-alias -g G='| grep'
-alias -g M='| less'
-alias -g L='| wc -l'
-alias -g ONE="| awk '{ print \$1}'"
+alias G='| grep'
+alias M='| less'
+alias L='| wc -l'
+alias ONE="| awk '{ print \$1}'"
 alias grep='grep --color=auto'
 
 # Enable aliases to be sudo’ed
@@ -106,62 +106,4 @@ fi
 if [[ "$OSTYPE" == "CYGWIN"* ]]; then
   # Flush Directory Service cache
   alias flush="ipconfig /flushdns"
-fi
-
-
-# Mac OS X #################################################
-if [[ "$OSTYPE" == "darwin"* ]]; then
-
-   # open man page in Preview
-   pman()
-   {
-   	man -t "${1}" | open -f -a /Appllication/Preview.app/
-   }
-
-   # Change Directory to the active Finder window (else ~/Desktop)
-  function cdf()
-  {
-    local fPath=`osascript -e '
-    tell app "finder"
-       try
-          set folderPath to (folder of the front window as alias)
-       on error
-          set folderPath to (path to desktop folder as alias)
-       end try
-       POSIX path of folderPath
-    end tell'
-    `;
-    echo "cd $fPath";
-    cd "$fPath" > /dev/null
-  }
-
-   # Dash
-   dash() { open "dash://$*" }
-
-   # Get OS X Software Updates, and update installed Ruby gems, Homebrew, npm, and their installed packages
-  alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update'
-
-  # Flush Directory Service cache
-  alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
-
-  # Recursively delete `.DS_Store` files
-  alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
-
-  # Empty the Trash on all mounted volumes and the main HDD
-  # Also, clear Apple’s System Logs to improve shell startup speed
-  alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl"
-
-  # Show/hide hidden files in Finder
-  alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
-  alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
-
-  # Merge PDF files
-  # Usage: `mergepdf -o output.pdf input{1,2,3}.pdf`
-  alias mergepdf='/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py'
-
-  # Disable Spotlight
-  alias spotoff="sudo mdutil -a -i off"
-  # Enable Spotlight
-  alias spoton="sudo mdutil -a -i on"
-
 fi
