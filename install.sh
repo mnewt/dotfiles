@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# ignore these files when writing links
+ignore_list='README.md install.sh TODO.txt'
+
 help_text=cat <<EOF
 install.sh version 0.4
 
@@ -19,6 +22,13 @@ Run from a dotfile directory, links all files and directories into the destinati
   destination dir : Where to put symlinks
                     (default is '~')
 EOF
+
+function list_contains() {
+  for word in $1; do
+    [ "$word" = "$2" ] && return 0
+  done
+  return 1
+}
 
 function link_file() {
   if [ "$testing" == true ]; then
@@ -61,12 +71,14 @@ dest_dir="${2-$HOME}"
 # echo "arguments left over: $@"
 
 for source in $source_dir/*; do
-  if [ $(basename $source) != 'README.md' ] && [ $(basename $source) != 'install.sh' ]; then
+  # ignore non-rc files
+  if ! list_contains "$ignore_list" "$(basename $source)"; then
     target="$dest_dir/.$(basename $source)"
+    # if target (or a dead link) exists
     if [ -e "$target" ] || [ -L "$target" ]; then
-      if [ "$force" == true ]; then
+      if [ "$force" = true ]; then
         echo "REPLACING: $target"
-        if [ "$testing" == true ]; then
+        if [ "$testing" = true ]; then
           echo TESTING: rm -rf "$target"
         else
           rm -rf "$target"
