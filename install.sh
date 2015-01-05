@@ -1,18 +1,86 @@
 #!/bin/sh
 
-for name in *; do
-  target="$HOME/.$name"
-  if [ -e "$target" ] && [ "$1" != '-f' ]; then
-    echo "WARNING: not creating $target because it already exists. Use '-f' to force overwrite"
+help_text=$(cat <<EOF
+install.sh version 0.4
+
+Run from a dotfile directory, links all files and directories into the destination directory
+
+./install.sh [-f] [-h] [-t] [source dir] [destination dir]
+
+  -f (--force)    : Overwrite any files / directories in the destination directory
+                    (default is false)
+  -h (--help)     : This help message
+  -t (--testing)     : Run through the logic, but make no changes to source or destination
+                    (default is false)
+
+  source dir      : Contains dotfiles. They are expected to NOT have leading '.' For example,
+                    if the dotfile is '.bashrc' then in the source dir it is 'bashrc'
+                    (default is current directory)
+  destination dir : Where to put symlinks
+                    (default is '~')
+EOF)
+
+function link_file() {
+  if [ "$testing" == true ]; then
+    echo TESTING: ln -s "$1" "$2"
   else
-    if [ "$name" != 'install.sh' ] && [ "$name" != 'README.md' ]; then
-      if [ -e "$target" ] && [ "$1" == '-f' ]; then
-        echo "Replacing $target"
-        rm -rf "$target"
+    ln -s "$1" "$2"
+  fi
+}
+
+# initialize
+force=false
+testing=false
+
+# parse arguments
+for arg in $@; do
+  case "$arg" in
+    -f|--force)
+      force=true
+      shift
+      ;;
+    -t|--testing)
+      testing=true
+      shift
+      ;;
+    -h|--help)
+      echo "$help_text"
+      exit
+      ;;
+  esac
+done
+
+source_dir="${1-$(pwd)}"
+dest_dir="${2-$HOME}"
+
+# echo "force: $force"
+# echo "testing: $testing"
+# echo "source_dir: $source_dir"
+# echo "dest_dir: $dest_dir"
+
+# echo "arguments left over: $@"
+
+for source in $source_dir/*; do
+  if [ "$source" != 'README.md' ] && [ "$source" != 'install.sh' ]; then
+    target="$dest_dir/.$(basename $source)"
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      if [ "$force" == true ]; then
+        echo "REPLACING: $target"
+        if [ "$testing" == true ]; then
+          echo TESTING: rm -rf "$target"
+        else
+          rm -rf "$target"
+        fi
+        link_file "$source" "$target"
       else
-        echo "Creating $target"
+        echo "NOT OVERWRITING: $target"
       fi
-      ln -s "$PWD/$name" "$target"
+    else
+      link_file "$source" "$target"
     fi
   fi
 done
+
+# TODO
+#
+# color output

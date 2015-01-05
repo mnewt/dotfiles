@@ -140,7 +140,7 @@ switch (uname)
     end
 
     # Recursively delete `.DS_Store` files
-    alias clean="find . -type f -name '*.DS_Store' -ls -delete"
+    alias clean_ds="find . -type f -name '*.DS_Store' -ls -delete"
 
     # Empty the Trash on all mounted volumes and the main HDD
     # Also, clear Apple’s System Logs to improve shell startup speed
