@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/sh
 
 # misc
 alias tlf="tail -f"
@@ -90,7 +90,7 @@ if [[ $('uname') == 'Linux' ]]; then
   fi
   alias st=st_run
 elif  [[ $('uname') == 'Darwin' ]]; then
-  local _sublime_darwin_subl=/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl
+  _sublime_darwin_subl=/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl
   # Check if Sublime is installed in user's home application directory
   if [[ -a $HOME/${_sublime_darwin_subl} ]]; then
     alias st='$HOME/${_sublime_darwin_subl}'
