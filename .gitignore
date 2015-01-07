@@ -1,4 +1,4 @@
 # ignore fish cache files
 fishd.*
-fish_history
+fish_history*
 generated_completions
