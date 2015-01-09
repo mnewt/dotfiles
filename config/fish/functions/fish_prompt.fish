@@ -89,36 +89,36 @@ function fish_prompt --description "Write out the prompt"
 
   # If in ssh session, print username and hostname
   if test -n "$SSH_CLIENT"
-    echo -ns $yellow$USER$gray " at " $green$__fish_prompt_hostname$gray " in "
+    echo -n -s $yellow$USER$gray " at " $green$__fish_prompt_hostname$gray " in "
   end
 
   # Current Directory
   if test "$OSTYPE" = CYGWIN
     # shorten the path for CYGWIN, since we want the whole prompt on one line
-    echo -ns $c1(prompt_pwd | sed -e "s,/,$c1/$c3,g" -e "s,\(.*\)/[^m]*m,\1/$c4,")
+    echo -n -s $c1(prompt_pwd | sed -e "s,/,$c1/$c3,g" -e "s,\(.*\)/[^m]*m,\1/$c4,")
   else
     # 1st expression replaces home dir with '~'
     # 2nd expression colorizes forward slashes
     # 3rd expression colorizes the deepest path (the 'm' is the last char in the
     # ANSI color code that needs to be stripped)
-    echo -ns $c1(pwd | sed -e "s:^$HOME:~:" -e "s,/,$c1/$c3,g" -e "s,\(.*\)/[^m]*m,\1/$c4,")
+    echo -n -s $c1(pwd | sed -e "s:^$HOME:~:" -e "s,/,$c1/$c3,g" -e "s,\(.*\)/[^m]*m,\1/$c4,")
   end
 
   # Git
 
   # This method is nice, easy, and detailed but slow (especially over SMB/NFS)
-  #echo -ns (__fish_git_prompt "$gray on $purple%s")
+  #echo -n -s (__fish_git_prompt "$gray on $purple%s")
 
   # bare bones, much faster git info
   # check if we're in a git repo
   if git rev-parse --is-inside-work-tree ^/dev/null >/dev/null
     # branch name
     set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed 's|^refs/heads/||')
-    echo -ns "$gray on $purple$git_branch"
+    echo -n -s "$gray on $purple$git_branch"
     set -l git_dirty (git status --porcelain --ignore-submodules)
     if test -n "$git_dirty"
       # repo is dirty
-      echo -ns (set_color -o purple) '*'
+      echo -n -s (set_color -o purple) '*'
     end
   end
 
@@ -143,14 +143,14 @@ function fish_prompt --description "Write out the prompt"
     # Print last command status if nonzero
   set -e status_info
   if test $last_status -ne 0
-    echo -ns "$gray" (set_color -b $fish_color_error) "$last_status" (set_color -b normal)
+    echo -n -s "$gray" (set_color -b $fish_color_error) "$last_status" (set_color -b normal)
   end
 
   # Prompt delimiter
   if test "$USER" = "root"
-    echo -ns "$red# "
+    echo -n -s "$red# "
   else
-    echo -ns "$white> "
+    echo -n -s "$white> "
   end
 
 end
