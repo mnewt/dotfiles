@@ -10,16 +10,21 @@ set -x LC_MESSAGES "en_US.UTF-8"
 set -x LC_COLLATE C
 
 # load private environment variables
-if test -e $HOME"/.private.fish"
-  source $HOME"/.private.fish"
+if test -e "$HOME/.private"
+  source "$HOME/.private"
 end
 
 # aliases
-if test -e $HOME"/.config/fish/aliases.fish"
-  source $HOME"/.config/fish/aliases.fish"
+if test -e "$HOME/.config/fish/aliases.fish"
+  source "$HOME/.config/fish/aliases.fish"
+else 
+  if test -e "$HOME/.aliases"
+    source "$HOME/.aliases"
+  end
 end
 
+
 # path
-if test -d $HOME"/.bin"
-  set -x PATH ./bin $PATH
+if test -d "$HOME/.bin"
+  set -x PATH "$HOME/.bin" $PATH
 end
