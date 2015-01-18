@@ -23,8 +23,7 @@ else
   end
 end
 
-
 # path
 if test -d "$HOME/.bin"
-  set -x PATH "$HOME/.bin" $PATH
+  set -U fish_user_paths "$HOME/.bin" $fish_user_paths
 end

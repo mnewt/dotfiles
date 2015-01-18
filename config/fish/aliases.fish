@@ -88,12 +88,6 @@ switch (uname)
     # Set where to install casks
     set -x HOMEBREW_CASK_OPTS "--appdir=/Applications"
 
-    # GNU coreutils: replace mac builtins
-    if test -d /usr/local/opt/coreutils/libexec/gnubin
-      set -U fish_user_path /usr/local/opt/coreutils/libexec/gnubin $HOME/.bin 
-      set -U MANPATH :/usr/local/opt/coreutils/libexec/gnuman
-    end
-
     alias listening-ports='lsof -i -n -P | grep LISTEN'
 
     # open man page in Preview
@@ -147,8 +141,8 @@ switch (uname)
     alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl"
 
     # Show/hide hidden files in Finder
-    alias show="defaults write com.apple.finder AppleShowAllFiles -bool true; and killall Finder"
-    alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false; and killall Finder"
+    alias show-hidden-files="defaults write com.apple.finder AppleShowAllFiles -bool true; and killall Finder"
+    alias hide-hidden-files="defaults write com.apple.finder AppleShowAllFiles -bool false; and killall Finder"
 
     # Merge PDF files
     # Usage: `mergepdf -o output.pdf input{1,2,3}.pdf`
