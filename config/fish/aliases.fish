@@ -62,8 +62,73 @@ alias whats-my-ip="dig +short myip.opendns.com @208.67.222.222 @208.67.220.220"
 alias dis='dig +nocmd +noall +answer'
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 
+# Recursively delete OS cache files
+function clean-os-junk
+  set -l files_to_delete '*.DS_Store' 'desktop.ini'
+  if set -q argv
+    set dir '.'
+  else
+    set dir $argv
+  end
+  for file in $files_to_delete
+    find "$dir" -name "$file" -print
+  end
+  while true
+    read -l -p 'echo "Do you wish to delete these files? [yN] "' yn
+    set yn (echo $yn | tr '[:upper:]' '[:lower:]')
+    switch $yn
+      case 'y*'
+        for file in $files_to_delete
+          find "$dir" -name "$file" -print -delete
+        end
+        return 0
+      case '*'
+        echo 'Exiting, no files modified'
+        return 0
+    end
+  end
+end
+
+
+# GRC ######################################################
+set -l GRC (which grc >/dev/null 2>&1)
+if not set -q $GRC
+  alias colourify=$GRC" -es --colour=auto"
+  alias configure='colourify ./configure'
+  alias diff='colourify diff'
+  alias make='colourify make'
+  alias gcc='colourify gcc'
+  alias g++='colourify g++'
+  alias as='colourify as'
+  alias gas='colourify gas'
+  alias ld='colourify ld'
+  alias netstat='colourify netstat'
+  alias ping='colourify ping'
+  alias traceroute='colourify /usr/sbin/traceroute'
+  alias arp='colourify -c conf.traceroute arp'
+  alias tail='colourify -c conf.log tail'
+  alias ps='colourify -c conf.ps ps'
+  alias ifconfig='colourify -c conf.traceroute ifconfig'
+  alias nmap='colourify -c conf.nmap nmap'
+  alias lsof='colourify -c conf.traceroute lsof'
+  alias dig='colourify -c conf.traceroute dig'
+  alias host='colourify -c conf.traceroute host'
+  alias curl='colourify -c conf.curl curl'
+end
+
+# Sublime Text #############################################
+
+switch (uname)
+  case Linux
+    alias st="nohup /usr/bin/sublime_text $argv > /dev/null &"
+  case CYGWIN'*'
+    alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe' $argv
+  case Darwin
+    alias st="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "$argv
+end
+
 # Reload the shell (i.e. invoke as a login shell)
-# set $SHELL (which fish)
+# set SHELL (which fish)
 # alias reload="exec $SHELL -l"
 
 # OS Specific ##############################################
@@ -78,7 +143,7 @@ switch (uname)
       sudo aptitude clean
     end
 
-  case CYGWIN'*'
+  case 'CYGWIN*'
     alias listening-ports='netstat -an | grep LISTENING'
     alias ips ipconfig | awk -F" ." '/Address/ {print $NF}'
     # Flush Directory Service cache
@@ -133,9 +198,6 @@ switch (uname)
       killall -HUP mDNSResponder
     end
 
-    # Recursively delete `.DS_Store` files
-    alias clean_ds="find . -type f -name '*.DS_Store' -ls -delete"
-
     # Empty the Trash on all mounted volumes and the main HDD
     # Also, clear Apple’s System Logs to improve shell startup speed
     alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl"
@@ -152,42 +214,4 @@ switch (uname)
     alias spotoff="sudo mdutil -a -i off"
     # Enable Spotlight
     alias spoton="sudo mdutil -a -i on"
-end
-
-
-# GRC ######################################################
-set -l GRC (which grc >/dev/null 2>&1)
-if not set -q $GRC
-  alias colourify=$GRC" -es --colour=auto"
-  alias configure='colourify ./configure'
-  alias diff='colourify diff'
-  alias make='colourify make'
-  alias gcc='colourify gcc'
-  alias g++='colourify g++'
-  alias as='colourify as'
-  alias gas='colourify gas'
-  alias ld='colourify ld'
-  alias netstat='colourify netstat'
-  alias ping='colourify ping'
-  alias traceroute='colourify /usr/sbin/traceroute'
-  alias arp='colourify -c conf.traceroute arp'
-  alias tail='colourify -c conf.log tail'
-  alias ps='colourify -c conf.ps ps'
-  alias ifconfig='colourify -c conf.traceroute ifconfig'
-  alias nmap='colourify -c conf.nmap nmap'
-  alias lsof='colourify -c conf.traceroute lsof'
-  alias dig='colourify -c conf.traceroute dig'
-  alias host='colourify -c conf.traceroute host'
-  alias curl='colourify -c conf.curl curl'
-end
-
-# Sublime Text #############################################
-
-switch (uname)
-  case Linux
-    alias st="nohup /usr/bin/sublime_text $argv > /dev/null &"
-  case CYGWIN'*'
-    alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe' $argv
-  case Darwin
-    alias st="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "$argv
 end

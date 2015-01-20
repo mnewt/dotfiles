@@ -3,7 +3,7 @@
 # ignore these files when writing links
 ignore_list='README.md install.sh TODO.txt'
 
-help_text=cat <<EOF
+read -r -d '' help_text <<-'EOF'
 install.sh version 0.4
 
 Run from a dotfile directory, links all files and directories into the destination directory

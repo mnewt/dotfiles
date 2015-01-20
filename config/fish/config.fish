@@ -17,10 +17,6 @@ end
 # aliases
 if test -e "$HOME/.config/fish/aliases.fish"
   source "$HOME/.config/fish/aliases.fish"
-else 
-  if test -e "$HOME/.aliases"
-    source "$HOME/.aliases"
-  end
 end
 
 # path
