@@ -19,6 +19,11 @@ if test -e "$HOME/.config/fish/aliases.fish"
   source "$HOME/.config/fish/aliases.fish"
 end
 
+# private
+if test -e "$HOME/.private.fish"
+  source "$HOME/.private.fish"
+end
+
 # path
 if test -d "$HOME/.bin"
   set -U fish_user_paths "$HOME/.bin" $fish_user_paths

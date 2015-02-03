@@ -25,8 +25,8 @@ alias grep='grep --color=auto'
 # ls
 # add formatting and color to `ls`
 # Detect which `ls` flavor is in use
-set -x CLICOLOR=1
-set -xU LSCOLORS=ExFxCxDxBxegedabagacad
+set -x CLICOLOR 1
+set -xU LSCOLORS ExFxCxDxBxegedabagacad
 set -xU LS_COLORS "di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
 if ls --color > /dev/null 2>&1 # GNU `ls`
   set -x colorflag "--color"
@@ -42,7 +42,7 @@ alias lsd="ls -lF "$colorflag" | grep --color=never '^d'"
 # vim
 alias vi='vim'
 # use vim as editor
-set -xU EDITOR=vim
+set -xU EDITOR vim
 # use vim as pager / less replacement
 if which vimpager >/dev/null 2>&1
   set -xU PAGER (which vimpager)
@@ -58,11 +58,18 @@ function gpl
 end
 
 # Network
-alias whats-my-ip="dig +short myip.opendns.com @208.67.222.222 @208.67.220.220"
+# some networks block dns requests
+#alias whats-my-ip="dig +short myip.opendns.com @208.67.222.222 @208.67.220.220"
+alias whats-my-ip 'curl -s https://diagnostic.opendns.com/myip'
 alias dis='dig +nocmd +noall +answer'
-alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+
+# csv
+function prettycsv
+  python -c 'import sys,csv; c = csv.reader(open(sys.stdin, "rU"), dialect=csv.excel_tab); [sys.stdout.write("^M".join(map(repr,r))+"\n") for r in c];' <"$argv" | column -s '^M' -t
+end
 
 # Recursively delete OS cache files
+# COULD BE DANGEROUS
 function clean-os-junk
   set -l files_to_delete '*.DS_Store' 'desktop.ini'
   if set -q argv
@@ -137,6 +144,10 @@ switch (uname)
   case Linux
     alias listening-ports='netstat -ntlp | grep LISTEN'
 
+    function ips
+      /sbin/ifconfig |grep -B1 "inet" |awk '{ if ( $1 == "inet" ) { print $2 } else if ( $2 == "Link" ) { printf "%s:" ,$1 } }' |awk -F: '{ print $1 ": " $3 }'
+    end
+
     function update
       sudo aptitude update
       sudo aptitude upgrade -y
@@ -155,6 +166,20 @@ switch (uname)
 
     alias listening-ports='lsof -i -n -P | grep LISTEN'
 
+    #alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+    function ips
+      # fish only recognizes a list coming from std when it's delimited by '\n'
+      # even though it displays lists as delimited by ' '
+      # https://github.com/fish-shell/fish-shell/issues/156
+      for i in (ifconfig -l | tr ' ' '\n')
+        set -l ipaddr (ifconfig $i | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)')
+        # this test is always true
+        if test -n "$ipaddr"
+          echo $i ":" $ipaddr
+        end
+      end
+    end
+
     # open man page in Preview
     function pman
       man -t $argv[1] | open -f -a /Appllication/Preview.app/
@@ -162,7 +187,7 @@ switch (uname)
 
     # Change Directory to the active Finder window (else ~/Desktop)
     function cdf
-      local fPath=`osascript -e '
+      set -l fPath (osascript -e '
       tell app "finder"
          try
             set folderPath to (folder of the front window as alias)
@@ -171,7 +196,7 @@ switch (uname)
          end try
          POSIX path of folderPath
       end tell'
-      `;
+      )
       echo "cd $fPath";
       cd "$fPath" > /dev/null
     end
@@ -183,7 +208,7 @@ switch (uname)
 
 
     # vagrant 
-    set -x VAGRANT_DEFAULT_PROVIDER=parallels
+    set -x VAGRANT_DEFAULT_PROVIDER parallels
 
     function update
       sudo softwareupdate -i -a
@@ -194,8 +219,8 @@ switch (uname)
 
     # Flush Directory Service cache
     function flush
-      dscacheutil -flushcache
-      killall -HUP mDNSResponder
+      sudo discoveryutil mdnsflushcache
+      sudo discoveryutil udnsflushcache
     end
 
     # Empty the Trash on all mounted volumes and the main HDD
@@ -214,4 +239,9 @@ switch (uname)
     alias spotoff="sudo mdutil -a -i off"
     # Enable Spotlight
     alias spoton="sudo mdutil -a -i on"
+
+    function recent-items-dock
+      defaults write com.apple.dock persistent-others -array-add '{ "tile-data" = { "list-type" = 1; }; "tile-type" = "recents-tile"; }'
+      killall Dock
+    end
 end
