@@ -1,0 +1,30 @@
+{
+	"in_process_packages":
+	[
+		"Theme - Vim Blackboard"
+	],
+	"installed_dependencies":
+	[
+		"0_package_control_loader",
+		"bz2"
+	],
+	"installed_packages":
+	[
+		"Advanced CSV",
+		"Better CoffeeScript",
+		"Bind Zone files",
+		"Cisco Syntax Highlighter",
+		"Dockerfile Syntax Highlighting",
+		"EJS",
+		"fish-shell",
+		"INI",
+		"Jade",
+		"Package Control",
+		"Package Syncing",
+		"Pretty JSON",
+		"Stylus",
+		"Theme - Soda SolarizedDark",
+		"Tomorrow Color Schemes",
+		"VimL"
+	]
+}
