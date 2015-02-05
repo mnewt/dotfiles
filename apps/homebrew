@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+ 
+# Install Homebrew
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+# Make sure we’re using the latest Homebrew
+brew update
+ 
+# Upgrade any already-installed formulae
+brew upgrade
+
+# Enable support for reading from a Brewfile
+brew tap homebrew/boneyard
+
+# Read from the Brewfile in the current directory
+brew bundle
+ 
+# Remove outdated versions from the cellar
+brew cleanup

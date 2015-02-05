@@ -1,12 +1,17 @@
 #!/bin/bash
+# Run from a dotfile directory, links all files and directories into the current user's home directory
 
-# ignore these files when writing links
-ignore_list='README.md install.sh TODO.txt'
+# TODO
+#
+# color output
+
+# ignore these files when creating links
+ignore_list='README.md install.sh TODO.txt apps'
 
 read -r -d '' help_text <<-'EOF'
 install.sh version 0.4
 
-Run from a dotfile directory, links all files and directories into the destination directory
+Run from a dotfile directory, links all files and directories into the current user's home directory
 
 ./install.sh [-f] [-h] [-t] [source dir] [destination dir]
 
@@ -92,7 +97,3 @@ for source in $source_dir/*; do
     fi
   fi
 done
-
-# TODO
-#
-# color output

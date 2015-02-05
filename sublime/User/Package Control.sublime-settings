@@ -1,7 +1,9 @@
 {
 	"in_process_packages":
 	[
-		"Theme - Vim Blackboard"
+		"Theme - Vim Blackboard",
+		"Homebrew-formula-syntax",
+		"SSH Config"
 	],
 	"installed_dependencies":
 	[
@@ -22,6 +24,7 @@
 		"Package Control",
 		"Package Syncing",
 		"Pretty JSON",
+		"SSH Config",
 		"Stylus",
 		"Theme - Soda SolarizedDark",
 		"Tomorrow Color Schemes",
