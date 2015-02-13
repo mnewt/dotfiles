@@ -158,7 +158,7 @@ let g:netrw_liststyle=3
 syntax enable 
 
 try
-    colorscheme vividchalk
+    colorscheme base16
 catch
 endtry
 

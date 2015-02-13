@@ -22,12 +22,17 @@ alias grep='grep --color=auto'
 #     end
 # end
 
+# ps
+function p
+  ps u (pgrep $argv) | grep --color -E "$argv|\$"
+end
+
 # ls
 # add formatting and color to `ls`
-# Detect which `ls` flavor is in use
 set -x CLICOLOR 1
 set -xU LSCOLORS ExFxCxDxBxegedabagacad
 set -xU LS_COLORS "di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
+# Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1 # GNU `ls`
   set -x colorflag "--color"
 else # OS X `ls`
@@ -127,11 +132,13 @@ end
 
 switch (uname)
   case Linux
-    alias st="nohup /usr/bin/sublime_text $argv > /dev/null &"
+    function st
+      nohup /usr/bin/sublime_text $argv > /dev/null &
+    end
   case CYGWIN'*'
-    alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe' $argv
+    alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe'
   case Darwin
-    alias st="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "$argv
+    alias st='/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl'
 end
 
 # Reload the shell (i.e. invoke as a login shell)
@@ -182,7 +189,7 @@ switch (uname)
 
     # open man page in Preview
     function pman
-      man -t $argv[1] | open -f -a /Appllication/Preview.app/
+      man -t $argv[1] | open -f -a /Application/Preview.app/
     end
 
     # Change Directory to the active Finder window (else ~/Desktop)

@@ -1,0 +1,20 @@
+# brew brewdle [Brewfile]
+
+# GNU utils
+brew 'coreutils'
+brew 'binutils'
+brew 'diffutils'
+brew 'ed' ['--default-names']
+brew 'findutils', args: ['--default-names']
+brew 'gawk'
+brew 'gnu-indent', args: ['--default-names']
+brew 'gnu-sed' ['--default-names']
+brew gnu-tar --default-names
+brew gnu-which --default-names
+brew gnutls --default-names
+brew grep --default-names
+brew gzip
+brew screen
+brew watch
+brew wdiff --with-gettext
+brew wget

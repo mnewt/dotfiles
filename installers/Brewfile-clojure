@@ -1,0 +1,5 @@
+# brew brewdle [Brewfile]
+
+# Clojure
+cask java
+brew clojure

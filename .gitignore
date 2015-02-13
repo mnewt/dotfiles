@@ -1,5 +1,8 @@
-# ignore fish cache files
+# fish cache files
 fishd.*
 fish_history*
 fish_*_history
 generated_completions
+
+# btsync
+.sync

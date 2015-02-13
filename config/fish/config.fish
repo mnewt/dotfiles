@@ -9,11 +9,6 @@ set -x LC_CTYPE "en_US.UTF-8"
 set -x LC_MESSAGES "en_US.UTF-8"
 set -x LC_COLLATE C
 
-# load private environment variables
-if test -e "$HOME/.private"
-  source "$HOME/.private"
-end
-
 # aliases
 if test -e "$HOME/.config/fish/aliases.fish"
   source "$HOME/.config/fish/aliases.fish"
@@ -25,6 +20,10 @@ if test -e "$HOME/.private.fish"
 end
 
 # path
-if test -d "$HOME/.bin"
-  set -U fish_user_paths "$HOME/.bin" $fish_user_paths
+# Homebrew installs to /usr/local/sbin and /usr/local/opt/coreutils/libexec/gnubin
+set -e fish_user_paths
+for path in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin"
+  if test -d "$path"
+    set -U fish_user_paths $fish_user_paths "$path"
+  end
 end

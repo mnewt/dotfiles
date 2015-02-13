@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+# Install VMware Fusion
+brew cask install vmware-fusion
+
+# Install vagrant
+brew cask install vagrant
+
+# Install VMware Fusion plugin
+vagrant plugin install vagrant-vmware-fusion
+

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+# Don't display attachments inline
+defaults write com.apple.mail DisableInlineAttachmentViewing -boolean true
+
+# Don't load remote images
+# Mail.app -> Preferences -> Viewing -> UNCHECK Load remote content in messages

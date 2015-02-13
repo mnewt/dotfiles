@@ -1,0 +1,32 @@
+# brew brewdle [Brewfile]
+
+# Packages
+brew 'ack'
+brew 'curl'
+brew 'bash'
+brew 'bash-completion'
+brew 'emacs', args: ['cocoa', 'srgb', 'with-gnutls']
+brew 'fish'
+brew 'git'
+brew 'git-extras'
+brew 'grc'
+brew 'grep'
+brew 'less'
+brew 'lynx'
+brew 'make'
+brew 'midnight-commander'
+brew 'nmap'
+brew 'node'
+brew 'openssh', args: ['--with-brewed-openssl']
+brew 'p7zip'
+brew 'perl'
+brew 'python', args: ['--with-brewed-openssl']
+brew 'python3', args: ['--with-brewed-openssl']
+brew 'ruby'
+brew 'speedtest-cli'
+brew 'ssh-copy-id'
+brew 'sshfs'
+brew 'tree'
+brew 'vim', args: ['--override-system-vi']
+brew 'vimpager'
+brew 'wget'

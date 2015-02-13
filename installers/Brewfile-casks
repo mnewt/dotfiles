@@ -1,0 +1,17 @@
+# brew brewdle [Brewfile]
+
+# Casks
+cask iterm2
+cask google-chrome
+cask evernote
+cask alfred
+cask sublime-text
+cask keka
+cask qlstephen 
+cask qlcolorcode
+cask vlc
+cask osxfuse
+cask dash
+cask bittorrent-sync
+cask viscosity
+cask steam
