@@ -1,0 +1,4 @@
+# brew brewdle [Brewfile]
+
+cask 'xquartz'
+cask 'wireshark'

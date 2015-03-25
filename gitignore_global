@@ -37,7 +37,9 @@
 ._*
 .Spotlight-V100
 .Trashes
+# from (https://stackoverflow.com/questions/17556250/how-to-ignore-icon-in-git)
 Icon?
+
 ehthumbs.db
 Thumbs.db
 *~
@@ -192,3 +194,6 @@ pickle-email-*.html
 Session.vim
 .netrwhist
 *~
+
+# btsync
+.sync

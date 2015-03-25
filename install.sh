@@ -6,7 +6,7 @@
 # color output
 
 # ignore these files when creating links
-ignore_list='README.md install.sh TODO.txt apps'
+ignore_list='README.md install.sh TODO.txt installers'
 
 read -r -d '' help_text <<-'EOF'
 install.sh version 0.4

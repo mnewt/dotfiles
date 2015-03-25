@@ -1,0 +1,37 @@
+// .stglobalignore
+
+// Incomplete Downloads
+// At least for now, these prevent Pulse from transferring data that's
+// going to be thrown out anyway once the download is finished and the
+// file is renamed. Things may change when Pulse gets smarter.
+//
+
+// Incomplete downloads
+*.part
+*.crdownload
+
+// OS Cache Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+*~
+
+// Other sync applications
+.sync
+.dropbox
+
+// fish shell
+//fishd.*
+//generated_completions
+
+// Vim
+.*.s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~

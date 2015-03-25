@@ -149,7 +149,7 @@ end
 
 switch (uname)
   case Linux
-    alias listening-ports='netstat -ntlp | grep LISTEN'
+    alias listening-ports='netstat -lnptu | grep LISTEN'
 
     function ips
       /sbin/ifconfig |grep -B1 "inet" |awk '{ if ( $1 == "inet" ) { print $2 } else if ( $2 == "Link" ) { printf "%s:" ,$1 } }' |awk -F: '{ print $1 ": " $3 }'

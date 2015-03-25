@@ -1,3 +1,4 @@
+install.sh: make '.config' a special case so that only subdirectories get aliased, not '.config' itself
 install.sh: colorize output
 aliases: move to ~ and make compatible with fish, bash, zsh so they all use the same aliases file
-
+make grc happen

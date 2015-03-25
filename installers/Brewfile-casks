@@ -1,17 +1,24 @@
 # brew brewdle [Brewfile]
 
+# repositories
+tap 'caskroom/cask'
+tap 'caskroom/versions'
+
 # Casks
-cask iterm2
-cask google-chrome
-cask evernote
-cask alfred
-cask sublime-text
-cask keka
-cask qlstephen 
-cask qlcolorcode
-cask vlc
-cask osxfuse
-cask dash
-cask bittorrent-sync
-cask viscosity
-cask steam
+cask 'iterm2'
+cask 'google-chrome'
+cask 'evernote'
+cask 'alfred'
+cask 'keka'
+cask 'qlstephen' 
+cask 'qlcolorcode'
+cask 'vlc'
+cask 'osxfuse'
+cask 'dash'
+cask 'bittorrent-sync'
+cask 'viscosity'
+cask 'steam'
+
+# needs caskroom/versions
+cask 'sublime-text3'
+
