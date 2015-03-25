@@ -1,4 +1,5 @@
-# Personal
+# Personal #
+############
 .private
 
 # From https://help.github.com/articles/ignoring-files
@@ -195,5 +196,6 @@ Session.vim
 .netrwhist
 *~
 
-# btsync
+# Bittorrent Sync #
+###################
 .sync
