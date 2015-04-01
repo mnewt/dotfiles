@@ -48,6 +48,9 @@ if $SHELL =~ 'bin/fish'
 endif
 
 
+" => vimpager - disable AnsiEsc.vim to enable ANSI escape codes (colors) from source
+let vimpager_disable_ansiesc = 1
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => General
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -48,17 +48,35 @@ alias lsd="ls -lF "$colorflag" | grep --color=never '^d'"
 alias vi='vim'
 # use vim as editor
 set -xU EDITOR vim
-# use vim as pager / less replacement
-if which vimpager >/dev/null 2>&1
-  set -xU PAGER (which vimpager)
-  alias less $PAGER
-end
+
+
+# PAGER
+
+# use source-highlight
+set -x LESSOPEN "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
+set -x LESS " -R "
+
+# use vim as pager / less replacement (breaks ANSI colors in source command (e.g. git log))
+# if which vimpager >/dev/null 2>&1
+#   set -xU PAGER (which vimpager)
+#   alias less $PAGER
+# end
+
+# try to get less to use colors on man pages (not working)
+# set -x LESS_TERMCAP_mb '\e[01;31m'
+# set -x LESS_TERMCAP_md '\e[01;37m'
+# set -x LESS_TERMCAP_me '\e[0m'
+# set -x LESS_TERMCAP_se '\e[0m'
+# set -x LESS_TERMCAP_so '\e[01;44;33m'
+# set -x LESS_TERMCAP_ue '\e[0m'
+# set -x LESS_TERMCAP_us '\e[01;32m'
 
 # git
 alias g="git"
 alias gs="git status"
 alias ga="git add ."
 alias gc="git commit"
+alias gp="git push"
 # tell git to non-interactively merge commits
 set -x GIT_MERGE_AUTOEDIT no
 function gpl
