@@ -53,8 +53,8 @@ set -xU EDITOR vim
 # PAGER
 
 # use source-highlight
-set -x LESSOPEN "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
-set -x LESS " -R "
+# set -x LESSOPEN "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
+# set -x LESS " -R "
 
 # use vim as pager / less replacement (breaks ANSI colors in source command (e.g. git log))
 # if which vimpager >/dev/null 2>&1
@@ -76,6 +76,7 @@ alias g="git"
 alias gs="git status"
 alias ga="git add ."
 alias gc="git commit"
+alias gcm="git commit -m"
 alias gp="git push"
 # tell git to non-interactively merge commits
 set -x GIT_MERGE_AUTOEDIT no
@@ -210,7 +211,7 @@ switch (uname)
 
     # open man page in Preview
     function pman
-      man -t $argv[1] | open -f -a /Application/Preview.app/
+      man -t $argv[1] | open -f -a /Applications/Preview.app/
     end
 
     # Change Directory to the active Finder window (else ~/Desktop)
@@ -231,7 +232,7 @@ switch (uname)
 
     # Dash
     function dash 
-      open "dash://"$argv[1]
+      open "dash://$argv[1]"
     end
 
 
@@ -240,8 +241,8 @@ switch (uname)
 
     function update
       sudo softwareupdate -i -a
-      brew update; brew upgrade; brew cleanup;
       npm install npm -g; npm update -g;
+      brew update; brew upgrade; brew cleanup; brew doctor
       #sudo gem update --system; sudo gem update
     end
 
@@ -272,4 +273,5 @@ switch (uname)
       defaults write com.apple.dock persistent-others -array-add '{ "tile-data" = { "list-type" = 1; }; "tile-type" = "recents-tile"; }'
       killall Dock
     end
+
 end
