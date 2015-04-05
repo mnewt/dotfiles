@@ -26,6 +26,9 @@ alias grep='grep --color=auto'
 function p
   ps u (pgrep $argv) | grep --color -E "$argv|\$"
 end
+function sudop
+  sudo ps u (pgrep $argv) | grep --color -E "$argv|\$"
+end
 
 # ls
 # add formatting and color to `ls`
