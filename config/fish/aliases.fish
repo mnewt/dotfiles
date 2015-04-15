@@ -41,11 +41,11 @@ if ls --color > /dev/null 2>&1 # GNU `ls`
 else # OS X `ls`
   set -x colorflag "-G"
 end
-alias ls="command ls -Fh "$colorflag
+alias ls="command ls -Fh $colorflag"
 alias l='ls'
 alias lh='ls -Alh'
 alias ll='ls -Fhl'
-alias lsd="ls -lF "$colorflag" | grep --color=never '^d'"
+alias lsd="ls -lF $colorflag | grep --color=never '^d'"
 
 # vim
 alias vi='vim'
@@ -55,15 +55,20 @@ set -xU EDITOR vim
 
 # PAGER
 
-# use source-highlight
-# set -x LESSOPEN "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
-# set -x LESS " -R "
-
+# use source-highlight if available
+# this is preferable because vimpager strips colors out of files or pipes before display
+if which source-highlight >/dev/null 2>&1
+  set -x LESSOPEN "| /usr/local/bin/src-hilite-lesspipe.sh %s"
+  set -x LESS " -R "
+  alias less='less -m -g -i -J --underline-special --SILENT'
+  alias more='less'
+else
 # use vim as pager / less replacement (breaks ANSI colors in source command (e.g. git log))
-# if which vimpager >/dev/null 2>&1
-#   set -xU PAGER (which vimpager)
-#   alias less $PAGER
-# end
+  if which vimpager >/dev/null 2>&1
+    set -xU PAGER (which vimpager)
+    alias less $PAGER
+  end
+end
 
 # try to get less to use colors on man pages (not working)
 # set -x LESS_TERMCAP_mb '\e[01;31m'
@@ -240,12 +245,21 @@ switch (uname)
 
 
     # vagrant 
-    set -x VAGRANT_DEFAULT_PROVIDER parallels
+    # set -x VAGRANT_DEFAULT_PROVIDER parallels
 
     function update
       sudo softwareupdate -i -a
       npm install npm -g; npm update -g;
-      brew update; brew upgrade; brew cleanup; brew doctor
+      brew update; and brew upgrade; and brew cleanup; and brew doctor
+      # update brew casks -- eventually this should not be necessary
+      # (https://github.com/caskroom/homebrew-cask/issues/4678)
+      for c in (brew cask list)
+        if brew cask info $c | grep -qF "Not installed"
+          brew cask install $c
+        end
+      end
+      brew cask cleanup
+      fish_update_completions
       #sudo gem update --system; sudo gem update
     end
 
