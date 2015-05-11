@@ -1,5 +1,5 @@
-* install.sh: create '.excludes' file - all files listed are excluded from linking
-* install.sh: create '.dirs' file - all dirs listed have their children linked but the directory is created at destination
+* install.sh: create '.ignore' file - all files listed are excluded from linking
+* install.sh: create '.dirs' file - all dirs listed have their children linked but the directory is created (or left alone) at destination
 * install.sh: make '.config' a special case so that only subdirectories get aliased, not '.config' itself
 * install.sh: ignore "Icon\r"
 * install.sh: colorize output

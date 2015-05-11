@@ -12,6 +12,7 @@ set -x GREP_COLOR '3;33'
 alias grep='grep --color=auto'
 
 # sudo
+# this doesn't work
 # function sudo
 #     if test "$argv" = !!
 #         # bring back `sudo !!`
@@ -50,34 +51,23 @@ alias lsd="ls -lF $colorflag | grep --color=never '^d'"
 # vim
 alias vi='vim'
 # use vim as editor
-set -xU EDITOR vim
+set -xU EDITOR (which vim)
 
 
 # PAGER
-
-# use source-highlight if available
-# this is preferable because vimpager strips colors out of files or pipes before display
-if which source-highlight >/dev/null 2>&1
-  set -x LESSOPEN "| /usr/local/bin/src-hilite-lesspipe.sh %s"
-  set -x LESS " -R "
-  alias less='less -m -g -i -J --underline-special --SILENT'
-  alias more='less'
+# use vimpager if available
+if which vimpager >/dev/null 2>&1
+  set -xU PAGER (which vimpager)
+  alias less $PAGER
+  alias zless $PAGER
 else
-# use vim as pager / less replacement (breaks ANSI colors in source command (e.g. git log))
-  if which vimpager >/dev/null 2>&1
-    set -xU PAGER (which vimpager)
-    alias less $PAGER
+  if which source-highlight >/dev/null 2>&1
+    set -x LESSOPEN "| /usr/local/bin/src-hilite-lesspipe.sh %s"
+    set -x LESS " -R "
+    alias less='less -m -g -i -J --underline-special --SILENT'
+    alias more='less'
   end
 end
-
-# try to get less to use colors on man pages (not working)
-# set -x LESS_TERMCAP_mb '\e[01;31m'
-# set -x LESS_TERMCAP_md '\e[01;37m'
-# set -x LESS_TERMCAP_me '\e[0m'
-# set -x LESS_TERMCAP_se '\e[0m'
-# set -x LESS_TERMCAP_so '\e[01;44;33m'
-# set -x LESS_TERMCAP_ue '\e[0m'
-# set -x LESS_TERMCAP_us '\e[01;32m'
 
 # git
 alias g="git"
@@ -92,6 +82,14 @@ function gpl
   git log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 end
 
+# vagrant
+alias vu="vagrant up"
+alias vh="vagrant halt"
+alias vd="vagrant destroy"
+alias vst="vagrant status"
+alias vsus="vagrant suspend"
+alias vs="vagrant ssh"
+
 # Network
 # some networks block dns requests
 #alias whats-my-ip="dig +short myip.opendns.com @208.67.222.222 @208.67.220.220"
@@ -103,10 +101,15 @@ function prettycsv
   python -c 'import sys,csv; c = csv.reader(open(sys.stdin, "rU"), dialect=csv.excel_tab); [sys.stdout.write("^M".join(map(repr,r))+"\n") for r in c];' <"$argv" | column -s '^M' -t
 end
 
+# pw (https://gist.github.com/mnewt/8d2eef4150d93a90d273)
+if which pw >/dev/null 2>&1
+  alias pwcopy 'pw | tee /dev/tty | pbcopy'
+end
+
 # Recursively delete OS cache files
-# COULD BE DANGEROUS
+# PROBABLY IS DANGEROUS!
 function clean-os-junk
-  set -l files_to_delete '*.DS_Store' 'desktop.ini'
+  set -l files_to_delete '*.DS_Store' 'desktop.ini' 'Icon\r'
   if set -q argv
     set dir '.'
   else
@@ -185,10 +188,15 @@ switch (uname)
       /sbin/ifconfig |grep -B1 "inet" |awk '{ if ( $1 == "inet" ) { print $2 } else if ( $2 == "Link" ) { printf "%s:" ,$1 } }' |awk -F: '{ print $1 ": " $3 }'
     end
 
+    function ip-details
+      /sbin/ifconfig -u | grep "inet "
+    end
+
     function update
-      sudo aptitude update
-      sudo aptitude upgrade -y
-      sudo aptitude clean
+      sudo apt-get update
+      sudo apt-get upgrade -y
+      sudo apt-get autoremove
+      sudo apt-get autoclean 
     end
 
   case 'CYGWIN*'
@@ -249,8 +257,7 @@ switch (uname)
 
     function update
       sudo softwareupdate -i -a
-      npm install npm -g; npm update -g;
-      brew update; and brew upgrade; and brew cleanup; and brew doctor
+      brew update; and brew upgrade --all; and brew cleanup; and brew doctor
       # update brew casks -- eventually this should not be necessary
       # (https://github.com/caskroom/homebrew-cask/issues/4678)
       for c in (brew cask list)
@@ -259,8 +266,10 @@ switch (uname)
         end
       end
       brew cask cleanup
-      fish_update_completions
+      npm install npm -g; npm update -g;
       #sudo gem update --system; sudo gem update
+      #pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+      fish_update_completions
     end
 
     # Flush Directory Service cache

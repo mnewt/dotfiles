@@ -72,9 +72,11 @@ let g:mapleader = ","
 " Fast saving
 nmap <leader>w :w!<cr>
 
+" Allow saving of files as sudo when I forgot to start vim using sudo.
 " :W sudo saves the file 
 " (useful for handling the permission-denied error)
-command W w !sudo tee % > /dev/null
+"command W w !sudo tee % > /dev/null
+cmap w!! w !sudo tee > /dev/null %
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

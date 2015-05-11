@@ -28,30 +28,9 @@ for path in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnu
   end
 end
 
-# fish user key bindings
-function fish_user_key_bindings
-  # from (https://github.com/fish-shell/fish-shell/wiki/Bash-Refugees)
-  function bind_bang
-    switch (commandline -t)
-    case "!"
-      commandline -t $history[1]; commandline -f repaint
-    case "*"
-      commandline -i !
-    end
-  end
-
-  function bind_dollar
-    switch (commandline -t)
-    case "!"
-      commandline -t ""
-      commandline -f history-token-search-backward
-    case "*"
-      commandline -i '$'
-    end
-  end
-
-  function fish_user_key_bindings
-    bind ! bind_bang
-    bind '$' bind_dollar
-  end
-end
+# virtualenv / virtualfish
+# requires virtualfish. Install with:
+# pip install virtualfish
+# if which virtualenv 2>&1 >/dev/null
+#   eval (python -m virtualfish auto_activation)
+# end

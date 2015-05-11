@@ -4,7 +4,7 @@
 #
 # requires: fish, ncurses
 #
-# to benchmark, use the command:
+# to do a half baked benchmark, use the command:
 # time -p fish -c 'fish_prompt'
 
 # Cygwin is special
@@ -83,13 +83,14 @@ end
 #   end
 # end
 
+
 function fish_prompt --description "Write out the prompt"
   # Last command
   set -l last_status $status
 
   # If in ssh session, print username and hostname
   if test -n "$SSH_CLIENT"
-    echo -n -s $yellow$USER$gray " at " $green$__fish_prompt_hostname$gray " in "
+    echo -n -s "$yellow$USER$gray at $green$__fish_prompt_hostname$gray in "
   end
 
   # Current Directory
@@ -114,14 +115,31 @@ function fish_prompt --description "Write out the prompt"
   if git rev-parse --is-inside-work-tree ^/dev/null >/dev/null
     # branch name
     set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed 's|^refs/heads/||')
-    echo -n -s "$gray on $purple$git_branch"
-    set -l git_dirty (git status --porcelain --ignore-submodules ^/dev/null)
-    if test -n "$git_dirty"
+    echo -n -s "$gray git $purple$git_branch"
+    if test -n "(git status --porcelain --ignore-submodules ^/dev/null)"
       # repo is dirty
       echo -n -s (set_color -o purple) '*'
     end
   end
 
+  # Vagrant
+  # this doesn't work and it's too slow
+  # this could be inspiration: (https://github.com/n00bworks/vagrant-status)
+  # if test -e 'Vagrantfile'
+  #   set -l vagrant_status (vagrant status 2>&1)
+  #   if echo $vagrant_status | grep 'poweroff'
+  #     echo -n -s " [off]"
+  #   end
+  #   if echo $vagrant_status | grep 'running'
+  #     echo -n -s " [on]"
+  #   end
+  #   if echo $vagrant_status | grep 'aborted'
+  #     echo -n -s " [aborted]"
+  #   end
+  #   if echo $vagrant_status | grep 'not created'
+  #     echo -n -s " [not created]"
+  #   end
+  # end
 
   # Ruby
   # set -l ruby_info
@@ -135,12 +153,19 @@ function fish_prompt --description "Write out the prompt"
   # test $ruby_info; and set ruby_info "$gray""using $magenta‹$ruby_info›"
 
 
+  # Python / virtualenv / virtualfish
+
+  if set -q VIRTUAL_ENV
+    echo -n -s "$gray venv $blue" (basename $VIRTUAL_ENV)
+  end
+
+
   # The Cygwin/mintty/fish combination doesn't handle multi-line prompts well
   if test "$OSTYPE" != 'CYGWIN'
     echo
   end
 
-    # Print last command status if nonzero
+  # Print last command status if nonzero
   set -e status_info
   if test $last_status -ne 0
     echo -n -s "$gray" (set_color -b $fish_color_error) "$last_status" (set_color -b normal)
