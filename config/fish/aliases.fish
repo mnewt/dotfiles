@@ -83,12 +83,7 @@ function gpl
 end
 
 # vagrant
-alias vu="vagrant up"
-alias vh="vagrant halt"
-alias vd="vagrant destroy"
-alias vst="vagrant status"
-alias vsus="vagrant suspend"
-alias vs="vagrant ssh"
+alias v='vagrant'
 
 # Network
 # some networks block dns requests
@@ -267,8 +262,8 @@ switch (uname)
       end
       brew cask cleanup
       npm install npm -g; npm update -g;
-      #sudo gem update --system; sudo gem update
-      #pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+      gem update; gem clean
+      pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
       fish_update_completions
     end
 

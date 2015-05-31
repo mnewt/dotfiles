@@ -1,0 +1,18 @@
+{
+	"user":
+	{
+		"linters":
+		{
+			"htmltidy":
+			{
+				"@disable": true,
+				"args":
+				[
+				],
+				"excludes":
+				[
+				]
+			}
+		}
+	}
+}
