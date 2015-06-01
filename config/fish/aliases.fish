@@ -263,6 +263,7 @@ switch (uname)
       brew cask cleanup
       npm install npm -g; npm update -g;
       gem update; gem clean
+      pip install --upgrade pip
       pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
       fish_update_completions
     end
