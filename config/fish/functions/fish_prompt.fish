@@ -116,7 +116,8 @@ function fish_prompt --description "Write out the prompt"
     # branch name
     set -l git_branch (git symbolic-ref HEAD ^/dev/null | sed 's|^refs/heads/||')
     echo -n -s "$gray git $purple$git_branch"
-    if test -n "(git status --porcelain --ignore-submodules ^/dev/null)"
+    set -l dirty (git status --porcelain --ignore-submodules ^/dev/null)
+    if test -n "$dirty"
       # repo is dirty
       echo -n -s (set_color -o purple) '*'
     end
