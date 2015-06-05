@@ -5,6 +5,10 @@
 #   nearhost - first ssh host that localhost can contact directly
 #   farhost  - second ssh host that only nearhost can reach
 
+# caveats:
+#   - a public key is necessary on the nearhost because no opportunity
+#     is given to log in with a password
+
 
 # defaults
 port=2022
