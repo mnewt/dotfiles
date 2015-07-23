@@ -166,7 +166,9 @@ switch (uname)
   case CYGWIN'*'
     alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe'
   case Darwin
-    alias st='/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl'
+    function st
+      /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl $argv
+    end
 end
 
 # Reload the shell (i.e. invoke as a login shell)
@@ -190,8 +192,8 @@ switch (uname)
     function update
       sudo apt-get update
       sudo apt-get upgrade -y
-      sudo apt-get autoremove
-      sudo apt-get autoclean 
+      sudo apt-get autoremove -y
+      sudo apt-get autoclean -y
     end
 
   case 'CYGWIN*'
@@ -252,7 +254,7 @@ switch (uname)
 
     function update
       sudo softwareupdate -i -a
-      brew update; and brew upgrade --all; and brew cleanup; and brew doctor
+      brew update; and brew upgrade --all; and brew cleanup; and brew prune; and brew doctor
       # update brew casks -- eventually this should not be necessary
       # (https://github.com/caskroom/homebrew-cask/issues/4678)
       for c in (brew cask list)
@@ -261,6 +263,7 @@ switch (uname)
         end
       end
       brew cask cleanup
+      brew link iojs --force
       npm install npm -g; npm update -g;
       gem update; gem clean
       pip install --upgrade pip
@@ -284,7 +287,10 @@ switch (uname)
 
     # Merge PDF files
     # Usage: `mergepdf -o output.pdf input{1,2,3}.pdf`
-    alias mergepdf='/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py'
+    # alias mergepdf='/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py'
+    function mergepdf
+      /System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py $argv
+    end
 
     # Disable Spotlight
     alias spotoff="sudo mdutil -a -i off"

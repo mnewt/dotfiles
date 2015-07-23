@@ -4,7 +4,6 @@
 	],
 	"installed_packages":
 	[
-		"Advanced CSV",
 		"ApplySyntax",
 		"Base16 Color Schemes",
 		"Better CoffeeScript",
@@ -13,12 +12,14 @@
 		"Cisco Syntax Highlighter",
 		"Dockerfile Syntax Highlighting",
 		"EJS",
+		"Enhanced Clojure",
 		"fish-shell",
 		"Git",
 		"Git Config",
 		"INI",
 		"Jade",
 		"JavaScriptNext - ES6 Syntax",
+		"Logstash Syntax Highlighting",
 		"Makefile Improved",
 		"nginx",
 		"Package Control",
@@ -33,6 +34,7 @@
 		"Stylus",
 		"SublimeLinter",
 		"SublimeLinter-html-tidy",
+		"SublimeREPL",
 		"Theme - Soda",
 		"Vagrant",
 		"VimL"
