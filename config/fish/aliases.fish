@@ -6,6 +6,7 @@ alias ln='ln -v'
 alias mkdir='mkdir -p'
 alias ...='../..'
 alias df='df -h'
+alias vi='vim'
 
 # grep
 set -x GREP_COLOR '3;33'
@@ -179,7 +180,7 @@ end
 
 switch (uname)
   case Linux
-    alias listening-ports='netstat -lnptu | grep LISTEN'
+    alias listening-ports='ss -lnptu'
 
     function ips
       /sbin/ifconfig |grep -B1 "inet" |awk '{ if ( $1 == "inet" ) { print $2 } else if ( $2 == "Link" ) { printf "%s:" ,$1 } }' |awk -F: '{ print $1 ": " $3 }'
