@@ -12,7 +12,7 @@
 
 # defaults
 port=2022
-nearhost=u
+nearhost=a
 
 # if second argument isn't a switch, it must be our nearhost
 case ${2} in

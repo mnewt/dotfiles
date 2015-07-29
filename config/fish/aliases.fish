@@ -180,6 +180,26 @@ end
 
 switch (uname)
   case Linux
+    if test -e /etc/arch-release
+      function update
+        sudo /usr/bin/pacman -Syu
+        if sudo /usr/bin/pacman -Qtdq > /dev/null
+          sudo /usr/bin/pacman -Rns (/usr/bin/pacman -Qtdq | sed -e ':a;N;\$!ba;s/\n/ /g')
+        end
+        sudo paccache -r
+        sudo paccache -ruk0
+        sudo pacman-optimize
+      end
+    end
+    if test -e /etc/debian_version; or test -e /etc/lsb_release
+      function update
+        sudo apt-get update
+        sudo apt-get upgrade -y
+        sudo apt-get autoremove -y
+        sudo apt-get autoclean -y
+      end
+    end
+
     alias listening-ports='ss -lnptu'
 
     function ips
@@ -190,12 +210,7 @@ switch (uname)
       /sbin/ifconfig -u | grep "inet "
     end
 
-    function update
-      sudo apt-get update
-      sudo apt-get upgrade -y
-      sudo apt-get autoremove -y
-      sudo apt-get autoclean -y
-    end
+
 
   case 'CYGWIN*'
     alias listening-ports='netstat -an | grep LISTENING'
