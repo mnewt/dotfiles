@@ -1,18 +1,17 @@
 #!/bin/sh
 
 # misc
-alias tlf="tail -f"
+alias tlf='tail -f'
 alias ln='ln -v'
 alias mkdir='mkdir -p'
 alias ...='../..'
 alias df='df -h'
+alias vi='vim'
 
 # grep
-alias G='| grep'
-alias M='| less'
-alias L='| wc -l'
-alias ONE="| awk '{ print \$1}'"
+export GREP_COLOR '3;33'
 alias grep='grep --color=auto'
+
 
 # Enable aliases to be sudo’ed
 alias sudo='sudo '
@@ -54,7 +53,7 @@ if hash transmission-remote-cli 2>/dev/null; then
 fi
 
 # GRC ######################################################
-GRC=`which grc`
+GRC=`hash grc >/dev/null`
 if [ "$TERM" != dumb ] && [ -n "$GRC" ]
 then
   alias colourify="$GRC -es --colour=auto"
