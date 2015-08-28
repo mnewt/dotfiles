@@ -34,13 +34,13 @@ if [ ! -z ${OSTYPE} ]; then
 fi
 
 # Just calculate these once, to save a few cycles when displaying the prompt
-if [ -z __bash_prompt_hostname ]; then
-	if [ "$OSTYPE" = "CYGWIN" ]; then
-		export __bash_prompt_hostname=$(/bin/hostname)
-	else
-		export __bash_prompt_hostname=$(hostname -s)
-	fi
+
+if [ "$OSTYPE" = "CYGWIN" ]; then
+	export __bash_prompt_hostname=$(/bin/hostname)
+else
+	export __bash_prompt_hostname=$(hostname -s)
 fi
+
 
 
 # Standard Colors
