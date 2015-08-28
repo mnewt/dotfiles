@@ -1,0 +1,20 @@
+# Settings
+# This file tells install.sh what to ignore, link, copy, and create
+# List files (and globs) separated by spaces
+# The below options are in order of priority, so ignore overrides
+# link_children, which overrides copy, which overrides link
+# That is why it's OK to just specify '*' for link
+
+# ignore these files (modifies include)
+ignore='settings scripts Icon* *.md *.sh *.txt'
+
+# create directory itself (not contents), then link the children of the directory
+# NOTE: it will not delete the directory. If you want to replace the directory,
+#				delete it first, then run install.sh
+link_children='config'
+
+# just copy these files
+copy=''
+
+# list of files to link
+link='*'

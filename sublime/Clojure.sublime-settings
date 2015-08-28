@@ -1,0 +1,7 @@
+{
+  "extensions":
+  [
+    "cljs"
+  ],
+  "word_separators": "\\()\"',;@$%^&|[]{}`~"
+}

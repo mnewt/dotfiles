@@ -9,7 +9,7 @@ alias df='df -h'
 alias vi='vim'
 
 # grep
-export GREP_COLOR '3;33'
+# export GREP_COLOR '3;33'
 alias grep='grep --color=auto'
 
 

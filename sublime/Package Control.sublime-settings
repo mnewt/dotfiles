@@ -1,0 +1,22 @@
+{
+	"in_process_packages":
+	[
+		"BracketHighlighter",
+		"Rainbowth"
+	],
+	"installed_packages":
+	[
+		"ApplySyntax",
+		"BracketHighlighter",
+		"Cisco Syntax Highlighter",
+		"Dockerfile Syntax Highlighting",
+		"Enhanced Clojure",
+		"fish-shell",
+		"lispindent",
+		"Load file to REPL",
+		"Package Control",
+		"PackageSync",
+		"Rainbowth",
+		"SublimeREPL"
+	]
+}

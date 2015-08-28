@@ -1,21 +1,9 @@
 #!/bin/sh
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
-# Settings
-# (you can use globs)
-
-# list of files to link
-link='*'
-
-# ignore these files (modifies include)
-ignore='Icon* *.md *.sh *.txt scripts'
-
-# just copy these files
-copy=''
-
-# create directory itself (not contents), then link the children of the directory
-# NOTE: it will not delete the directory. If you need to do that, do it manually
-link_children='config'
+# Read in settings
+source_path=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+source "$source_path/settings"
 
 
 
@@ -152,11 +140,12 @@ ignore_sources=$(echo $ignore)
 copy_sources=$(echo $copy)
 link_children_sources=$(echo $link_children)
 
-# Remove files that shouldn't be linked
+# Remove duplicate and ignored files from lists
 link_sources=$(remove_dupes "$link_sources" "$ignore_sources")
 link_sources=$(remove_dupes "$link_sources" "$copy_sources")
 link_sources=$(remove_dupes "$link_sources" "$link_children_sources")
-
+copy_sources=$(remove_dupes "$copy_sources" "$ignore_sources")
+link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
 
 # Do it
 
@@ -191,6 +180,9 @@ done
 for s in $link_children_sources; do
   target="$dest_dir/.$s"
   children=$(echo $s/*)
-  make_dir "$target"
-  make_links "$children"
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    remove_file "$target" && make_dir "$target" && make_links "$children"
+  else
+    make_dir "$target" && make_links "$children"
+  fi
 done

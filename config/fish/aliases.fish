@@ -279,7 +279,8 @@ switch (uname)
         end
       end
       brew cask cleanup
-      brew link iojs --force
+      brew unlink iojs
+      brew link iojs
       npm install npm -g; npm update -g;
       gem update; gem clean
       pip install --upgrade pip

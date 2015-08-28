@@ -179,4 +179,6 @@ function fish_prompt --description "Write out the prompt"
     echo -n -s "$white> "
   end
 
+  echo -n -s "$normal"
+
 end
