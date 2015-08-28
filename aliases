@@ -53,7 +53,7 @@ if hash transmission-remote-cli 2>/dev/null; then
 fi
 
 # GRC ######################################################
-GRC=`hash grc >/dev/null`
+GRC=$(which grc 2>/dev/null >/dev/null)
 if [ "$TERM" != dumb ] && [ -n "$GRC" ]
 then
   alias colourify="$GRC -es --colour=auto"
