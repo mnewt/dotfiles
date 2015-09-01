@@ -55,7 +55,7 @@ if not set -q cyan
   set -g c5 (set_color 6ff0cf)
   set -g c6 (set_color adf6e4)
 
-  set -g ce (set_color $fish_color_error)
+  set -g ce '\e[48;5;165m\e[38;5;007m'
 end
 
 # if not set -q __fish_git_prompt_showstashstate
