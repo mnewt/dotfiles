@@ -9,9 +9,9 @@ if [ -e "$HOME/.aliases" ]; then
 fi
 
 # load private environment variables
-# if [ -e "$HOME/.private" ]; then
-#   source "$HOME/.private"
-# fi
+if [ -e "$HOME/.private.sh" ]; then
+  source "$HOME/.private.sh"
+fi
 
 
 #
@@ -44,7 +44,7 @@ fi
 
 # Reference (https://wiki.archlinux.org/index.php/Color_Bash_Prompt)
 # Reset
-Color_Off='\e[0m'       # Text Reset
+# Color_Off='\e[0m'       # Text Reset
 
 # Regular Colors
 Black='\e[0;30m'        # Black
@@ -132,7 +132,7 @@ function bash_prompt {
   fi
 
 	if [ -n "$SSH_CLIENT" ]; then
-		echo -e -n "$yellow$USER$Gray at $green$__bash_prompt_hostname$Gray in "
+		echo -e -n "$Yellow$USER$Gray at $Green$__bash_prompt_hostname$Gray in "
 	fi
 
 	# Directory
@@ -162,24 +162,22 @@ function bash_prompt {
   job_count=$(jobs | wc -l | awk '{ print $1; }')
   job_count=$((job_count-1))
   if [ $job_count -gt 0 ]; then
-    echo -e -n " $Gray($Blue$job_count job"
+    echo -e -n " $Blue$job_count ${Gray}job"
     if [ $job_count -gt 1 ]; then
       # make jobs plural
       echo -e -n "s"
     fi
-    echo -e -n "$Gray)"
   fi
 
   # Display tmux session count if not in tmux already
   if [ -z "$TMUX" ]; then
     session_count=$(tmux ls 2>/dev/null | wc -l | awk '{ print $1; }')
     if [ $session_count -gt 0 ]; then
-      echo -e -n " $Gray[$Cyan$session_count session"
+      echo -e -n " $Cyan$session_count ${Gray}tmux"
       if [ $session_count -gt 1 ]; then
         # make sessions plural
-        echo -e -n "s"
+        echo -e -n "es"
       fi
-      echo -e -n "$Gray]"
     fi
   fi
 
