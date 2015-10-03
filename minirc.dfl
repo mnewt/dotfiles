@@ -1,6 +1,9 @@
-# Machine-generated file - use "minicom -s" to change parameters.
-pu port             /dev/tty.PL2303-00002014
+# Machine-generated file - use setup menu in minicom to change parameters.
 pu lock             /usr/local/Cellar/minicom/2.7/var
 pu baudrate         9600
 pu escape-key       Escape (Meta)
-pu rtscts           No
+pu mfcolor          WHITE
+pu mbcolor          CYAN
+pu sfcolor          BLACK
+pu sbcolor          MAGENTA
+pu linewrap         Yes

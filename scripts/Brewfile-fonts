@@ -1,7 +1,0 @@
-# brew brewdle [Brewfile]
-
-# tap the fonts repository
-tap 'caskroom/fonts'
-
-# install fonts
-cask 'font-inconsolata'

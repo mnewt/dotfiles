@@ -1,12 +1,12 @@
 #!/usr/local/bin/fish
 
 # misc
-alias tlf='tail -f'
+alias tf='tail -f'
 alias ln='ln -v'
 alias mkdir='mkdir -p'
 alias ...='../..'
+alias ....='../../..'
 alias df='df -h'
-alias vi='vim'
 
 # grep
 set -x GREP_COLOR '3;33'
@@ -25,10 +25,10 @@ alias grep='grep --color=auto'
 # end
 
 # ps
-function p
+function p -d 'Search processes for $argv[1] and print the result'
   ps u (pgrep $argv) | grep --color -E "$argv|\$"
 end
-function sudop
+function sudop -d 'Search all processes for $argv[1] and print the result'
   sudo ps u (pgrep $argv) | grep --color -E "$argv|\$"
 end
 
@@ -53,6 +53,10 @@ alias lsd="ls -lF $colorflag | grep --color=never '^d'"
 alias vi='vim'
 # use vim as editor
 set -xU EDITOR (which vim)
+
+# tmux
+# TODO - connect to session or create new
+alias t='tmux'
 
 
 # PAGER
@@ -102,34 +106,6 @@ if which pw >/dev/null 2>&1
   alias pwcopy 'pw | tee /dev/tty | pbcopy'
 end
 
-# Recursively delete OS cache files
-# PROBABLY IS DANGEROUS!
-function clean-os-junk
-  set -l files_to_delete '*.DS_Store' 'desktop.ini' 'Icon\r'
-  if set -q argv
-    set dir '.'
-  else
-    set dir $argv
-  end
-  for file in $files_to_delete
-    find "$dir" -name "$file" -print
-  end
-  while true
-    read -l -p 'echo "Do you wish to delete these files? [yN] "' yn
-    set yn (echo $yn | tr '[:upper:]' '[:lower:]')
-    switch $yn
-      case 'y*'
-        for file in $files_to_delete
-          find "$dir" -name "$file" -print -delete
-        end
-        return 0
-      case '*'
-        echo 'Exiting, no files modified'
-        return 0
-    end
-  end
-end
-
 
 # GRC ######################################################
 set -l GRC (which grc >/dev/null 2>&1)
@@ -157,20 +133,6 @@ if not set -q $GRC
   alias curl='colourify -c conf.curl curl'
 end
 
-# Sublime Text #############################################
-
-switch (uname)
-  case Linux
-    function st
-      nohup /usr/bin/sublime_text $argv > /dev/null &
-    end
-  case CYGWIN'*'
-    alias st='/cygdrive/c/Program Files/Sublime Text 3/Subl.exe'
-  case Darwin
-    function st
-      /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl $argv
-    end
-end
 
 # Reload the shell (i.e. invoke as a login shell)
 # set SHELL (which fish)
@@ -180,63 +142,12 @@ end
 
 switch (uname)
   case Linux
-    if test -e /etc/arch-release
-      function update
-        sudo /usr/bin/pacman -Syu
-        if sudo /usr/bin/pacman -Qtdq > /dev/null
-          sudo /usr/bin/pacman -Rns (/usr/bin/pacman -Qtdq | sed -e ':a;N;\$!ba;s/\n/ /g')
-        end
-        sudo paccache -r
-        sudo paccache -ruk0
-        sudo pacman-optimize
-      end
-    end
-    if test -e /etc/debian_version; or test -e /etc/lsb_release
-      function update
-        sudo apt-get update
-        sudo apt-get upgrade -y
-        sudo apt-get autoremove -y
-        sudo apt-get autoclean -y
-      end
-    end
-
-    alias listening-ports='ss -lnptu'
-
-    function ips
-      /sbin/ifconfig |grep -B1 "inet" |awk '{ if ( $1 == "inet" ) { print $2 } else if ( $2 == "Link" ) { printf "%s:" ,$1 } }' |awk -F: '{ print $1 ": " $3 }'
-    end
-
-    function ip-details
-      /sbin/ifconfig -u | grep "inet "
-    end
-
-
 
   case 'CYGWIN*'
-    alias listening-ports='netstat -an | grep LISTENING'
-    alias ips ipconfig | awk -F" ." '/Address/ {print $NF}'
-    # Flush Directory Service cache
-    alias flush="ipconfig /flushdns"
 
   case Darwin
     # Set where to install casks
     set -x HOMEBREW_CASK_OPTS "--appdir=/Applications"
-
-    alias listening-ports='lsof -i -n -P | grep LISTEN'
-
-    #alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
-    function ips
-      # fish only recognizes a list coming from std when it's delimited by '\n'
-      # even though it displays lists as delimited by ' '
-      # https://github.com/fish-shell/fish-shell/issues/156
-      for i in (ifconfig -l | tr ' ' '\n')
-        set -l ipaddr (ifconfig $i | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)')
-        # this test is always true
-        if test -n "$ipaddr"
-          echo $i ":" $ipaddr
-        end
-      end
-    end
 
     # open man page in Preview
     function pman
@@ -264,35 +175,8 @@ switch (uname)
       open "dash://$argv[1]"
     end
 
-
     # vagrant 
     # set -x VAGRANT_DEFAULT_PROVIDER parallels
-
-    function update
-      sudo softwareupdate -i -a
-      brew update; and brew upgrade --all; and brew cleanup; and brew prune; and brew doctor
-      # update brew casks -- eventually this should not be necessary
-      # (https://github.com/caskroom/homebrew-cask/issues/4678)
-      for c in (brew cask list)
-        if brew cask info $c | grep -qF "Not installed"
-          brew cask install $c
-        end
-      end
-      brew cask cleanup
-      brew unlink iojs
-      brew link iojs --force
-      npm install npm -g; npm update -g;
-      gem update; gem clean
-      pip install --upgrade pip
-      pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
-      fish_update_completions
-    end
-
-    # Flush Directory Service cache
-    function flush
-      sudo discoveryutil mdnsflushcache
-      sudo discoveryutil udnsflushcache
-    end
 
     # Empty the Trash on all mounted volumes and the main HDD
     # Also, clear Apple’s System Logs to improve shell startup speed

@@ -4843,14 +4843,16 @@
 		<key>TB Is Shown</key>
 		<integer>1</integer>
 	</dict>
+	<key>NSWindow Frame NSFontPanel</key>
+	<string>304 297 445 77 0 0 1440 877 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>69 245 924 485 0 0 1440 877 </string>
+	<string>137 340 924 485 0 0 1440 877 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
 	<string>99 293 592 584 0 0 1440 877 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>377 0 1050 877 0 0 1440 877 </string>
+	<string>571 23 810 854 0 0 1440 877 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
-	<string>183 0 810 877 0 0 1440 877 </string>
+	<string>183 18 810 854 0 0 1440 877 </string>
 	<key>New Bookmarks</key>
 	<array>
 		<dict>
@@ -5386,13 +5388,13 @@
 			<key>Name</key>
 			<string>Matt Custom</string>
 			<key>Non Ascii Font</key>
-			<string>Menlo-Regular 14</string>
+			<string>Menlo-Regular 13</string>
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>Monaco 14</string>
+			<string>Monaco 13</string>
 			<key>Option Key Sends</key>
-			<integer>0</integer>
+			<integer>2</integer>
 			<key>Prompt Before Closing 2</key>
 			<integer>0</integer>
 			<key>Right Option Key Sends</key>
@@ -6975,6 +6977,10 @@
 	</array>
 	<key>NoSyncNeverRemindPrefsChangesLost</key>
 	<true/>
+	<key>NoSyncTimeOfLastPromo</key>
+	<real>453327083.858872</real>
+	<key>NoSyncTimeOfLastPromoDownload</key>
+	<real>463884365.766599</real>
 	<key>OnlyWhenMoreTabs</key>
 	<true/>
 	<key>OpenArrangementAtStartup</key>
@@ -7033,7 +7039,7 @@
 	<key>RightOption</key>
 	<integer>3</integer>
 	<key>SUAutomaticallyUpdate</key>
-	<true/>
+	<false/>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
@@ -7041,7 +7047,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2015-02-05T04:06:06Z</date>
+	<date>2015-09-14T00:44:47Z</date>
 	<key>SavePasteHistory</key>
 	<true/>
 	<key>Secure Input</key>
@@ -7099,6 +7105,6 @@
 	<key>findRegex_iTerm</key>
 	<false/>
 	<key>iTerm Version</key>
-	<string>2.0.0.20141103</string>
+	<string>2.1.1</string>
 </dict>
 </plist>

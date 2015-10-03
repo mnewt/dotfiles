@@ -1,8 +1,7 @@
 {
+	"bootstrapped": true,
 	"in_process_packages":
 	[
-		"BracketHighlighter",
-		"Rainbowth"
 	],
 	"installed_packages":
 	[

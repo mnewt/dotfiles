@@ -10,10 +10,8 @@
 	"font_size": 12,
 	"ignored_packages":
 	[
-		"Vintage",
 		"rainbowth",
-		"BracketHighlighter",
-		"Rainbowth"
+		"Vintage"
 	],
 	"match_brackets": false,
 	"tab_size": 2,

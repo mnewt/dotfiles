@@ -1,24 +1,12 @@
-# brew brewdle [Brewfile]
+#!/bin/sh 
 
 # repositories
-tap 'caskroom/cask'
-tap 'caskroom/versions'
+brew tap caskroom/cask
 
 # Casks
-cask 'iterm2'
-cask 'google-chrome'
-cask 'evernote'
-cask 'alfred'
-cask 'keka'
-cask 'qlstephen' 
-cask 'qlcolorcode'
-cask 'vlc'
-cask 'osxfuse'
-cask 'dash'
-cask 'bittorrent-sync'
-cask 'viscosity'
-cask 'steam'
+brew cask install 1password iterm2 google-chrome evernote alfred keka vlc bittorrent-sync viscosity steam jump-desktop virtualbox dropbox flux cyberduck vmware-fusion
 
+brew tap caskroom-version
 # needs caskroom/versions
-cask 'sublime-text3'
+brew cask install sublime-text3
 

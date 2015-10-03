@@ -34,3 +34,6 @@ end
 # if which virtualenv 2>&1 >/dev/null
 #   eval (python -m virtualfish auto_activation)
 # end
+
+# minicom
+set -e MINICOM '-c on'
