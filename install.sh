@@ -11,35 +11,37 @@ display_help_text () {
   cat <<-'EOF'
 install.sh version 0.5
 
-Run from a dotfile directory, links all files and directories into the current
-user's home directory
+Copies/links files and directories from the current dir to the user's home dir
 
-./install.sh [-f] [-h] [-t] [-c config-file] [source dir] [destination dir]
+USAGE: install.sh [OPTIONS] [SOURCE-DIR] [DEST-DIR]
+    SOURCE-DIR defaults to the current directory
+    DEST-DIR defaults to the current user's home directory
 
-  -f (--force)    : Overwrite any files / directories in the destination dir
+OPTIONS:
+  -f (--force)    : force overwrite of files or directories in DEST-DIR
                     (default is false)
-  -h (--help)     : This help message
-  -t (--test)     : Don't actually do anything, just show what would be done
+  -h (--help)     : display this help and exit
+  -t (--test)     : test mode - only display changes, don't make them
                     (default is false)
-  -c (--config)   : Specify configuration file. Example file contents:
-                    # Settings
-                    # (you can use globs)
-                    # list of files to link
-                    link='*'
-                    # ignore these files (modifies include)
-                    ignore='Icon* *.md *.sh *.txt scripts'
-                    # just copy these files
-                    copy=''
-                    # create directory itself (not contents), then link the
-                    # children of the directory
-                    link_children='config'
-                    (defaults are in `install.sh`)
+  -c (--config)   : specify a configuration file
+                    (default configuration file is `settings`)
+                      Example config file contents:
+                        # Settings (can use globs)
+                        # ignore these files (modifies include)
+                        ignore='Icon* *.md *.sh *.txt scripts'
+                        # create dir (not contents), then sym-link children (contents)
+                        link_children='config'
+                        # copy these files
+                        copy=''
+                        # sym-link these files
+                        link='*'
 
-  source dir      : Contains dotfiles. They are expected to NOT have leading
-                    '.' For example, if the dotfile is '.bashrc' then in the
-                    source dir it is 'bashrc'
+  SOURCE-DIR      : directory containing dotfiles to be copied and/or linked
                     (default is current directory)
-  destination dir : Where to put symlinks
+                      files should NOT have leading '.'
+                      example: '.bashrc' should be named 'bashrc' in SOURCE-DIR
+
+  DEST-DIR        : target directory where copies and links will be placed
                     (default is '~')
 
 EOF
