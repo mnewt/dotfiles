@@ -3,11 +3,12 @@
 
 # Read in settings
 source_path=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-source "$source_path/settings"
+. "$source_path/settings"
 
 
+display_help_text () {
 
-read -r -d '' help_text <<-'EOF'
+  cat <<-'EOF'
 install.sh version 0.5
 
 Run from a dotfile directory, links all files and directories into the current
@@ -40,12 +41,13 @@ user's home directory
                     (default is current directory)
   destination dir : Where to put symlinks
                     (default is '~')
-EOF
 
+EOF
+}
 
 # functions
 
-function list_contains() {
+list_contains() {
   for word in $1; do
     [ "$word" = "$2" ] && return 0
   done
@@ -60,7 +62,7 @@ remove_dupes() {
   echo "$new_list"
 }
 
-function remove_file() {
+remove_file() {
   if [ "$testing" = true ]; then
     echo "TESTING: rm -rf $1"
   elif [ "$force" = true ]; then
@@ -72,7 +74,7 @@ function remove_file() {
   fi
 }
 
-function link_file() {
+link_file() {
   if [ "$testing" = true ]; then
     echo "TESTING: ln -s $1 $2"
   else
@@ -81,7 +83,7 @@ function link_file() {
   fi
 }
 
-function copy_file() {
+copy_file() {
   if [ "$testing" = true ]; then
     echo "TESTING: cp -R $1 $2"
   else
@@ -90,7 +92,7 @@ function copy_file() {
   fi
 }
 
-function make_dir() {
+make_dir() {
   if [ "$testing" = true ]; then
     echo "TESTING: mkdir -p $1"
   else
@@ -117,11 +119,11 @@ for arg in $@; do
       ;;
     -c|--config-file)
       shift
-      source $1
+      . $1
       shift
       ;;
     -h|--help)
-      echo "$help_text"
+      display_help_text
       exit
       ;;
   esac
@@ -150,7 +152,7 @@ link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
 # Do it
 
 # Create links
-function make_links() {
+make_links() {
   for s in $1; do
     target="$dest_dir/.$s"
     src="$source_dir/$s"
