@@ -1,6 +1,10 @@
 #!/bin/sh
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
+scriptname="install.sh"
+scriptbuildnum="0.6"
+scriptbuilddate="2016-02-01"
+
 ### VARS INITS
 
 # Read in settings
@@ -20,10 +24,15 @@ testing=false
 
 ### FUNCTIONS
 
+display_ver() {
+  echo "$scriptname  ver $scriptbuildnum - $scriptbuilddate"
+}
+
 display_help_text () {
 
+  display_ver   # Print script-title, build-number, and build-date
+
   cat <<-'EOF'
-install.sh version 0.5
 
 Copies/links files and directories from the current dir to the user's home dir
 
@@ -34,7 +43,6 @@ USAGE: install.sh [OPTIONS] [SOURCE-DIR] [DEST-DIR]
 OPTIONS:
   -f (--force)    : force overwrite of files or directories in DEST-DIR
                     (default is false)
-  -h (--help)     : display this help and exit
   -t (--test)     : test mode - only display changes, don't make them
                     (default is false)
   -c (--config)   : specify a configuration file
@@ -49,6 +57,9 @@ OPTIONS:
                         copy=''
                         # sym-link these files
                         link='*'
+
+  -h (--help)     : display this help and exit
+  -V (--version)  : output version information and exit
 
   SOURCE-DIR      : directory containing dotfiles to be copied and/or linked
                     (default is current directory)
@@ -149,6 +160,10 @@ for arg in $@; do
       ;;
     -h|--help)
       display_help_text
+      exit
+      ;;
+    -V|--version)
+      display_ver
       exit
       ;;
   esac
