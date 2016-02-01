@@ -166,11 +166,11 @@ make_links "$link_sources"
 
 # Create copies
 for s in $copy_sources; do
-  target="dest_dir/.$s"
+  target="$dest_dir/.$s"
   src="$source_dir/$s"
   # if file (or a link) exists at destination
   if [ -e "$target" ] || [ -L "$target" ]; then
-    remove_file "$target" && link_copy "$src" "$target"
+    remove_file "$target" && copy_file "$src" "$target"
   else
     copy_file "$src" "$target"
   fi
