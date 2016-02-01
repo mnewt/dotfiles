@@ -1,10 +1,24 @@
 #!/bin/sh
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
+### VARS INITS
+
 # Read in settings
 source_path=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$source_path/settings"
 
+# Expand globs
+link_sources=$(echo $link)
+ignore_sources=$(echo $ignore)
+copy_sources=$(echo $copy)
+link_children_sources=$(echo $link_children)
+
+# initialize flags
+force=false
+testing=false
+
+
+### FUNCTIONS
 
 display_help_text () {
 
@@ -46,8 +60,6 @@ OPTIONS:
 
 EOF
 }
-
-# functions
 
 list_contains() {
   for word in $1; do
@@ -103,10 +115,21 @@ make_dir() {
   fi
 }
 
+make_links() {
+  for s in $1; do
+    target="$dest_dir/.$s"
+    src="$source_dir/$s"
+    # if file (or a link) exists at destination
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      remove_file "$target" && link_file "$src" "$target"
+    else
+      link_file "$src" "$target"
+    fi
+  done
+}
 
-# initialize flags
-force=false
-testing=false
+
+### PRE-EXECUTION TASKS
 
 # parse arguments
 for arg in $@; do
@@ -131,41 +154,21 @@ for arg in $@; do
   esac
 done
 
-
-# Organize data
-
-# Defaults
+# Set default dirs (must occur after command-tail parsing)
 source_dir="${1-$(pwd)}"
 dest_dir="${2-$HOME}"
 
-# Expand globs
-link_sources=$(echo $link)
-ignore_sources=$(echo $ignore)
-copy_sources=$(echo $copy)
-link_children_sources=$(echo $link_children)
-
-# Remove duplicate and ignored files from lists
+# Remove duplicate and ignored files from file-lists read from 'sources'
 link_sources=$(remove_dupes "$link_sources" "$ignore_sources")
 link_sources=$(remove_dupes "$link_sources" "$copy_sources")
 link_sources=$(remove_dupes "$link_sources" "$link_children_sources")
 copy_sources=$(remove_dupes "$copy_sources" "$ignore_sources")
 link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
 
-# Do it
 
-# Create links
-make_links() {
-  for s in $1; do
-    target="$dest_dir/.$s"
-    src="$source_dir/$s"
-    # if file (or a link) exists at destination
-    if [ -e "$target" ] || [ -L "$target" ]; then
-      remove_file "$target" && link_file "$src" "$target"
-    else
-      link_file "$src" "$target"
-    fi
-  done
-}
+### EXECUTE - MAKE LINK, COPY AND DIRS
+
+# Make links
 make_links "$link_sources"
 
 # Create copies
