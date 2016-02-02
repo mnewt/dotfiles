@@ -102,8 +102,13 @@ function prettycsv
 end
 
 # pw (https://gist.github.com/mnewt/8d2eef4150d93a90d273)
-if which pw >/dev/null 2>&1
-  alias pwcopy 'pw | tee /dev/tty | pbcopy'
+function pwcopy
+  pw $argv | tee /dev/tty | pbcopy
+end
+
+# mutt
+function mutt
+    bash --login -c 'cd ~/Desktop; /usr/local/bin/mutt' $argv;
 end
 
 

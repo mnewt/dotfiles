@@ -40,8 +40,8 @@ function update -d 'Update software on the computer'
 
   # python
   pip install --upgrade pip
-  pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+  pip freeze --local | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 
   # fish
-  fish_update_completions
+  #fish_update_completions
 end
