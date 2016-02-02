@@ -11,11 +11,12 @@
 		"Dockerfile Syntax Highlighting",
 		"Enhanced Clojure",
 		"fish-shell",
+		"INI",
 		"lispindent",
 		"Load file to REPL",
+		"nginx",
 		"Package Control",
 		"PackageSync",
-		"Rainbowth",
 		"SublimeREPL"
 	]
 }

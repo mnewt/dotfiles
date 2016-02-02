@@ -1,6 +1,8 @@
 #!/usr/local/bin/fish
 
-set -gx fish_greeting ''
+# set -x fish_greeting ''
+
+
 
 # Setup terminal, and turn on colors
 set -x TERM xterm-256color
@@ -28,6 +30,12 @@ for path in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnu
   end
 end
 
+# minicom
+set -x MINICOM '-c on'
+
+# python venv
+set -x VIRTUAL_ENV_DISABLE_PROMPT true
+
 # virtualenv / virtualfish
 # requires virtualfish. Install with:
 # pip install virtualfish
@@ -35,5 +43,7 @@ end
 #   eval (python -m virtualfish auto_activation)
 # end
 
-# minicom
-set -e MINICOM '-c on'
+# Print pretty fish logo only if starting on a local machine
+if test -z "$SSH_CLIENT"
+	logo
+end
