@@ -53,22 +53,22 @@ if hash transmission-remote-cli 2>/dev/null; then
 fi
 
 # GRC ######################################################
-GRC=$(which grc 2>/dev/null >/dev/null)
+GRC=$(which grc 2>/dev/null)
 if [ "$TERM" != dumb ] && [ -n "$GRC" ]
 then
   alias colourify="$GRC -es --colour=auto"
-   alias configure='colourify ./configure'
-   alias diff='colourify diff'
-   alias make='colourify make'
-   alias gcc='colourify gcc'
-   alias g++='colourify g++'
-   alias as='colourify as'
-   alias gas='colourify gas'
-   alias ld='colourify ld'
-   alias netstat='colourify netstat'
-   alias ping='colourify ping'
-   alias traceroute='colourify /usr/sbin/traceroute'
-   alias arp='colourify -c conf.traceroute arp'
+  alias configure='colourify ./configure'
+  alias diff='colourify diff'
+  alias make='colourify make'
+  alias gcc='colourify gcc'
+  alias g++='colourify g++'
+  alias as='colourify as'
+  alias gas='colourify gas'
+  alias ld='colourify ld'
+  alias netstat='colourify netstat'
+  alias ping='colourify ping'
+  alias traceroute='colourify /usr/sbin/traceroute'
+  alias arp='colourify -c conf.traceroute arp'
   alias tail='colourify -c conf.log tail'
   alias ps='colourify -c conf.ps ps'
   alias ifconfig='colourify -c conf.traceroute ifconfig'

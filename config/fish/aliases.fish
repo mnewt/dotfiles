@@ -113,7 +113,7 @@ end
 
 
 # GRC ######################################################
-set -l GRC (which grc >/dev/null 2>&1)
+set -l GRC (which grc 2>/dev/null)
 if not set -q $GRC
   alias colourify=$GRC" -es --colour=auto"
   alias configure='colourify ./configure'
@@ -176,11 +176,11 @@ switch (uname)
     end
 
     # Dash
-    function dash 
+    function dash
       open "dash://$argv[1]"
     end
 
-    # vagrant 
+    # vagrant
     # set -x VAGRANT_DEFAULT_PROVIDER parallels
 
     # Empty the Trash on all mounted volumes and the main HDD
