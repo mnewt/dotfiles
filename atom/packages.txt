@@ -1,0 +1,14 @@
+Parinfer@1.8.0
+atom-beautify@0.28.21
+highlight-selected@0.11.2
+ink@0.3.2
+language-cisco@1.4.0
+language-fish-shell@1.0.2
+linter@1.11.3
+monokai-slate@0.5.0
+native-ui@0.16.1
+open-recent@5.0.0
+parcel@0.1.0
+proto-repl@0.13.0
+swackets@0.10.0
+

@@ -1,4 +1,4 @@
-Matt's dotfiles
+Some dotfiles
 ===================
 
 Targeted at [fish shell](http://fishshell.com/)
@@ -47,7 +47,7 @@ Run the installer.
 
 It creates symlinks for all dotfiles in your home directory. You can safely run
 this file multiple times to update. you may need to use the `--force` option to
-get the results you want. 
+get the results you want.
 
 Included are `fish` dotfiles. To install and switch your shell to `fish` on OS X:
 
@@ -96,3 +96,15 @@ Command reference for `install.sh`:
 		                    (default is current directory)
 		  destination dir : Where to put symlinks
 		                    (default is '~')
+
+
+Applications
+============
+
+## Atom
+Install atom, then run this to install packages
+    apm install --packages-file packages.txt
+
+
+To save the list of currently installed packages
+    apm list --bare --installed --dev false > packages.txt
