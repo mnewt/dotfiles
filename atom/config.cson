@@ -1,0 +1,25 @@
+"*":
+  core:
+    disabledPackages: [
+      "exception-reporting"
+    ]
+    themes: [
+      "native-ui"
+      "base16-tomorrow-dark-theme"
+    ]
+  editor:
+    fontFamily: "Monaco"
+    fontSize: 12
+    invisibles: {}
+    nonWordCharacters: "(){}[]\\\"',;<>~#$%^&*|+=`…"
+    showIndentGuide: true
+  "one-dark-ui": {}
+  "open-recent": {}
+  "proto-repl":
+    displayHelpText: false
+    leinPath: "/usr/local/bin/lein"
+    showInlineResults: false
+  swackets:
+    syntax: "Parentheses"
+  welcome:
+    showOnStartup: false

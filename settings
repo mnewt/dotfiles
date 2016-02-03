@@ -11,7 +11,7 @@ ignore='settings scripts Icon* *.md *.sh *.txt'
 # create directory itself (not contents), then link the children of the directory
 # NOTE: it will not delete the directory. If you want to replace the directory,
 #				delete it first, then run install.sh
-link_children='config'
+link_children='config atom'
 
 # just copy these files
 copy=''
