@@ -103,8 +103,10 @@ Applications
 
 ## Atom
 Install atom, then run this to install packages
+
     apm install --packages-file packages.txt
 
 
 To save the list of currently installed packages
+
     apm list --bare --installed --dev false > packages.txt
