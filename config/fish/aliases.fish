@@ -61,12 +61,12 @@ alias t='tmux'
 
 # PAGER
 # use vimpager if available
-if which vimpager >/dev/null 2>&1
+if installed vimpager
   set -xU PAGER (which vimpager)
   alias less $PAGER
   alias zless $PAGER
 else
-  if which source-highlight >/dev/null 2>&1
+  if installed source-highlight
     set -x LESSOPEN "| /usr/local/bin/src-hilite-lesspipe.sh %s"
     set -x LESS " -R "
     alias less='less -m -g -i -J --underline-special --SILENT'
@@ -113,9 +113,8 @@ end
 
 
 # GRC ######################################################
-set -l GRC (which grc 2>/dev/null)
-if not set -q $GRC
-  alias colourify=$GRC" -es --colour=auto"
+if installed grc
+  alias colourify=(which grc)" -es --colour=auto"
   alias configure='colourify ./configure'
   alias diff='colourify diff'
   alias make='colourify make'

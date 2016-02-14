@@ -4,7 +4,7 @@ function update -d 'Update software on the computer'
   switch (uname)
     case Linux
       if test -e /etc/arch-release
-        sudo /usr/bin/pacman -Syu
+        sudo /usr/bin/pacman -Syu --noconfirm
         if sudo /usr/bin/pacman -Qtdq > /dev/null
           sudo /usr/bin/pacman -Rns (/usr/bin/pacman -Qtdq | sed -e ':a;N;\$!ba;s/\n/ /g')
         end
@@ -19,29 +19,35 @@ function update -d 'Update software on the computer'
       end
     case Darwin
       sudo softwareupdate -i -a
-      brew update; and brew upgrade --all; and brew cleanup; and brew prune; and brew doctor
-      # update brew casks -- eventually this should not be necessary
-      # (https://github.com/caskroom/homebrew-cask/issues/4678)
-      for c in (brew cask list)
-        if brew cask info "$c" | grep -qF "Not installed"
-          brew cask uninstall "$c"
-          rm -rf "/opt/homebrew-cask/Caskroom/$c"
-          brew cask install "$c"
+      if installed brew
+        brew update; and brew upgrade --all; and brew cleanup; and brew prune; and brew doctor
+        # update brew casks -- eventually this should not be necessary
+        # (https://github.com/caskroom/homebrew-cask/issues/4678)
+        for c in (brew cask list)
+          if brew cask info "$c" | grep -qF "Not installed"
+            brew cask uninstall "$c"
+            rm -rf "/opt/homebrew-cask/Caskroom/$c"
+            brew cask install "$c"
+          end
         end
+        brew cask cleanup
       end
-      brew cask cleanup
   end
 
   # node.js
-  npm install npm -g; npm update -g;
+  if installed npm
+    npm install npm -g; npm update -g;
+  end
 
   # ruby
-  gem update; gem clean
+  if installed gem
+    gem update; gem clean
+  end
 
   # python
-  pip install --upgrade pip
-  pip freeze --local | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+  if installed pip
+    pip install --upgrade pip
+    pip freeze --local | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+  end
 
-  # fish
-  #fish_update_completions
 end
