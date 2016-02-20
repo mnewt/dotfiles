@@ -1,6 +1,6 @@
 #!/usr/local/bin/fish
 
-# set -x fish_greeting ''
+set -x fish_greeting ''
 
 
 
