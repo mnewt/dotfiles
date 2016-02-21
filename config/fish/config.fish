@@ -43,6 +43,9 @@ set -x VIRTUAL_ENV_DISABLE_PROMPT true
 #   eval (python -m virtualfish auto_activation)
 # end
 
+# iterm2
+source "$HOME/.iterm2/iterm2_shell_integration.fish"
+
 # Print pretty fish logo only if starting on a local machine
 if test -z "$SSH_CLIENT"
 	logo
