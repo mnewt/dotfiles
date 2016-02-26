@@ -11,7 +11,7 @@ function fish_right_prompt --description "Write out the right prompt"
   end
 
   # Display tmux session count if not in tmux already
-  if test -n "$TMUX"
+  if test -z "$TMUX"
     set -l session_count (tmux ls 2>/dev/null | wc -l | awk '{ print $1; }')
     if [ $session_count -gt 0 ]
       echo -ns "  $cyan" $session_count " session"
