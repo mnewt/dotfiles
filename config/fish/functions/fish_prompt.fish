@@ -41,7 +41,6 @@ if not set -q cyan
   set -g purple (set_color purple)
   set -g cyan (set_color cyan)
   set -g white (set_color white)
-  set -g normal (set_color normal)
 
   # non standard colors
   set -g cyan (set_color 42f8ca)
@@ -55,7 +54,9 @@ if not set -q cyan
   set -g c5 (set_color 6ff0cf)
   set -g c6 (set_color adf6e4)
 
-  set -g ce '\e[48;5;165m\e[38;5;007m'
+  # special colors
+  set -g normal (set_color normal)
+  set -g bold (set_color -o)
 end
 
 # if not set -q __fish_git_prompt_showstashstate
@@ -176,7 +177,7 @@ function fish_prompt --description "Write out the prompt"
   if test "$USER" = "root"
     echo -n -s "$red# "
   else
-    echo -n -s "$white> "
+    echo -n -s "$normal$bold> "
   end
 
   echo -n -s "$normal"

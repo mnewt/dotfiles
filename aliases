@@ -47,10 +47,6 @@ alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 # Reload the shell (i.e. invoke as a login shell)
 alias reload="exec $SHELL -l"
 
-# transmission-remote-cli
-if hash transmission-remote-cli 2>/dev/null; then
-  alias trcli='transmission-remote-cli'
-fi
 
 # GRC ######################################################
 GRC=$(which grc 2>/dev/null)

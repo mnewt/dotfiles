@@ -7,3 +7,7 @@ generated_completions
 
 # leiningen REPL history
 repl-history
+
+# Syncthing
+.stversions
+.stfolder

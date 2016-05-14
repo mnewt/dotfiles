@@ -1,25 +1,46 @@
 "*":
+  "atom-beautify":
+    _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
+    general:
+      _analyticsUserId: "891fee0d-89eb-46d5-8937-508948b369a7"
+  "autocomplete-plus":
+    confirmCompletion: "tab"
+  "base16-syntax":
+    scheme: "Monokai"
   core:
     disabledPackages: [
       "exception-reporting"
+      "metrics"
+      "linter"
+      "linter-docker"
     ]
-    themes: [
-      "native-ui"
-      "base16-tomorrow-dark-theme"
-    ]
+    projectHome: "/Users/mnewton/code"
   editor:
+    autoIndentOnPaste: false
     fontFamily: "Monaco"
     fontSize: 12
     invisibles: {}
-    nonWordCharacters: "(){}[]\\\"',;<>~#$%^&*|+=`…"
     showIndentGuide: true
   "one-dark-ui": {}
   "open-recent": {}
   "proto-repl":
+    autoPrettyPrint: true
+    bootPath: "/usr/local/bin/boot"
+    displayExecutedCodeInRepl: false
     displayHelpText: false
     leinPath: "/usr/local/bin/lein"
+    preferLein: false
+    refreshOnReplStart: false
     showInlineResults: false
   swackets:
     syntax: "Parentheses"
+  tabs:
+    usePreviewTabs: true
+  "tree-view": {}
   welcome:
     showOnStartup: false
+".clojure.source":
+  editor:
+    autoIndent: true
+    autoIndentOnPaste: true
+    nonWordCharacters: "(){}[]\\\"',;<>~#$%^&*|+=`…"

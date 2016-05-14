@@ -1,4 +1,19 @@
-{:user {:dependencies [[org.clojars.gjahad/debug-repl "0.3.3"]]
-        :injections [(use '[clojure.pprint :only [pp pprint]])
-                     (use 'alex-and-georges.debug-repl)]
-        :plugins [[lein-ancient "0.5.2"]]}}
+{:user
+  {:dependencies
+     [[org.clojure/tools.namespace "LATEST"]
+      [pjstadig/humane-test-output "LATEST"]]
+   :plugins
+     [[lein-ancient "LATEST"]
+      [lein-pprint "LATEST"]
+      ; [venantius/ultra "LATEST"]
+      [com.jakemccrary/lein-test-refresh "LATEST"]
+      [lein-kibit "LATEST"]
+      [jonase/eastwood "LATEST"]
+      [lein-bikeshed "LATEST"]]}}
+  ;  :injections
+  ;   [(require 'pjstadig.humane-test-output)
+  ;    (pjstadig.humane-test-output/activate!)
+  ;    (require '[clojure.tools.namespace.repl :refer [refresh]])]}}
+ ; :test-refresh
+ ;  {:plugins
+ ;    [[venantius/ultra "LATEST"]]}}

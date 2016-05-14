@@ -12,8 +12,8 @@ function update -d 'Update software on the computer'
         sudo paccache -ruk0
         sudo pacman-optimize
       else if test -e /etc/debian_version; or test -e /etc/lsb_release
-        sudo apt-get update
-        sudo apt-get upgrade -y
+        sudo apt update
+        sudo apt upgrade -y
         sudo apt-get autoremove -y
         sudo apt-get autoclean -y
       end
@@ -36,12 +36,15 @@ function update -d 'Update software on the computer'
 
   # node.js
   if installed npm
-    npm install npm -g; npm update -g;
+    npm install npm -g
+    npm update -g
   end
 
   # ruby
   if installed gem
-    gem update; gem clean
+    sudo gem update --system
+    sudo gem update (gem list | cut -d ' ' -f 1)
+    sudo gem clean
   end
 
   # python
@@ -49,5 +52,8 @@ function update -d 'Update software on the computer'
     pip install --upgrade pip
     pip freeze --local | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
   end
+
+  #iTerm2
+  curl -L "https://iterm2.com/misc/"(basename $SHELL)"_startup.in" >>"$HOME/.iterm2/iterm2_shell_integration.fish"
 
 end

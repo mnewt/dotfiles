@@ -1,7 +1,6 @@
-# Recursively delete OS cache files
-# PROBABLY IS DANGEROUS!
-function clean-os-junk
-  set -l files_to_delete '*.DS_Store' 'desktop.ini' 'Icon\r'
+# PROBABLY IS REALLY DANGEROUS!
+function clean-os-junk -d 'Recursively delete OS directory cache files'
+  set -l files_to_delete '*.DS_Store' 'desktop.ini' 'Icon\r' 'thumbs.db'
   if set -q argv
     set dir '.'
   else
@@ -15,8 +14,9 @@ function clean-os-junk
     set yn (echo $yn | tr '[:upper:]' '[:lower:]')
     switch $yn
       case 'y*'
+        echo 'Deleting files...'
         for file in $files_to_delete
-          find "$dir" -name "$file" -print -delete
+          find "$dir" -name "$file" -print -delete >/dev/null
         end
         return 0
       case '*'

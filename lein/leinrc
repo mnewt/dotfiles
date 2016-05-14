@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+# use drip if available
+if which drip >/dev/null 2>&1; then
+  LEIN_JAVA_CMD=${LEIN_JAVA_CMD-drip}
+fi

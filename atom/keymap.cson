@@ -28,3 +28,4 @@
 
 '.workspace .editor:not(.mini)':
   'cmd-enter': 'proto-repl:execute-block'
+  'alt-cmd-k': 'proto-repl:clear-repl'

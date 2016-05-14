@@ -1,0 +1,36 @@
+#!/usr/bin/env boot
+;; Format files using cljfmt (https://github.com/weavejester/cljfmt)
+
+(set-env! :dependencies '[[cljfmt "LATEST"]])
+
+(require '[cljfmt.core :as fmt]
+         '[clojure.java.io :as io])
+
+(def help-text 
+"cljfmt: Format files using cljfmt (https://github.com/weavejester/cljfmt)
+
+  Usage: cljfmt [FILE | DIRECTORY]
+
+It will change files in place")
+
+
+(defn fmt-file [f]
+  (println "formatting" (.getName f))
+  (spit f (fmt/reformat-string (slurp f))))
+
+(defn clj-file? [f]
+  (and (.exists f) (.isFile f) (not (.isHidden f))
+       (contains? #{"clj" "cljs" "cljc" "cljx" "boot"}
+                  (last (.split (.toLowerCase (.getName f)) "\\.")))))
+
+(defn fmt [files]
+  (doseq [file files]
+    (let [f (io/file file)]
+      (when (.exists f)
+        (doall (map fmt-file (filter clj-file? (if (.isDirectory f) (file-seq f) [f]))))))))
+
+(defn -main [& args]
+  (if (= (first args) "-h")
+      (println help-text)
+      (fmt args)))
+

@@ -48,6 +48,7 @@ alias l='ls'
 alias lh='ls -Alh'
 alias ll='ls -Fhl'
 alias lsd="ls -lF $colorflag | grep --color=never '^d'"
+alias lt='ls -hltr'
 
 # vim
 alias vi='vim'
@@ -134,6 +135,7 @@ if installed grc
   alias lsof='colourify -c conf.traceroute lsof'
   alias dig='colourify -c conf.traceroute dig'
   alias host='colourify -c conf.traceroute host'
+  alias drill='colourify -c conf.traceroute drill'
   alias curl='colourify -c conf.curl curl'
 end
 
@@ -176,7 +178,7 @@ switch (uname)
 
     # Dash
     function dash
-      open "dash://$argv[1]"
+      open "dash://$argv"
     end
 
     # vagrant

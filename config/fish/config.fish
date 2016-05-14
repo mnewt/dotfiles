@@ -46,7 +46,12 @@ set -x VIRTUAL_ENV_DISABLE_PROMPT true
 # iterm2
 source "$HOME/.iterm2/iterm2_shell_integration.fish"
 
+# boot-clj
+set -x BOOT_JVM_OPTIONS '-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -Xverify\:none'
+
 # Print pretty fish logo only if starting on a local machine
-if test -z "$SSH_CLIENT"
+if test -z "$SSH_CLIENT" && test -z "$TMUX"
 	logo
 end
+
+start_ssh_agent
