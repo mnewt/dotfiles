@@ -50,8 +50,8 @@ source "$HOME/.iterm2/iterm2_shell_integration.fish"
 set -x BOOT_JVM_OPTIONS '-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -Xverify\:none'
 
 # Print pretty fish logo only if starting on a local machine
-if test -z "$SSH_CLIENT" && test -z "$TMUX"
-	logo
-end
+# if test -z "$SSH_CLIENT"; and test -z "$TMUX"
+# 	logo
+# end
 
 start_ssh_agent
