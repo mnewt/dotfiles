@@ -1,7 +1,9 @@
 #!/usr/bin/env boot
 ;; Format files using cljfmt (https://github.com/weavejester/cljfmt)
 
-(set-env! :dependencies '[[cljfmt "LATEST"]])
+(set-env! :dependencies '[[org.clojure/clojure "1.8.0"]
+                          [org.clojure/tools.reader "0.10.0"]
+                          [cljfmt "LATEST"]])
 
 (require '[cljfmt.core :as fmt]
          '[clojure.java.io :as io])
