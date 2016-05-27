@@ -89,9 +89,9 @@ remove_dupes() {
 
 remove_file() {
   if [ "$testing" = true ]; then
-    echo "TESTING: rm -rf $1"
+    echo "        TESTING: rm -rf $1"
   elif [ "$force" = true ]; then
-    echo "REMOVING: $1"
+    echo "       REMOVING: $1"
     rm -rf "$1"
   else
     echo "NOT OVERWRITING: $1"
@@ -101,27 +101,27 @@ remove_file() {
 
 link_file() {
   if [ "$testing" = true ]; then
-    echo "TESTING: ln -s $1 $2"
+    echo "        TESTING: ln -s $1 $2"
   else
-    echo "LINKING: $2"
+    echo "        LINKING: $2"
     ln -s "$1" "$2"
   fi
 }
 
 copy_file() {
   if [ "$testing" = true ]; then
-    echo "TESTING: cp -R $1 $2"
+    echo "        TESTING: cp -R $1 $2"
   else
-    echo "COPYING: $2"
+    echo "        COPYING: $2"
     cp -R "$1" "$2"
   fi
 }
 
 make_dir() {
   if [ "$testing" = true ]; then
-    echo "TESTING: mkdir -p $1"
+    echo "        TESTING: mkdir -p $1"
   else
-    echo "CREATING: $1"
+    echo "       CREATING: $1"
     mkdir -p "$1"
   fi
 }
