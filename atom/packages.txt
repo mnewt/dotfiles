@@ -15,7 +15,7 @@ language-systemd@0.1.1
 linter@1.11.4
 linter-docker@0.1.2
 open-recent@5.0.0
-proto-repl@1.1.9
+proto-repl@1.1.10
 set-syntax@0.3.0
 todo-show@1.6.0
 
