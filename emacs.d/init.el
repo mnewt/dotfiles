@@ -32,8 +32,7 @@
 ;; Add in your own as you wish:
 (defvar my-packages
   '(;; makes handling lisp expressions much, much easier
-    ;; Cheatsheet: http://www.emacswiki.org/emacs/PareditCheatsheet
-    paredit
+    ;;parinfer-mode
 
     ;; key bindings and code colorization for Clojure
     ;; https://github.com/clojure-emacs/clojure-mode
