@@ -35,8 +35,8 @@ end
 # ls
 # add formatting and color to `ls`
 set -x CLICOLOR 1
-set -xU LSCOLORS ExFxCxDxBxegedabagacad
-set -xU LS_COLORS "di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
+set -x LSCOLORS ExFxCxDxBxegedabagacad
+set -x LS_COLORS "di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1 # GNU `ls`
   set -x colorflag "--color"
@@ -53,7 +53,7 @@ alias lt='ls -hltr'
 # vim
 alias vi='vim'
 # use vim as editor
-set -xU EDITOR (which vim)
+set -x EDITOR (which vim)
 
 # tmux
 # TODO - connect to session or create new
@@ -63,7 +63,7 @@ alias t='tmux'
 # PAGER
 # use vimpager if available
 if installed vimpager
-  set -xU PAGER (which vimpager)
+  set -x PAGER (which vimpager)
   alias less $PAGER
   alias zless $PAGER
 else
