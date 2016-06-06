@@ -1,5 +1,6 @@
 Parinfer@1.14.0
 atom-beautify@0.29.7
+atom-bracket-highlight@0.3.1
 dash@1.6.1
 highlight-selected@0.11.2
 ink@0.4.4
@@ -12,10 +13,13 @@ language-ini@1.16.0
 language-nginx@0.6.1
 language-powershell@2.1.1
 language-systemd@0.1.1
+language-viml@1.0.0
 linter@1.11.4
+linter-clojure@1.1.2
 linter-docker@0.1.2
 open-recent@5.0.0
-proto-repl@1.1.10
+proto-repl@1.1.11
+script@3.7.3
 set-syntax@0.3.0
 todo-show@1.6.0
 

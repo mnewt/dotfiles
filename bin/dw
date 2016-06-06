@@ -4,9 +4,8 @@
 # Shell system for building and managing docker containers
 
 scriptname="dw"
-scriptbuildnum="0.4"
-scriptbuilddate="2016-03-02"
-
+scriptbuildnum="0.5"
+scriptbuilddate="2016-05-19"
 
 ### TODO
 # Add iptables config to firewall function
@@ -17,7 +16,6 @@ WHITE="\033[1;37m"
 CYAN="\033[1;36m"
 GREEN="\033[1;32m"
 NO_COLOR="\033[0m"
-
 
 ### FUNCTIONS
 
@@ -31,15 +29,15 @@ help () {
 Shell system for building and managing docker containers
 Run each function in succession
 USAGE: $scriptname [BUILD-DIR | BUILD-FILE] [function1] [function2] [...]
-	No arguments: dw build create start
+  No arguments: dw build create start
 EOF
 
-	exit 0
+  exit 0
 }
 
 exe () {
-	# Display and execute the command
-	>&2 echo "\$ $@"; "$@"
+  # Display and execute the command
+  >&2 echo "\$ $@"; "$@"
 }
 
 first () {
@@ -104,17 +102,10 @@ timeago () {
   echo " ago"
 }
 
-getflags () {
-  while startswith "-" "$1"; do
-    echo -n "$1 "
-    shift
-  done
-}
-
 isrunning () {
   # This seems like a better way, but it does unexpected things sometimes
   # $(docker inspect -f '{{.State.Running}}' $name 2>/dev/null)
-  docker ps | awk '{print $2}' | grep -q $name
+  docker ps | grep -q $name
 }
 
 containerexists () {
@@ -131,18 +122,16 @@ buildpost () {
   :
 }
 
-
 rebuild () {
-	# Build the container
+  # Build the container
   buildpre
   if [ -f "$build_dir/Dockerfile" ]; then
-    buildflags=$(getflags)
-  	exe docker build $buildflags -t $name $build_dir
-  	if [ "$nettype" == "pipework" ]; then
-  		exe wget "https://raw.githubusercontent.com/jpetazzo/pipework/master/pipework" \
-  			-O "$build_dir/pipework"
-  		exe chmod u+x "$build_dir/pipework"
-  	fi
+    exe docker build "$@" -t $name $build_dir
+    if [ "$nettype" == "pipework" ]; then
+      exe wget "https://raw.githubusercontent.com/jpetazzo/pipework/master/pipework" \
+        -O "$build_dir/pipework"
+      exe chmod u+x "$build_dir/pipework"
+    fi
   else
     exe docker pull $image
   fi
@@ -150,9 +139,9 @@ rebuild () {
 }
 
 build () {
-	# Build the container wtih caching disabled
-	clean
-	rebuild --no-cache
+  # Build the container wtih caching disabled
+  clean
+  rebuild --no-cache
 }
 
 publishports () {
@@ -192,34 +181,34 @@ createnetwork () {
 }
 
 create () {
-	# Create the container
-	remove
-	[ -z "$(docker images -q $name)" ] && build
-	exe docker create $volumes $options $(createnetwork) -h $name --name $name "$image"
+  # Create the container
+  remove
+  [ -z "$(docker images -q $name)" ] && build
+  exe docker create $volumes $options $(createnetwork) -h $name --name $name "$image"
 }
 
 startpost () {
-	# Setup after starting container
+  # Setup after starting container
   if [ "$nettype" == "pipework" ]; then
     # Wait until container is started
     while ! isrunning $name; do
       sleep 1
     done
-  	# Add IP address to host adapter using pipework
-  	[ "$nettype" == "pipework" ] && \
-  		exe "$build_dir/pipework" $adapter $name "$localip"
+    # Add IP address to host adapter using pipework
+    [ "$nettype" == "pipework" ] && \
+      exe "$build_dir/pipework" $adapter $name "$localip"
   fi
-	firewall
+  firewall
 }
 
 stoppost () {
-	# Tear down after stopping container
-	:
+  # Tear down after stopping container
+  :
 }
 
 start () {
-	# Start the container
-	containerexists $name || create
+  # Start the container
+  containerexists $name || create
   [ "$nettype" == "bridge" ] && \
     [ -n "$localip" ] && \
     ! ip address show | grep -q "$localip" && \
@@ -228,7 +217,7 @@ start () {
     # Start the container, attach STDOUT/STDERR and forward signals
     exe exec docker start "$@" $name
   else
-	  exe docker start $@ $name
+    exe docker start $@ $name
     startpost
   fi
 }
@@ -239,28 +228,28 @@ run () {
 }
 
 startservice () {
-	# Start the container's service via systemd
-	exe systemctl start "$name"
+  # Start the container's service via systemd
+  exe systemctl start "$name"
 }
 
 stop () {
-	# If the container is running, stop it
-	isrunning $name && exe docker stop $name
+  # If the container is running, stop it
+  isrunning $name && exe docker stop $name
 }
 
 stopservice () {
-	# Stop the container's service via systemd
-	exe systemctl stop "$name"
+  # Stop the container's service via systemd
+  exe systemctl stop "$name"
 }
 
 restart () {
-	stop
-	start
+  stop
+  start
 }
 
 restartservice () {
-	exe systemctl stop "$name"
-	exe systemctl start "$name"
+  exe systemctl stop "$name"
+  exe systemctl start "$name"
 }
 
 status () {
@@ -305,76 +294,87 @@ cmd () {
 }
 
 logs () {
-	# Print the docker logs
-	exe docker logs $@ $name
+  # Print the docker logs
+  exe docker logs $@ $name
 }
 
 shell () {
-	# Attach a shell to a running container
-	exe docker exec -it $name /bin/sh
+  # Attach a shell to a running container
+  exe docker exec -it $name /bin/sh
+  return 0
 }
 
 runshell () {
-	# Create a new version of the container with bash as the entry point
-	# instead of what was specified in the Dockerfile
-	remove
-	exe docker run -it $volumes $options --name $name $name /bin/sh
+  # Create a new version of the container with bash as the entry point
+  # instead of what was specified in the Dockerfile
+  remove
+  #exe docker run -it $volumes $options --name $name $name /bin/sh
+  exe docker run -it $volumes $options $(createnetwork) -h $name --name $name "$image" /bin/sh
+  return 0
 }
 
 remove () {
-	# Remove container if it exists
-	containerexists $name && exe docker rm -f $name
+  # Remove container if it exists
+  containerexists $name && exe docker rm -f $name
 }
 
 removeimage () {
-	# If the image exists, remove it
-	[ "$(docker images -q $image 2>/dev/null)" == "" ] || \
-		exe docker rmi -f $name
+  # If the image exists, remove it
+  [ "$(docker images -q $image 2>/dev/null)" == "" ] || \
+    exe docker rmi -f $name
 }
 
 clean () {
-	# Remove all references to the image and container
-	remove
-	removeimage
-	[ -f "$build_dir/pipework" ] && exe rm "$build_dir/pipework"
+  # Remove all references to the image and container
+  remove
+  removeimage
+  [ -f "$build_dir/pipework" ] && exe rm "$build_dir/pipework"
 }
 
 firewall () {
-	# Add firewall rules
-	# TODO: Add iptables config
-	:
+  # Add firewall rules
+  # TODO: Add iptables config
+  :
 }
 
 install () {
-	# Create systemd service file from template and register it
+  # Create systemd service file from template and register it
   while read line; do
-	  eval echo "$line"
-	done <"$service_template" >/tmp/$name.service
-	exe cp /tmp/$name.service /usr/lib/systemd/system/$name.service
-	exe systemctl daemon-reload
-	exe systemctl enable $name
+    eval echo "$line"
+  done <"$service_template" >/tmp/$name.service
+  exe cp /tmp/$name.service /usr/lib/systemd/system/$name.service
+  exe systemctl daemon-reload
+  exe systemctl enable $name
 }
 
 uninstall () {
-	# Uninstall the system service
-	exe systemctl disable $name
-	exe rm /usr/lib/systemd/system/$name.service
+  # Uninstall the system service
+  exe systemctl disable $name
+  exe rm /usr/lib/systemd/system/$name.service
   exe systemctl daemon-reload
 }
 
 ps () {
-	docker ps
+  docker ps
 }
 
 cleanuntagged () {
-	# Remove all untagged images
-	exe docker rmi $(docker images | awk '/^<none>/ { print $3 }')
+  # Remove all untagged images
+  exe docker rmi $(docker images | awk '/^<none>/ { print $3 }')
 }
 
 cleanall () {
-	# Remove all docker images and containers
-	exe docker rm `docker ps -aq`
+  # Remove all docker images and containers
+  exe docker rm `docker ps -aq`
   exe docker rmi `docker images -q`
+}
+
+isfn () {
+  # Is $1 contained in $fns?
+  for s in $fns; do
+    [ "$1" == "$s" ] && return 0
+  done
+  return 1
 }
 
 
@@ -388,16 +388,16 @@ cleanall () {
 
 # Find the parameter file
 if [ -d "$1" ]; then
-	build_dir=`cd "$1" && pwd`
-	build_file="DWfile"
-	shift
+  build_dir=`cd "$1" && pwd`
+  build_file="DWfile"
+  shift
 elif [ -f "$1" ]; then
-	build_dir=`cd "$( dirname ""$1"" )" && pwd`
-	build_file="$(basename ""$1"")"
-	shift
+  build_dir=`cd "$( dirname ""$1"" )" && pwd`
+  build_file="$(basename ""$1"")"
+  shift
 else
-	build_dir=$(pwd)
-	build_file="DWfile"
+  build_dir=$(pwd)
+  build_file="DWfile"
 fi
 
 # Read container specific parameters
@@ -419,17 +419,29 @@ fi
 [ -z "$nettype" ] && nettype=bridge
 # Guess the appropriate adapter name
 [ -z "$adapter" ] && \
-	adapter=$(ip -o link show | awk -F'[ :]+' '{if ($9 == "UP" && $2 ~ /^en/ ) { print $2 }}')
+  adapter=$(ip -o link show | awk -F'[ :]+' '{if ($9 == "UP" && $2 ~ /^en/ ) { print $2 }}')
 [ -z "$network" ] && network=bridge
 [ -n "$subnet" ] && subnet_opts="--subnet $subnet"
 [ -z "$*" ] && set -- start
 
-# Command line parameters are evaluated as functions unless they start with
-# a '-', in which case they are passed to the function they follow
+# Make a list of the dw functions
+fns=$(awk '/^[0-9a-zA-Z]+\s*\(\)/ {print $1}' $0 $build_dir/$build_file)
+
+# Command line parameters are evaluated as functions if they are contained in
+# this file or the DWfile. Otherwise, they are passed as arguments to the
+# preceeding function
 while [ -n "$*" ]; do
   cmd=$1
   shift
-  flags=$(getflags "$@")
-	echo -e "$WHITE==> $CYAN$cmd$NO_COLOR $flags"
-	$cmd $flags
+  params=
+  while [ -n "$*" ] && ! isfn "$1"; do
+    params+="$1 "
+    shift
+  done
+  echo -e "$WHITE==> $CYAN$cmd$NO_COLOR $params"
+  # $cmd $params
+  if ! $cmd $params; then
+    echo Aborting because a sub-command encountered an error
+    exit 1
+  fi
 done

@@ -7,12 +7,13 @@
     confirmCompletion: "tab"
   "base16-syntax":
     scheme: "Monokai"
+  "bracket-matcher":
+    autocompleteBrackets: false
+    autocompleteSmartQuotes: false
   core:
     disabledPackages: [
       "exception-reporting"
       "metrics"
-      "linter"
-      "linter-docker"
     ]
     projectHome: "/Users/mnewton/code"
   editor:

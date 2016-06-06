@@ -7,6 +7,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'PProvost/vim-ps1'
   Plug 'oakmac/parinfer-viml', { 'for': 'clojure' }
   Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
+  Plug 'tpope/vim-vividchalk'
 call plug#end()
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -434,3 +435,11 @@ endfunction
 " if has("autocmd")
 "   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 "endif
+
+
+" Personal customizations
+set tabstop=2       " The width of a TAB is set to 2
+set shiftwidth=2    " Indents will have a width of 2
+set softtabstop=2   " Sets the number of columns for a TAB
+set expandtab       " Expand TABs to spaces
+colorscheme vividchalk
