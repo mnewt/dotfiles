@@ -1,0 +1,30 @@
+#!/bin/bash
+# Master script to perform updates on the computer
+# Calls other scripts on the path with the form 'update-*'
+# Passes all arguments straight through to those scripts
+
+sudo_keepalive () {
+  # Prevent sudo timeout while parent process is running
+  # Based on: https://serverfault.com/a/702019
+
+  sudo -v # ask for sudo password up-front
+  while true; do
+    # Update user's timestamp without running a command
+    sudo -nv; sleep 60
+    # Exit when the parent process is not running any more. In fact this loop
+    # would be killed anyway after being an orphan(when the parent process
+    # exits). But this ensures that and probably exit sooner.
+    kill -0 $$ 2>/dev/null || exit
+  done &
+}
+
+update () {
+  # search for all update-* scripts and run them in succession
+  for f in $(compgen -c | grep '.*\update-.*$'); do
+    printf "  \e[48;5;057m%s\e[0m  " $f
+    eval $f "$@"
+  done
+}
+
+# sudo_keepalive
+update "$@"

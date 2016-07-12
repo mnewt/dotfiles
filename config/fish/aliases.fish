@@ -1,4 +1,4 @@
-#!/usr/local/bin/fish
+#!/usr/bin/env fish
 
 # misc
 alias tf='tail -f'
@@ -152,9 +152,6 @@ switch (uname)
   case 'CYGWIN*'
 
   case Darwin
-    # Set where to install casks
-    set -x HOMEBREW_CASK_OPTS "--appdir=/Applications"
-
     # open man page in Preview
     function pman
       man -t $argv[1] | open -f -a /Applications/Preview.app/

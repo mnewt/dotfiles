@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$(uname)" = "Darwin" ]; then
+  echo "Updating OS X..."
+  sudo softwareupdate -i -a
+else
+  echo "OS X not found, skipping..."
+fi

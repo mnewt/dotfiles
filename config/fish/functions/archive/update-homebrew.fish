@@ -12,6 +12,7 @@ function update-homebrew -d 'Update homebrew packaages'
     for c in (brew cask list)
       if brew cask info "$c" | grep -q "Not installed"
         brew cask uninstall "$c"
+        brew cask zap "$c"
         rm -rf "/opt/homebrew-cask/Caskroom/$c"
         brew cask install "$c"
       end
@@ -22,6 +23,7 @@ function update-homebrew -d 'Update homebrew packaages'
           end
         echo "Reinstalling cask: $c..."
         brew cask uninstall "$c"
+        brew cask zap "$c"
         rm -rf "/opt/homebrew-cask/Caskroom/$c"
         brew cask install "$c"
       end

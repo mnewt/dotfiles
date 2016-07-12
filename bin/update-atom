@@ -1,0 +1,11 @@
+#!/bin/bash
+# Update Atom Editor
+
+if installed apm; then
+  echo "Updating Atom"
+  apm upgrade --no-confirm
+  apm clean
+  apm list --bare --installed --dev false > ~/.atom/packages.txt
+else
+  echo "Atom not found, skipping"
+fi

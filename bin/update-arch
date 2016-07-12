@@ -1,0 +1,14 @@
+#!/bin/bash
+# Update Arch Linux
+
+if [ -e '/etc/arch-release' ]; then
+  echo "Updating Arch Linux"
+  sudo /usr/bin/pacman -Syu --noconfirm
+  sudo /usr/bin/pacman -Qtdq > /dev/null && \
+    sudo /usr/bin/pacman -Rns "$(/usr/bin/pacman -Qtdq | sed -e ':a;N;\$!ba;s/\n/ /g')"
+  sudo paccache -r
+  sudo paccache -ruk0
+  sudo pacman-optimize
+else
+  echo "Not running Arch Linux, skipping"
+fi

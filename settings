@@ -1,4 +1,4 @@
-# Settings
+# Settings for install.sh
 # This file tells install.sh what to ignore, link, copy, and create
 # List files (and globs) separated by spaces
 # The below options are in order of priority, so ignore overrides

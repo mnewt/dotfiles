@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+LEIN_JVM_OPTS="-Djava.net.preferIPv4Stack=true"
+
 # use drip if available
 if which drip >/dev/null 2>&1; then
   LEIN_JAVA_CMD=${LEIN_JAVA_CMD-drip}

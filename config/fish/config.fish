@@ -1,8 +1,6 @@
-#!/usr/local/bin/fish
+#!/usr/bin/env fish
 
-set -x fish_greeting ''
-
-
+set -e fish_greeting
 
 # Setup terminal, and turn on colors
 set -x TERM xterm-256color

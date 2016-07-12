@@ -8,7 +8,6 @@
   "base16-syntax":
     scheme: "Monokai"
   "bracket-matcher":
-    autocompleteBrackets: false
     autocompleteSmartQuotes: false
   core:
     disabledPackages: [
@@ -30,7 +29,6 @@
     displayExecutedCodeInRepl: false
     displayHelpText: false
     leinPath: "/usr/local/bin/lein"
-    preferLein: false
     refreshOnReplStart: false
     showInlineResults: false
   swackets:

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # misc
 alias tlf='tail -f'
@@ -8,10 +8,14 @@ alias ...='../..'
 alias df='df -h'
 alias vi='vim'
 
+# check if a program is on the path
+installed () {
+  command -v "$1" >/dev/null 2>&1
+}
+
 # grep
 # export GREP_COLOR '3;33'
 alias grep='grep --color=auto'
-
 
 # Enable aliases to be sudo’ed
 alias sudo='sudo '
@@ -79,9 +83,9 @@ fi
 
 if [[ $('uname') == 'Linux' ]]; then
   if [ -f '/usr/bin/sublime_text' ]; then
-    st_run() { nohup /usr/bin/sublime_text $@ > /dev/null & }
+    st_run() { nohup /usr/bin/sublime_text "$@" > /dev/null & }
   else
-    st_run() { nohup /usr/bin/sublime-text $@ > /dev/null & }
+    st_run() { nohup /usr/bin/sublime-text "$@" > /dev/null & }
   fi
   alias st=st_run
 elif  [[ $('uname') == 'Darwin' ]]; then

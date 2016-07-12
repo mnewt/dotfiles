@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if installed pip; then
+  echo "Updating pip..."
+  sudo -H pip install --upgrade pip setuptools
+  pip list --outdated | cut -d ' ' -f 1 | sudo -H xargs -n1 pip install --upgrade
+else
+  echo "pip not found, skipping..."
+fi

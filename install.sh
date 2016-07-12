@@ -2,27 +2,11 @@
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
 scriptname="install.sh"
-scriptbuildnum="0.6"
-scriptbuilddate="2016-02-01"
-
-### VARS INITS
-
-# Read in settings
-source_path=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-. "$source_path/settings"
-
-# Expand globs
-link_sources=$(echo $link)
-ignore_sources=$(echo $ignore)
-copy_sources=$(echo $copy)
-link_children_sources=$(echo $link_children)
-
-# initialize flags
-force=false
-testing=false
+scriptbuildnum="0.7"
+scriptbuilddate="2016-07-12"
 
 
-### FUNCTIONS
+### FUNCTIONS ###
 
 display_ver() {
   echo "$scriptname  ver $scriptbuildnum - $scriptbuilddate"
@@ -139,11 +123,19 @@ make_links() {
   done
 }
 
+full_path () {
+  echo "$(cd $1 && pwd)"
+}
 
-### PRE-EXECUTION TASKS
+### PRE-EXECUTION TASKS ###
+
+force=false
+testing=false
+
+config_file="$(full_path $(dirname $0))/settings"
 
 # parse arguments
-for arg in $@; do
+for arg in "$@"; do
   case "$arg" in
     -f|--force)
       force=true
@@ -155,7 +147,7 @@ for arg in $@; do
       ;;
     -c|--config-file)
       shift
-      . $1
+      config_file="$1"
       shift
       ;;
     -h|--help)
@@ -169,9 +161,30 @@ for arg in $@; do
   esac
 done
 
-# Set default dirs (must occur after command-tail parsing)
-source_dir="${1-$(pwd)}"
-dest_dir="${2-$HOME}"
+### VARIABLE INITIALIZATION ###
+
+# Read in settings
+. "$config_file"
+
+# Set default dirs (must occur after parameter parsing)
+source_dir="${1:-$(pwd)}"
+source_dir="$(full_path $source_dir)"
+dest_dir="${2:-$HOME}"
+
+echo Using settings:
+echo "  config file:      $config_file"
+echo "  source dir:       $source_dir"
+echo "  destination dir:  $dest_dir"
+echo
+
+
+### MAKE LISTS OF SOURCES ###
+
+# Expand globs
+link_sources=$(cd $source_dir && echo $link)
+ignore_sources=$(cd $source_dir && echo $ignore)
+copy_sources=$(cd $source_dir && echo $copy)
+link_children_sources=$(cd $source_dir && echo $link_children)
 
 # Remove duplicate and ignored files from file-lists read from 'sources'
 link_sources=$(remove_dupes "$link_sources" "$ignore_sources")
@@ -181,7 +194,7 @@ copy_sources=$(remove_dupes "$copy_sources" "$ignore_sources")
 link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
 
 
-### EXECUTE - MAKE LINK, COPY AND DIRS
+### EXECUTE - MAKE LINKS, COPIES, AND DIRS ##
 
 # Make links
 make_links "$link_sources"

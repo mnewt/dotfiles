@@ -1,0 +1,33 @@
+#!/bin/bash
+
+reinstall_cask () {
+  echo "Reinstalling cask: $1..."
+  brew cask uninstall "$1"
+  brew cask zap "$1"
+  rm -rf "/opt/homebrew-cask/Caskroom/$1"
+  brew cask install "$1"
+}
+
+if installed brew; then
+  # update brew casks -- eventually this should not be necessary
+  # (https://github.com/caskroom/homebrew-cask/issues/4678)
+  echo "Updating homebrew..."
+  brew update
+  and brew upgrade --all
+  and brew cleanup
+  and brew prune
+  and brew doctor
+  echo "Updating homebrew casks..."
+  for c in $(brew cask list); do
+    if brew cask info "$c" | grep -q "Not installed"; then
+      reinstall_cask "$c"
+    elif [ "$1" = "-a" ] && \
+        brew cask info "$c" | grep -q ": latest" && \
+        prompt_confirm "Update non-versioned cask: $c\?"; then
+      reinstall_cask "$c"
+    fi
+  done
+  brew cask cleanup
+else
+  echo "Hombrew is not installed, skipping"
+fi

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if installed gem; then
+  echo "Updating ruby gems"
+  update_rubygems
+  sudo gem update --system
+  gem clean
+else
+  echo "gem not installed, skipping"
+fi
