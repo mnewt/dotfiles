@@ -1,4 +1,5 @@
 #!/bin/bash
+# Update iterm2
 
 if [ -n "$ITERM_PROFILE" ]; then
   echo "Downloading the latest iterm2 shell integration scripts..."

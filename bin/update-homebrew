@@ -1,4 +1,5 @@
 #!/bin/bash
+# Update Homebrew
 
 reinstall_cask () {
   echo "Reinstalling cask: $1..."

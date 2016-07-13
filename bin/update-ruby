@@ -1,4 +1,5 @@
 #!/bin/bash
+# Update ruby gems
 
 if installed gem; then
   echo "Updating ruby gems"

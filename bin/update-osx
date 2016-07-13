@@ -1,4 +1,5 @@
 #!/bin/bash
+# Update OS X
 
 if [ "$(uname)" = "Darwin" ]; then
   echo "Updating OS X..."

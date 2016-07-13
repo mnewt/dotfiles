@@ -1,4 +1,5 @@
 #!/bin/bash
+# Update python packages
 
 if installed pip; then
   echo "Updating pip..."

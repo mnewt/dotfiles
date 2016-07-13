@@ -3,6 +3,8 @@
 # Calls other scripts on the path with the form 'update-*'
 # Passes all arguments straight through to those scripts
 
+update_scripts="$HOME/.bin/update-*"
+
 sudo_keepalive () {
   # Prevent sudo timeout while parent process is running
   # Based on: https://serverfault.com/a/702019
@@ -20,11 +22,12 @@ sudo_keepalive () {
 
 update () {
   # search for all update-* scripts and run them in succession
-  for f in $(compgen -c | grep '.*\update-.*$'); do
-    printf "\e[48;5;057m  %s\e[0m  " $f
+  for f in $update_scripts; do
+    printf "\e[48;5;057m  %s  \e[0m  " $f
     eval $f "$@"
   done
 }
 
+echo "Grant superuser access to all subsequent update scripts:"
 sudo_keepalive
 update "$@"

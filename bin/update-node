@@ -1,4 +1,5 @@
 #!/bin/bash
+# Update node.js packages
 
 if installed npm; then
   echo "Updating npm..."
