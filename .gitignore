@@ -11,3 +11,6 @@ repl-history
 # Syncthing
 .stversions
 .stfolder
+
+# vim-plug
+vim/plugged

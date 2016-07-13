@@ -196,9 +196,6 @@ function! plug#end()
 
   filetype off
   for name in g:plugs_order
-    if !has_key(g:plugs, name)
-      continue
-    endif
     let plug = g:plugs[name]
     if get(s:loaded, name, 0) || !has_key(plug, 'on') && !has_key(plug, 'for')
       let s:loaded[name] = 1
@@ -267,7 +264,7 @@ function! plug#end()
       syntax enable
     end
   else
-    call s:reload_plugins()
+    call s:reload()
   endif
 endfunction
 
@@ -275,13 +272,9 @@ function! s:loaded_names()
   return filter(copy(g:plugs_order), 'get(s:loaded, v:val, 0)')
 endfunction
 
-function! s:load_plugin(spec)
-  call s:source(s:rtp(a:spec), 'plugin/**/*.vim', 'after/plugin/**/*.vim')
-endfunction
-
-function! s:reload_plugins()
+function! s:reload()
   for name in s:loaded_names()
-    call s:load_plugin(g:plugs[name])
+    call s:source(s:rtp(g:plugs[name]), 'plugin/**/*.vim', 'after/plugin/**/*.vim')
   endfor
 endfunction
 
@@ -404,20 +397,7 @@ function! s:reorg_rtp()
 endfunction
 
 function! s:doautocmd(...)
-  if exists('#'.join(a:000, '#'))
-    execute 'doautocmd' ((v:version > 703 || has('patch442')) ? '<nomodeline>' : '') join(a:000)
-  endif
-endfunction
-
-function! s:dobufread(names)
-  for name in a:names
-    let path = s:rtp(g:plugs[name]).'/**'
-    for dir in ['ftdetect', 'ftplugin']
-      if len(finddir(dir, path))
-        return s:doautocmd('BufRead')
-      endif
-    endfor
-  endfor
+  execute 'doautocmd' ((v:version > 703 || has('patch442')) ? '<nomodeline>' : '') join(a:000)
 endfunction
 
 function! plug#load(...)
@@ -435,7 +415,9 @@ function! plug#load(...)
   for name in a:000
     call s:lod([name], ['ftdetect', 'after/ftdetect', 'plugin', 'after/plugin'])
   endfor
-  call s:dobufread(a:000)
+  if exists('#BufRead')
+    doautocmd BufRead
+  endif
   return 1
 endfunction
 
@@ -471,7 +453,9 @@ function! s:lod(names, types, ...)
       endif
       call s:source(rtp, a:2)
     endif
-    call s:doautocmd('User', name)
+    if exists('#User#'.name)
+      call s:doautocmd('User', name)
+    endif
   endfor
 endfunction
 
@@ -479,19 +463,21 @@ function! s:lod_ft(pat, names)
   let syn = 'syntax/'.a:pat.'.vim'
   call s:lod(a:names, ['plugin', 'after/plugin'], syn, 'after/'.syn)
   execute 'autocmd! PlugLOD FileType' a:pat
-  call s:doautocmd('filetypeplugin', 'FileType')
-  call s:doautocmd('filetypeindent', 'FileType')
+  if exists('#filetypeplugin#FileType')
+    doautocmd filetypeplugin FileType
+  endif
+  if exists('#filetypeindent#FileType')
+    doautocmd filetypeindent FileType
+  endif
 endfunction
 
 function! s:lod_cmd(cmd, bang, l1, l2, args, names)
   call s:lod(a:names, ['ftdetect', 'after/ftdetect', 'plugin', 'after/plugin'])
-  call s:dobufread(a:names)
   execute printf('%s%s%s %s', (a:l1 == a:l2 ? '' : (a:l1.','.a:l2)), a:cmd, a:bang, a:args)
 endfunction
 
 function! s:lod_map(map, names, prefix)
   call s:lod(a:names, ['ftdetect', 'after/ftdetect', 'plugin', 'after/plugin'])
-  call s:dobufread(a:names)
   let extra = ''
   while 1
     let c = getchar(0)
@@ -500,13 +486,6 @@ function! s:lod_map(map, names, prefix)
     endif
     let extra .= nr2char(c)
   endwhile
-  if v:count
-    call feedkeys(v:count, 'n')
-  endif
-  call feedkeys('"'.v:register, 'n')
-  if mode(1) == 'no'
-    call feedkeys(v:operator)
-  endif
   call feedkeys(a:prefix . substitute(a:map, '^<Plug>', "\<Plug>", '') . extra)
 endfunction
 
@@ -789,12 +768,7 @@ function! s:do(pull, force, todo)
       let error = ''
       let type = type(spec.do)
       if type == s:TYPE.string
-        if spec.do[0] == ':'
-          call s:load_plugin(spec)
-          execute spec.do[1:]
-        else
-          let error = s:bang(spec.do)
-        endif
+        let error = s:bang(spec.do)
       elseif type == s:TYPE.funcref
         try
           let status = installed ? 'installed' : (updated ? 'updated' : 'unchanged')
@@ -805,7 +779,6 @@ function! s:do(pull, force, todo)
       else
         let error = 'Invalid hook type'
       endif
-      call s:switch_in()
       call setline(4, empty(error) ? (getline(4) . 'OK')
                                  \ : ('x' . getline(4)[1:] . error))
       if !empty(error)
