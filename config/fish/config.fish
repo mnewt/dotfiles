@@ -42,7 +42,7 @@ set -x VIRTUAL_ENV_DISABLE_PROMPT true
 # end
 
 # iterm2
-source "$HOME/.iterm2_shell_integration.fish"
+source "$HOME/.iterm2/iterm2_shell_integration.fish"
 # alias imgcat="$HOME/.iterm2/imgcat"
 # alias it2dl="$HOME/.iterm2/it2dl"
 
