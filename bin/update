@@ -21,10 +21,10 @@ sudo_keepalive () {
 update () {
   # search for all update-* scripts and run them in succession
   for f in $(compgen -c | grep '.*\update-.*$'); do
-    printf "  \e[48;5;057m%s\e[0m  " $f
+    printf "\e[48;5;057m  %s\e[0m  " $f
     eval $f "$@"
   done
 }
 
-# sudo_keepalive
+sudo_keepalive
 update "$@"

@@ -13,10 +13,10 @@ if installed brew; then
   # (https://github.com/caskroom/homebrew-cask/issues/4678)
   echo "Updating homebrew..."
   brew update
-  and brew upgrade --all
-  and brew cleanup
-  and brew prune
-  and brew doctor
+  brew upgrade --all
+  brew cleanup
+  brew prune
+  brew doctor
   echo "Updating homebrew casks..."
   for c in $(brew cask list); do
     if brew cask info "$c" | grep -q "Not installed"; then
