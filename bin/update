@@ -23,7 +23,7 @@ sudo_keepalive () {
 update () {
   # search for all update-* scripts and run them in succession
   for f in $update_scripts; do
-    printf "\e[48;5;057m  %s  \e[0m  " $f
+    printf "\e[48;5;057m  %s  \e[0m  " "$(basename $f)"
     eval $f "$@"
   done
 }
