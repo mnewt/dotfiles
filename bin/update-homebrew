@@ -4,7 +4,6 @@
 reinstall_cask () {
   echo "Reinstalling cask: $1..."
   brew cask uninstall "$1"
-  brew cask zap "$1"
   rm -rf "/opt/homebrew-cask/Caskroom/$1"
   brew cask install "$1"
 }

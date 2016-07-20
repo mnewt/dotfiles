@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+shopt -s extglob globstar dotglob
+
+pattern='*@(*.DS_Store|desktop.ini|Icon\r|Thumbs.db|$RECYCLE_BIN)'
+declare -a files=()
+for f in ./**; do
+  [[ $f == $pattern ]] && files+=("$f") && echo $f
+done
+
+echo -n "Delete these files? [y/N] "
+read delete
+if [[ $delete == "y" ]]; then
+  for f in "${files[@]}"; do
+    rm -rf "$f"
+  done
+fi

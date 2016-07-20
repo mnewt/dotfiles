@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Print the currently listening IP ports
+
+case $(uname) in
+  Linux)
+    ss -lnptu
+    ;;
+  Darwin)
+    lsof | head -1
+    lsof -i -n -P | grep LISTEN
+    ;;
+  CYGWIN*)
+    netstat -an | grep LISTENING
+    ;;
+esac

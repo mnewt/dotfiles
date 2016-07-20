@@ -1,49 +1,51 @@
-# Status line style fish prompt
+#!/usr/bin/env bash
+# Status line style prompt
 #
 
 # Just calculate this once to reduce calls to external programs
-if not set -q __fish_prompt_hostname
-  set -g __fish_prompt_hostname (hostname -s)
-end
+[ -n "$__bash_prompt_hostname" ] || export __bash_prompt_hostname=$(hostname -s)
 
-function upsearch
-  set directory "$PWD"
-  while test -n "$directory"
-    if test -e "$directory/$argv[1]"
-      echo -n -s "$directory/$argv[1]"
+upsearch () {
+  directory="$PWD"
+  while [ -n "$directory" ]; do
+    if [ -e "$directory/$1" ]; then
+      echo -n "$directory/$1"
       return 0
-    end
-    set directory (string replace -r '\/[^\/]*$' '' "$directory")
-  end
+    fi
+    directory=${directory%/*}
+  done
   return 1
-end
+}
 
-function directory_helper
-  echo -n -s (string replace "$HOME" "~" "$PWD")
-end
+directory_helper () {
+  echo -n ${PWD/$HOME/"~"}
+}
 
-function git_helper
+git_helper () {
   # detect .git directory
   # print current branch; add an asterisk if there are uncommitted changes
-  set -l gitdir (string replace "/.git" "" (upsearch .git)); or return 1
-  echo -n -s (cat "$gitdir/.git/HEAD" | string match -r '[^\/]*$')
-  count (git -C "$gitdir" ls-files --exclude-standard --others) >/dev/null
-    and echo -n -s '*'
-  return 0
-end
+  gitdir=$(upsearch .git) || return 1
+  gitdir=${gitdir%/*}
+  githead=$(cat "$gitdir/.git/HEAD") || return 1
+  githead=${githead##*/}
+  gitfiles=$(git -C "$gitdir" ls-files --exclude-standard --others)
+  echo -n "$githead"
+  [ -n "$gitfiles" ] ** echo -n "*"
+}
 
-function virtualenv_helper
-  set -q VIRTUAL_ENV; or return 1
-  echo -n -s (basename $VIRTUAL_ENV)
-end
+virtualenv_helper () {
+  [ -n "$VIRTUAL_ENV" ] || return 1
+  echo -n ${VIRTUAL_ENV##*/}
+}
 
-function node_helper
+node_helper () {
   # detect package.json
   # print "name" field
-  set package (upsearch package.json); or return 1
-  set -l name (cat "$package" | string match -r '(?<="name":\s")[\w\d]+')
-  echo -n -s "$name[1]"
-end
+  package="$(upsearch package.json)" || return 1
+  re='\"name\": \"([^\"]*)'
+  [[ $(cat "$package") =~ $re ]] || return 1
+  echo -n "${BASH_REMATCH[1]}"
+}
 
 function vagrant_helper
   # detect Vagrantfile

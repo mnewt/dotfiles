@@ -2,7 +2,7 @@
 # Update ruby gems
 
 if installed gem; then
-  echo "Updating ruby gems"
+  echo "Updating ruby gems..."
   update_rubygems
   sudo gem update --system
   gem clean

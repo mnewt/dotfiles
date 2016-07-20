@@ -1,9 +1,9 @@
 #!/bin/bash
-# Update OS X
+# Update macOS
 
 if [ "$(uname)" = "Darwin" ]; then
-  echo "Updating OS X..."
+  echo "Updating macOS..."
   sudo softwareupdate -i -a
 else
-  echo "OS X not found, skipping..."
+  echo "macOS not found, skipping"
 fi
