@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 # Status line style prompt
-#
 
 # Just calculate this once to reduce calls to external programs
 [ -n "$__bash_prompt_hostname" ] || export __bash_prompt_hostname=$(hostname -s)
 
 upsearch () {
-  directory="$PWD"
+  local directory="$PWD"
   while [ -n "$directory" ]; do
     if [ -e "$directory/$1" ]; then
-      echo -n "$directory/$1"
+      echo -e -n "$directory/$1"
       return 0
     fi
     directory=${directory%/*}
@@ -18,131 +17,142 @@ upsearch () {
 }
 
 directory_helper () {
-  echo -n ${PWD/$HOME/"~"}
+  echo -e -n ${PWD/$HOME/"~"}
 }
 
 git_helper () {
   # detect .git directory
   # print current branch; add an asterisk if there are uncommitted changes
-  gitdir=$(upsearch .git) || return 1
-  gitdir=${gitdir%/*}
-  githead=$(cat "$gitdir/.git/HEAD") || return 1
+  local gitdir && gitdir=$(upsearch .git) || return 1
+  local gitdir=${gitdir%/*}
+  local githead && githead=$(cat "$gitdir/.git/HEAD") || return 1
   githead=${githead##*/}
-  gitfiles=$(git -C "$gitdir" ls-files --exclude-standard --others)
-  echo -n "$githead"
-  [ -n "$gitfiles" ] ** echo -n "*"
+  local gitfiles=$(git -C "$gitdir" ls-files --exclude-standard --others)
+  echo -e -n "$githead"
+  [ -n "$gitfiles" ] || echo -e -n "*"
 }
 
 virtualenv_helper () {
   [ -n "$VIRTUAL_ENV" ] || return 1
-  echo -n ${VIRTUAL_ENV##*/}
+  echo -e -n ${VIRTUAL_ENV##*/}
 }
 
 node_helper () {
   # detect package.json
   # print "name" field
-  package="$(upsearch package.json)" || return 1
-  re='\"name\": \"([^\"]*)'
+  local package && package="$(upsearch package.json)" || return 1
+  local re='\"name\": \"([^\"]*)'
   [[ $(cat "$package") =~ $re ]] || return 1
-  echo -n "${BASH_REMATCH[1]}"
+  echo -e -n "${BASH_REMATCH[1]}"
 }
 
-function vagrant_helper
+vagrant_helper () {
   # detect Vagrantfile
   # print .vagrant/machines/$machine_name
-  set vagrantfile (upsearch Vagrantfile); or return 1
-  command ls (string replace -r '\/[^\/]*$' "/.vagrant/machines/" $vagrantfile)
-end
+  local vagrantfile && vagrantfile="$(upsearch Vagrantfile)" || return 1
+  local vagrantdir="${vagrantfile%/*}/.vagrant/machines"
+  for f in $vagrantdir/*; do echo -e -n "${f##*/}"; done
+}
 
-function clojure_helper
+clojure_helper () {
   # detect project.clj or build.boot
   # print ...
-  if set bootfile (upsearch build.boot)
-    cat "$bootfile" | string match -r "(?<=:project\s')[^\s]+"
-    return 0
-  else if set projectfile (upsearch project.clj)
-    cat "$projectfile" | string match -r "(?<=\(defproject\s)[^\s]+"
-    return 0
+  if local bootfile && bootfile="$(upsearch build.boot)"; then
+    local re=":project +'([^ ]+)"
+    [[ $(cat "$bootfile") =~ $re ]] && echo -e -n "${BASH_REMATCH[1]}"
+  elif local projectfile && projectfile="$(upsearch project.clj)"; then
+    local re="\(defproject +([^ )]+)"
+    [[ $(cat "$projectfile") =~ $re ]] && echo -e -n "${BASH_REMATCH[1]}"
   else
     return 1
-  end
-end
+  fi
+}
 
-function jobs_helper
-  set -l job_count (jobs -c | wc -l)
-  test $job_count -gt 0; or return 1
-  echo -ns $job_count " job"
-  test $job_count -gt 1; and echo -ns "s" # make jobs plural
-end
+jobs_helper () {
+  local job_count="$(jobs | awk 'END {print NR}')"
+  [[ $job_count -gt 0 ]] || return 1
+  echo -e -n $job_count "job"
+  [[ $job_count -gt 1 ]] && echo -e -n "s" # make jobs plural
+  return 0
+}
 
-function tmux_helper
-  set -q TMUX; or return 1
-  set -l session_count (tmux ls 2>/dev/null | wc -l | awk '{ print $1; }')
-  test $session_count -gt 0; and echo -n -s "tmux: " $session_count
-end
+tmux_helper () {
+  tmux ls >/dev/null &2>1 && return 1
+  [[ "$TERM" = "screen" ]] && return 1
+  local session_count="$(tmux ls 2>/dev/null | wc -l | awk '{ print $1; }')"
+  [[ $session_count -gt 0 ]] && echo -e -n "tmux: " $session_count
+  return 0
+}
 
-function datetime_helper
+datetime_helper () {
   date +"%Y-%m-%d %r"
-end
+}
 
-# Lifted from (https://github.com/fish-shell/fish-shell/issues/1326)
-function append --no-scope-shadowing
-  if test (count $argv) -ne 2
-    echo append: Expected 2 arguments, (count $argv) received.
-    return 1
-  end
-  set -l __fish_value $$argv[1]
-  set $argv[1] "$__fish_value$argv[2]"
-end
+with_color () {
+  # background
+  echo -e -n "\e[48;5;${1}m"
+  # foreground
+  echo -e -n "\e[38;5;${2}m"
+  echo -e -n "${3}"
+  # reset
+  echo -e -n "\e[0m"
+}
 
-# Evaluate the expression. If it returns without error then append the result
-# of the expression to the variable, formatted according to the printf string
-# Adapted from (https://github.com/fish-shell/fish-shell/issues/1326)
-# argv[1]: variable to append to
-# argv[2]: expression to evaluate
-# argv[3]: printf string
-# if_append variable expression "%s"
-function if_append --no-scope-shadowing
-  set -l result (eval "$argv[2]"); or return
-  append "$argv[1]" "$__fish_value"(printf "$argv[3]" $result)
-end
+do_str () {
+  for (( c=0; c<$2; c++)) ; do
+    printf "%s" "$1"
+  done
+}
 
-function with_color
-  echo -n -s (set_color -b $argv[1]) (set_color $argv[2]) $argv[3] (set_color normal)
-end
+re_replace () {
+  local new=$1
+  local re="(.*)$2(.*)"
+  while [[ $new =~ $re ]]; do
+    echo -e -n .
+    new=${BASH_REMATCH[1]}${3}${BASH_REMATCH[2]}
+  done
+  echo "$new"
+}
 
-function do_str
-  for i in (seq $argv[2])
-    printf $argv[1]
-  end
-end
+# http://www.fvue.nl/wiki/Bash:_Passing_variables_by_reference
+if_append () {
+  local s && s="$(eval $2)" || return 1
+  local p && p=$(printf "$3" "$s")
+  eval $1+=\"\$p\"
+}
 
-function fish_prompt -d 'Write out a prompt'
-  set -l last_status $status
+bash_prompt () {
+  local last_status=$?
 
-  set -l left
-  if_append left "test $last_status -ne 0" (with_color red FFFFFF " $last_status ")
+  local left=
+  [ $last_status = 0 ] || left=$(with_color 125 255 " $last_status ")
   # Only display username and hostname if this is an ssh session
-  if set -q SSH_CLIENT
-    append left (with_color yellow black " $USER ")
-    append left (with_color green black " $__fish_prompt_hostname ")
-  end
-  if_append left git_helper (with_color purple black " %s ")
-  if_append left virtualenv_helper (with_color blue black " %s ")
-  if_append left node_helper (with_color blue black " %s ")
-  if_append left clojure_helper (with_color blue black " %s ")
-  if_append left vagrant_helper (with_color C68 black " %s ")
-  if_append left directory_helper (with_color cyan 000 " %s ")
+  if [ -n "$SSH_CLIENT" ]; then
+    left+=$(with_color 003 000 " $USER ")
+    left+=$(with_color 002 000 " $__bash_prompt_hostname")
+  fi
+  if_append left git_helper         "$(with_color 005 000 ' %s ')"
+  if_append left virtualenv_helper  "$(with_color 028 255 ' %s ')"
+  if_append left node_helper        "$(with_color 023 255 ' %s ')"
+  if_append left clojure_helper     "$(with_color 024 255 ' %s ')"
+  if_append left vagrant_helper     "$(with_color 095 255 ' %s ')"
+  if_append left directory_helper   "$(with_color 006 016 ' %s ')"
 
-  set -l right
-  if_append right jobs_helper (with_color A0A0A0 black " %s ")
-  if_append right tmux_helper (with_color D0D0D0 black " %s ")
-  if_append right datetime_helper (with_color 606060 DDD " %s ")
+  local right=
+  if_append right jobs_helper       "$(with_color 055 007 ' %s ')"
+  if_append right tmux_helper       "$(with_color 038 000 ' %s ')"
+  if_append right datetime_helper   "$(with_color 240 255 ' %s ')"
 
   # Strip out invisible characters before counting to get actual display width
-  set -l length (string length (string replace -ra "\e[^m]+m" "" "$left$right"))
-  set -l padding (math $COLUMNS - $length)
-  test $padding -lt 0; and set right ""; and set padding 1
-  echo -s \r "$left" (set_color -b 333) (do_str " " $padding) "$right"
-  echo -n -s (set_color -o) "> " (set_color normal)
-end
+  # local raw_line=$(re_replace "$left$right" "\e[^m]+m" "")
+  local raw_line=$(echo "$left$right" | perl -pe 's/\x1b\[[^m]+m//g')
+  local length=${#raw_line}
+  local COLUMNS=$(tput cols)
+  local padding=$(($COLUMNS - $length))
+  [[ $padding -lt 0 ]] && padding=0
+  printf "\r%s%s%s\n" "$left" $(with_color 236 236 $(do_str "_" $padding)) "$right"
+}
+
+export PS1=$(with_color 000 255 "\$ ")
+
+export PROMPT_COMMAND='bash_prompt'
