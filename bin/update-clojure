@@ -1,0 +1,14 @@
+#!/bin/bash
+# Update Clojure stuff
+
+if installed lein; then
+  echo "Updating Leiningen..."
+  lein upgrade
+
+  echo Updating lein-exec scripts...
+  wget -O ~/.bin/lein-exec "https://raw.github.com/kumarshantanu/lein-exec/master/lein-exec"
+  wget -O ~/.bin/lein-exec-p "https://raw.github.com/kumarshantanu/lein-exec/master/lein-exec-p"
+  chmod +x ~/.bin/lein-exec ~/.bin/lein-exec-p
+else
+  echo "Leiningen not found, skipping"
+fi

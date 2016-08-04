@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
-scriptname="install.sh"
+scriptname="install"
 scriptbuildnum="0.7"
 scriptbuilddate="2016-07-12"
 
@@ -30,7 +30,7 @@ OPTIONS:
   -t (--test)     : test mode - only display changes, don't make them
                     (default is false)
   -c (--config)   : specify a configuration file
-                    (default configuration file is `settings`)
+                    (default configuration file is `install.settings`)
                       Example config file contents:
                         # Settings (can use globs)
                         # ignore these files (modifies include)
@@ -132,7 +132,7 @@ full_path () {
 force=false
 testing=false
 
-config_file="$(full_path $(dirname $0))/settings"
+config_file="$(full_path $(dirname $0))/install.settings"
 
 # parse arguments
 for arg in "$@"; do

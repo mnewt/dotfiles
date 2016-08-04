@@ -301,7 +301,8 @@ logs () {
 
 shell () {
 	# Attach a shell to a running container
-	exe docker exec -it $name /bin/sh
+	exe docker exec -it $name /bin/bash || \
+  exe docker exec -it $name /bin/sh
   return 0
 }
 
@@ -310,6 +311,7 @@ runshell () {
 	# instead of what was specified in the Dockerfile
 	remove
 	#exe docker run -it $volumes $options --name $name $name /bin/sh
+  exe docker run -it $volumes $options $(createnetwork) -h $name --name $name "$image" /bin/bash || \
   exe docker run -it $volumes $options $(createnetwork) -h $name --name $name "$image" /bin/sh
   return 0
 }

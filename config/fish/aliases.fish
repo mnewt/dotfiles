@@ -157,6 +157,11 @@ switch (uname)
       man -t $argv[1] | open -f -a /Applications/Preview.app/
     end
 
+    # Quick look
+    function ql
+      qlmanage -p $argv 2>1 >/dev/null
+    end
+
     # Change Directory to the active Finder window (else ~/Desktop)
     function cdf
       set -l fPath (osascript -e '

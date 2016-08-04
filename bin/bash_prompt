@@ -77,11 +77,10 @@ jobs_helper () {
 }
 
 tmux_helper () {
-  tmux ls >/dev/null &2>1 && return 1
-  [[ "$TERM" = "screen" ]] && return 1
-  local session_count="$(tmux ls 2>/dev/null | wc -l | awk '{ print $1; }')"
-  [[ $session_count -gt 0 ]] && echo -e -n "tmux: " $session_count
-  return 0
+  [[ -z "$TMUX" ]] || return 1
+  local sessions; sessions="$(tmux ls 2>/dev/null)" || return 1
+  local session_count; session_count="$(echo "$sessions" | awk 'END{print NR}')"
+  [[ $session_count -gt 0 ]] && echo -e -n "tmux:" $session_count
 }
 
 datetime_helper () {

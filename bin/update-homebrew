@@ -1,9 +1,9 @@
 #!/bin/bash
 # Update Homebrew
 
-reinstall_cask () {
-  echo "Reinstalling cask: $1..."
-  brew cask uninstall "$1"
+upgrade_cask () {
+  echo "Upgrading cask: $1..."
+  brew cask uninstall --force "$1"
   rm -rf "/opt/homebrew-cask/Caskroom/$1"
   brew cask install "$1"
 }
@@ -19,15 +19,22 @@ if installed brew; then
   brew doctor
   echo "Updating homebrew casks..."
   for c in $(brew cask list); do
-    if brew cask info "$c" | grep -q "Not installed"; then
-      reinstall_cask "$c"
-    elif [ "$1" = "-a" ] && \
-        brew cask info "$c" | grep -q ": latest" && \
-        prompt_confirm "Update non-versioned cask: $c\?"; then
-      reinstall_cask "$c"
+    info="$(brew cask info $c)"
+    if echo "$info" | grep -q "Not installed"; then
+      upgrade_cask "$c"
+    elif echo "$info" | grep -q ": latest"; then
+      if [ "$1" = "-a" ]; then
+        upgrade_cask "$c"
+      else
+        echo "Not upgrading cask: $c because it is non-versioned and the '-a' parameter wasn't specified"
+      fi
     fi
   done
   brew cask cleanup
+
+  restore_loc="$(find-dotfiles)/scripts/Brewfile"
+  echo "Saving Brewfile to: $restore_loc"
+  brew bundle dump --force --file="$restore_loc"
 else
   echo "Hombrew is not installed, skipping"
 fi

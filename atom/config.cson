@@ -24,6 +24,8 @@
     fontSize: 12
     invisibles: {}
     showIndentGuide: true
+  linter:
+    showErrorInline: false
   "one-dark-ui": {}
   "open-recent": {}
   "proto-repl":
@@ -38,7 +40,8 @@
     syntax: "Parentheses"
   tabs:
     usePreviewTabs: true
-  "tree-view": {}
+  "tree-view":
+    hideVcsIgnoredFiles: true
   welcome:
     showOnStartup: false
 ".clojure.source":

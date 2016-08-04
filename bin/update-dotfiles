@@ -2,19 +2,15 @@
 # Update dotfiles
 
 echo "Checking for updates to dotfiles..."
-dotfiles_locations=("$HOME/.dotfiles" "$HOME/dotfiles")
-dotfiles=
-for l in "${dotfiles_locations[@]}"; do
-  [ -d "$l" ] && dotfiles="$l"
-done
-if [ -n "$dotfiles" ]; then
+dotfiles=$(find-dotfiles)
+if [ $? -eq 0 ]; then
   echo "Checking for git updates at dotfiles location: $dotfiles"
   if [ -z "$(git -C "$dotfiles" ls-files --exclude-standard --others)" ]; then
     git -C "$dotfiles" pull
   else
     echo "Not updating dotfiles because the repo is dirty"
   fi
-  "$dotfiles/install.sh" "$dotfiles"
+  "$dotfiles/install" "$dotfiles"
 else
   echo "No dotfiles found at locations: (${dotfiles_locations[*]})"
 fi
