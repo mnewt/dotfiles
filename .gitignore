@@ -17,3 +17,4 @@ vim/plugged
 
 # fish chips
 config/chips/dist
+config/chips/build.fish
