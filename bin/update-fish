@@ -1,0 +1,9 @@
+#!/bin/bash
+# Update fish shell
+
+if installed fish; then
+  echo "Updating fish shell..."
+  chips
+else
+  echo "fish shell not found, skipping"
+fi

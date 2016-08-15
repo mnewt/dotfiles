@@ -55,3 +55,5 @@ set -x BOOT_JVM_OPTIONS '-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\
 # end
 
 start_ssh_agent
+
+if [ -e ~/.config/chips/build.fish ] ; source ~/.config/chips/build.fish ; end

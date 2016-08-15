@@ -14,3 +14,6 @@ repl-history
 
 # vim-plug
 vim/plugged
+
+# fish chips
+config/chips/dist

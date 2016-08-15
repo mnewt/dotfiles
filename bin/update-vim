@@ -1,0 +1,9 @@
+#!/bin/bash
+# Update VIm
+
+if installed vim; then
+  echo "Updating VIm..."
+  vim +PlugUpgrade +PlugUpdate +PlugInstall +qall
+else
+  echo "VIm not found, skipping"
+fi
