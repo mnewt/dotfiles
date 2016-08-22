@@ -1,10 +1,10 @@
 Parinfer@1.16.0
-advanced-open-file@0.16.3
+advanced-open-file@0.16.4
 atom-beautify@0.29.10
 dash@1.6.2
 git-time-machine@1.5.3
 highlight-selected@0.11.2
-ink@0.4.4
+ink@0.5.0
 language-apache@1.5.0
 language-cisco@1.4.0
 language-docker@1.1.7
@@ -21,7 +21,7 @@ linter-clojure@1.1.2
 linter-docker@0.1.2
 linter-shellcheck@1.2.0
 open-recent@5.0.0
-proto-repl@1.4.2
+proto-repl@1.4.7
 set-syntax@0.3.0
 todo-show@1.7.0
 

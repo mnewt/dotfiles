@@ -2,7 +2,7 @@
 # Status line style prompt
 
 # Just calculate this once to reduce calls to external programs
-[ -n "$__bash_prompt_hostname" ] || export __bash_prompt_hostname=$(hostname -s)
+[ -z "$__bash_prompt_hostname" ] && __bash_prompt_hostname=$(hostname -s) && export __bash_prompt_hostname
 
 upsearch () {
   local directory="$PWD"
@@ -27,7 +27,7 @@ git_helper () {
   local gitdir=${gitdir%/*}
   local githead && githead=$(cat "$gitdir/.git/HEAD") || return 1
   githead=${githead##*/}
-  local gitfiles=$(git -C "$gitdir" ls-files --exclude-standard --others)
+  local gitfiles; gitfiles=$(git -C "$gitdir" ls-files --exclude-standard --others)
   echo -e -n "$githead"
   [ -n "$gitfiles" ] || echo -e -n "*"
 }
@@ -69,7 +69,7 @@ clojure_helper () {
 }
 
 jobs_helper () {
-  local job_count="$(jobs | awk 'END {print NR}')"
+  local job_count; job_count="$(jobs | awk 'END {print NR}')"
   [[ $job_count -gt 0 ]] || return 1
   echo -e -n $job_count "job"
   [[ $job_count -gt 1 ]] && echo -e -n "s" # make jobs plural
@@ -115,8 +115,8 @@ re_replace () {
 
 # http://www.fvue.nl/wiki/Bash:_Passing_variables_by_reference
 if_append () {
-  local s && s="$(eval $2)" || return 1
-  local p && p=$(printf "$3" "$s")
+  local s; s="$(eval $2)" || return 1
+  local p; p=$(printf "$3" "$s")
   eval $1+=\"\$p\"
 }
 
@@ -128,7 +128,7 @@ bash_prompt () {
   # Only display username and hostname if this is an ssh session
   if [ -n "$SSH_CLIENT" ]; then
     left+=$(with_color 003 000 " $USER ")
-    left+=$(with_color 002 000 " $__bash_prompt_hostname")
+    left+=$(with_color 002 000 " $__bash_prompt_hostname ")
   fi
   if_append left git_helper         "$(with_color 005 000 ' %s ')"
   if_append left virtualenv_helper  "$(with_color 028 255 ' %s ')"
@@ -144,14 +144,14 @@ bash_prompt () {
 
   # Strip out invisible characters before counting to get actual display width
   # local raw_line=$(re_replace "$left$right" "\e[^m]+m" "")
-  local raw_line=$(echo "$left$right" | perl -pe 's/\x1b\[[^m]+m//g')
+  local raw_line; raw_line=$(echo "$left$right" | perl -pe 's/\x1b\[[^m]+m//g')
   local length=${#raw_line}
-  local COLUMNS=$(tput cols)
-  local padding=$(($COLUMNS - $length))
+  local columns; columns=$(tput cols)
+  local padding=$(($columns - $length))
   [[ $padding -lt 0 ]] && padding=0
-  printf "\r%s%s%s\n" "$left" $(with_color 236 236 $(do_str "_" $padding)) "$right"
+  printf "\r%s%s%s\n" "$left" "$(with_color 236 236 "$(do_str "_" $padding)")" "$right"
 }
 
-export PS1=$(with_color 000 255 "\$ ")
+PS1=$(with_color 000 255 "\$ ") && export PS1
 
-export PROMPT_COMMAND='bash_prompt'
+PROMPT_COMMAND='bash_prompt' && export PROMPT_COMMAND
