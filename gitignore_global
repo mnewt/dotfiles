@@ -212,3 +212,8 @@ projectile-bookmarks.eld
 projectile.cache
 auto-save-list
 backups
+
+# Docker Wrapper #
+##################
+DWfile
+

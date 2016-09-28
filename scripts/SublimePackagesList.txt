@@ -1,0 +1,17 @@
+{
+    "installed_packages": [
+        "ApplySyntax", 
+        "BracketHighlighter", 
+        "Cisco Syntax Highlighter", 
+        "Dockerfile Syntax Highlighting", 
+        "Enhanced Clojure", 
+        "fish-shell", 
+        "INI", 
+        "lispindent", 
+        "Load file to REPL", 
+        "nginx", 
+        "Package Control", 
+        "PackageSync", 
+        "SublimeREPL"
+    ]
+}

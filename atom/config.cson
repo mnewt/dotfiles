@@ -1,8 +1,7 @@
 "*":
   "atom-beautify":
-    _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
     general:
-      _analyticsUserId: "891fee0d-89eb-46d5-8937-508948b369a7"
+      _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
   "autocomplete-plus":
     confirmCompletion: "tab"
   "base16-syntax":
@@ -13,6 +12,9 @@
     disabledPackages: [
       "exception-reporting"
       "metrics"
+      "Zen"
+      "ink"
+      "autocomplete-python"
     ]
     packagesWithKeymapsDisabled: [
       "script"
@@ -25,6 +27,7 @@
     invisibles: {}
     showIndentGuide: true
   linter:
+    errorPanelHeight: 50
     showErrorInline: false
   "one-dark-ui": {}
   "open-recent": {}
@@ -36,6 +39,8 @@
     leinPath: "/usr/local/bin/lein"
     refreshOnReplStart: false
     showInlineResults: false
+  "save-session":
+    dataSaveFolder: "/Users/mnewton/.atom/packages/save-session/projects"
   swackets:
     syntax: "Parentheses"
   tabs:

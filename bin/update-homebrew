@@ -2,34 +2,42 @@
 # Update Homebrew
 
 upgrade_cask () {
-  echo "Upgrading cask: $1..."
+  echo "      Upgrading cask: $1..."
   brew cask uninstall --force "$1"
   rm -rf "/opt/homebrew-cask/Caskroom/$1"
   brew cask install "$1"
 }
 
-if installed brew; then
+upgrade_casks () {
   # update brew casks -- eventually this should not be necessary
   # (https://github.com/caskroom/homebrew-cask/issues/4678)
+  staging_location="$(brew cask doctor | awk 'f{print;f=0} /==> Homebrew-Cask Staging Location:/{f=1}')"
+  for cask in $(brew cask list); do
+    info="$(brew cask info $cask)"
+    current_version="$(echo "$info" | awk 'NR==1 {print $2}')"
+    installed_version="$(echo "$info" | awk -F '[/ ]' 'NR==3 {print $6}')"
+    echo "cask: $cask, installed: $installed_version, current: $current_version"
+    if [ "$installed_version" = "latest" ]; then
+      if [ "$1" = "-a" ]; then
+        upgrade_cask "$cask"
+      else
+        echo "      Not upgrading: $cask (to upgrade, run with '-a')"
+      fi
+    elif [ "$installed_version" != "$current_version" ]; then
+      upgrade_cask "$cask"
+    fi
+  done
+}
+
+if installed brew; then
   echo "Updating homebrew..."
   brew update
   brew upgrade --all
   brew cleanup
   brew prune
   brew doctor
-  echo "Updating homebrew casks..."
-  for c in $(brew cask list); do
-    info="$(brew cask info $c)"
-    if echo "$info" | grep -q "Not installed"; then
-      upgrade_cask "$c"
-    elif echo "$info" | grep -q ": latest"; then
-      if [ "$1" = "-a" ]; then
-        upgrade_cask "$c"
-      else
-        echo "Not upgrading cask: $c because it is non-versioned and the '-a' parameter wasn't specified"
-      fi
-    fi
-  done
+  echo "Upgrading homebrew casks..."
+  upgrade_casks "$@"
   brew cask cleanup
 
   restore_loc="$(find-dotfiles)/scripts/Brewfile"
