@@ -6,9 +6,9 @@ autoclose-html@0.23.0
 autocomplete-awk@0.1.2
 autocomplete-paths@1.0.2
 autocomplete-python@1.8.6
-dash@1.6.2
+dash@1.7.0
 git-log@0.4.1
-git-plus@5.17.1
+git-plus@5.18.0
 git-time-machine@1.5.3
 highlight-selected@0.11.2
 ink@0.5.3
@@ -27,8 +27,8 @@ linter@1.11.16
 linter-clojure@1.1.2
 linter-docker@0.1.2
 open-recent@5.0.0
-pigments@0.35.1
 proto-repl@1.4.7
+save-session@0.16.0
 set-syntax@0.3.0
 todo-show@1.7.0
 
