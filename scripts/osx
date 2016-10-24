@@ -8,3 +8,4 @@
 
 # Use lighter font antialiasing
 defaults write -g AppleFontSmoothing -int 1
+

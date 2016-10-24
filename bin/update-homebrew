@@ -31,6 +31,10 @@ upgrade_casks () {
 
 if installed brew; then
   echo "Updating homebrew..."
+  cd "$(brew --repo)"
+  git prune
+  git gc
+  cd -
   brew update
   brew upgrade --all
   brew cleanup

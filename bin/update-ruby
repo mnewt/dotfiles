@@ -4,6 +4,7 @@
 if installed gem; then
   echo "Updating ruby gems..."
   update_rubygems
+  gem update $(gem outdated | awk '{print $1}')
   sudo gem update --system
   gem clean
 else

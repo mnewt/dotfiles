@@ -9,6 +9,10 @@ if installed lein; then
   wget -O ~/.bin/lein-exec "https://raw.github.com/kumarshantanu/lein-exec/master/lein-exec"
   wget -O ~/.bin/lein-exec-p "https://raw.github.com/kumarshantanu/lein-exec/master/lein-exec-p"
   chmod +x ~/.bin/lein-exec ~/.bin/lein-exec-p
+
+  echo "Updating Grenchman..."
+  wget -O ~/.bin/grench "https://technomancy.github.io/grenchman/downloads/grench-0.2.0-mac"
+  chmod +x /~/.bin/grench
 else
   echo "Leiningen not found, skipping"
 fi

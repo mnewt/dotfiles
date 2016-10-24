@@ -8,3 +8,4 @@ xcode-select --install
 
 # Ensure Xcode Command Line Tools are installed
 xcode-select -p
+

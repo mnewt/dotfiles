@@ -26,30 +26,7 @@
 # Atom Flight Manual:
 # https://atom.io/docs/latest/using-atom-basic-customization#cson
 
-'.workspace .editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   'cmd-enter': 'proto-repl:execute-block'
-  'alt-cmd-k': 'proto-repl:clear-repl'
-  'cmd-shift-l': 'linter:togglepanel'
-
-# Allows using enter to select an autocomplete suggestion.
-'.platform-darwin atom-text-editor[data-grammar~="clojure"].autocomplete-active':
-  'enter':          'autocomplete-plus:confirm'
-
-'.platform-darwin atom-text-editor[data-grammar~="clojure"]':
-
-  # Indent the current selection
-  'cmd-i':          'lisp-paredit:indent'
-
-  # Expand the selection up a block
-  'ctrl-shift-m':   'lisp-paredit:expand-selection'
-
-  # Provides proper indentation when enter is pressed. (I disable normal lisp-paredit keybindings)
-  'enter':          'lisp-paredit:newline'
-
-  # Helpers for cutting, copying, pasting, deleting, and indenting a Clojure code
-  'cmd-shift-x':    'jason:cut-sexp'
-  'cmd-shift-c':    'jason:copy-sexp'
-  'cmd-shift-v':    'jason:paste-sexp'
-  'cmd-shift-delete': 'jason:delete-sexp'
-  'cmd-shift-d':    'jason:delete-sexp'
-  'cmd-shift-i':    'jason:indent-top-sexp'
+  'cmd-shift-enter': 'proto-repl:execute-top-block'
+  'cmd-alt-k': 'proto-repl:clear-repl'

@@ -4,7 +4,8 @@
 if installed fish; then
   echo "Updating fish shell..."
   curl -Lo ~/.config/fish/functions/fin.fish https://git.io/fin
-  fin
+  fish -c fin
 else
   echo "fish shell not found, skipping"
 fi
+

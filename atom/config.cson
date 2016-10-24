@@ -4,6 +4,8 @@
       _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
   "autocomplete-plus":
     confirmCompletion: "tab"
+  autosave:
+    enabled: true
   "base16-syntax":
     scheme: "Monokai"
   "bracket-matcher":
@@ -13,15 +15,14 @@
       "exception-reporting"
       "metrics"
       "Zen"
-      "ink"
       "autocomplete-python"
     ]
     packagesWithKeymapsDisabled: [
       "script"
     ]
     projectHome: "/Users/mnewton/code"
+    telemetryConsent: "no"
   editor:
-    autoIndentOnPaste: false
     fontFamily: "Monaco"
     fontSize: 12
     invisibles: {}
@@ -52,5 +53,5 @@
 ".clojure.source":
   editor:
     autoIndent: true
-    autoIndentOnPaste: true
-    nonWordCharacters: "(){}[]\\\"',;<>~#$%^&*|+=`…"
+    autoIndentOnPaste: false
+    nonWordCharacters: "()\"':,;~@#$%^&{}[]`"
