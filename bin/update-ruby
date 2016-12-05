@@ -7,6 +7,10 @@ if installed gem; then
   gem update $(gem outdated | awk '{print $1}')
   sudo gem update --system
   gem clean
+
+  restore_loc="$(find-dotfiles)/scripts/gem_packages"
+  echo "Saving packages list to: $restore_loc"
+  gem list > "$restore_loc"
 else
   echo "gem not installed, skipping"
 fi

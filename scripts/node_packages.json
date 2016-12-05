@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "bower": {
+      "version": "1.8.0",
+      "from": "bower@latest",
+      "resolved": "https://registry.npmjs.org/bower/-/bower-1.8.0.tgz"
+    },
+    "dash-docset-generator": {
+      "version": "1.0.0",
+      "from": "dash-docset-generator@latest",
+      "resolved": "https://registry.npmjs.org/dash-docset-generator/-/dash-docset-generator-1.0.0.tgz"
+    },
+    "gulp": {
+      "version": "3.9.1",
+      "from": "gulp@latest",
+      "resolved": "https://registry.npmjs.org/gulp/-/gulp-3.9.1.tgz"
+    },
+    "npm": {
+      "version": "4.0.3",
+      "from": "npm@latest",
+      "resolved": "https://registry.npmjs.org/npm/-/npm-4.0.3.tgz"
+    }
+  }
+}

@@ -1,10 +1,18 @@
 #!/bin/bash
 # Update python packages
 
-if installed pip; then
+pip_cmd=''
+installed pip &&  pip_cmd=pip
+installed pip3 && pip_cmd=pip3
+
+if [ -n "$pip_cmd" ]; then
   echo "Updating pip..."
-  sudo -H pip install --upgrade pip setuptools
-  pip list --outdated | cut -d ' ' -f 1 | sudo -H xargs -n1 pip install --upgrade
+  sudo -H "$pip_cmd" install --upgrade pip setuptools
+  "$pip_cmd" list --format=columns --outdated | awk 'NR>2 {print $1}' | sudo -H xargs -n1 "$pip_cmd" install --upgrade
+
+  restore_loc="$(find-dotfiles)/scripts/pip_packages"
+  echo "Saving packages list to: $restore_loc"
+  "$pip_cmd" list --format=columns | awk 'NR>2 {print $1}' > "$restore_loc"
 else
   echo "pip not found, skipping"
 fi

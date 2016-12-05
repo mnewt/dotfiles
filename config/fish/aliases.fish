@@ -75,6 +75,11 @@ else
   end
 end
 
+# ssh
+function sst
+  ssh $argv -t "tmux -CC attach; or tmux -CC"
+end
+
 # git
 alias g="git"
 alias gs="git status"

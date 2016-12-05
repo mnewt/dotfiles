@@ -7,7 +7,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'kablamo/vim-git-log'
   Plug 'dag/vim-fish'
   Plug 'PProvost/vim-ps1'
-  Plug 'oakmac/parinfer-viml', { 'for': 'clojure' }
+  Plug 'bhurlow/vim-parinfer', { 'for': 'clojure' }
   Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
 call plug#end()
 

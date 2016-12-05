@@ -4,8 +4,7 @@
       _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
   "autocomplete-plus":
     confirmCompletion: "tab"
-  autosave:
-    enabled: true
+  autosave: {}
   "base16-syntax":
     scheme: "Monokai"
   "bracket-matcher":
@@ -15,7 +14,7 @@
       "exception-reporting"
       "metrics"
       "Zen"
-      "autocomplete-python"
+      "save-session"
     ]
     packagesWithKeymapsDisabled: [
       "script"
