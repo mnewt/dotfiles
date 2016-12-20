@@ -1,0 +1,13 @@
+# one file extension per line please :)
+.boot
+.cl
+.clj
+.cljc
+.cljs
+.edn
+.el
+.lfe
+.lisp
+.lsp
+.rkt
+.scm

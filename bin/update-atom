@@ -9,3 +9,4 @@ if installed apm; then
 else
   echo "Atom not found, skipping"
 fi
+

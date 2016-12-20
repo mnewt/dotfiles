@@ -30,3 +30,6 @@
   'cmd-enter': 'proto-repl:execute-block'
   'cmd-shift-enter': 'proto-repl:execute-top-block'
   'cmd-alt-k': 'proto-repl:clear-repl'
+
+'ink-console':
+  'shift-space': 'unset!'

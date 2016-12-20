@@ -1,24 +1,24 @@
 {
   "dependencies": {
-    "bower": {
-      "version": "1.8.0",
-      "from": "bower@latest",
-      "resolved": "https://registry.npmjs.org/bower/-/bower-1.8.0.tgz"
-    },
     "dash-docset-generator": {
       "version": "1.0.0",
       "from": "dash-docset-generator@latest",
       "resolved": "https://registry.npmjs.org/dash-docset-generator/-/dash-docset-generator-1.0.0.tgz"
     },
-    "gulp": {
-      "version": "3.9.1",
-      "from": "gulp@latest",
-      "resolved": "https://registry.npmjs.org/gulp/-/gulp-3.9.1.tgz"
-    },
     "npm": {
-      "version": "4.0.3",
+      "version": "4.0.5",
       "from": "npm@latest",
-      "resolved": "https://registry.npmjs.org/npm/-/npm-4.0.3.tgz"
+      "resolved": "https://registry.npmjs.org/npm/-/npm-4.0.5.tgz"
+    },
+    "webpack": {
+      "version": "1.14.0",
+      "from": "webpack@latest",
+      "resolved": "https://registry.npmjs.org/webpack/-/webpack-1.14.0.tgz"
+    },
+    "webpack-bundle-size-analyzer": {
+      "version": "2.2.0",
+      "from": "webpack-bundle-size-analyzer@latest",
+      "resolved": "https://registry.npmjs.org/webpack-bundle-size-analyzer/-/webpack-bundle-size-analyzer-2.2.0.tgz"
     }
   }
 }

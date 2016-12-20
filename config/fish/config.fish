@@ -55,3 +55,4 @@ set -x BOOT_JVM_OPTIONS '-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\
 # end
 
 start_ssh_agent
+

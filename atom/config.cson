@@ -2,6 +2,12 @@
   "atom-beautify":
     general:
       _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
+  "atom-ctags":
+    GotoSymbolKey: [
+      "meta"
+    ]
+    autoBuildTagsWhenActive: true
+    cmdArgs: "--exclude=node_modules --exclude=doc --exclude=release --exclude=target"
   "autocomplete-plus":
     confirmCompletion: "tab"
   autosave: {}
@@ -10,17 +16,20 @@
   "bracket-matcher":
     autocompleteSmartQuotes: false
   core:
+    destroyEmptyPanes: false
     disabledPackages: [
       "exception-reporting"
       "metrics"
       "Zen"
       "save-session"
+      "symbols-view"
     ]
     packagesWithKeymapsDisabled: [
       "script"
     ]
     projectHome: "/Users/mnewton/code"
     telemetryConsent: "no"
+    useCustomTitleBar: true
   editor:
     fontFamily: "Monaco"
     fontSize: 12
