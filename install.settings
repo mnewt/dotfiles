@@ -1,4 +1,4 @@
-# Settings for install.sh
+# Settings for the `install` script
 # This file tells install.sh what to ignore, link, copy, and create
 # List files (and globs) separated by spaces
 # The below options are in order of priority, so ignore overrides
@@ -6,11 +6,11 @@
 # That is why it's OK to just specify '*' for link
 
 # ignore these files (modifies include)
-ignore='install* scripts Icon* *.md *.sh TODO.txt'
+ignore='install* scripts Icon* *.md *.sh TODO*'
 
 # create directory itself (not contents), then link the children of the directory
 # NOTE: it will not delete the directory. If you want to replace the directory,
-#				delete it first, then run install.sh
+#				delete it first, then run `install`
 link_children='config atom'
 
 # just copy these files

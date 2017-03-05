@@ -5,10 +5,10 @@
       ;[pjstadig/humane-test-output "0.8.1"]
       [proto-repl "0.3.1"]]
    :plugins
-     [[venantius/ultra "0.5.0"]
+     [[venantius/ultra "0.5.1"]
       [lein-ancient "0.6.10"]
       [lein-pprint "1.1.2"]
-      [com.jakemccrary/lein-test-refresh "0.18.0"]
+      [com.jakemccrary/lein-test-refresh "0.18.1"]
       ; [lein-kibit "0.1.2"]
       ; [jonase/eastwood "0.2.3"]
       ; [lein-bikeshed "0.4.0"]

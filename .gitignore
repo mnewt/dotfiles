@@ -5,16 +5,8 @@ fish_*_history
 generated_completions
 .netrwhist
 
-# leiningen REPL history
-repl-history
-
-# Syncthing
-.stversions
-.stfolder
-
 # vim-plug
 vim/plugged
 
-# fish chips
-config/chips/dist
-config/chips/build.fish
+# emacs
+emacs.d/elpa

@@ -11,6 +11,8 @@
 *.exe
 *.o
 *.so
+*.out
+*.app
 
 # Packages #
 ############
@@ -31,16 +33,17 @@
 *.sql
 *.sqlite
 
-# OS generated files #
-######################
+# MacOS #
+#########
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-# from (https://stackoverflow.com/questions/17556250/how-to-ignore-icon-in-git)
 Icon?
 
+# Windows #
+###########
 ehthumbs.db
 Thumbs.db
 *~
@@ -65,9 +68,6 @@ node_modules
 # Python #
 ##########
 *.py[cod]
-
-# C extensions
-*.so
 
 # Packages
 *.egg
@@ -163,11 +163,6 @@ rerun.txt
 pickle-email-*.html
 .project
 
-# C #
-#####
-# Object files
-*.o
-
 # Libraries
 *.lib
 *.a
@@ -177,12 +172,6 @@ pickle-email-*.html
 *.so
 *.so.*
 *.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-
 
 # SublimeText #
 ###############
@@ -201,7 +190,7 @@ Session.vim
 .sync
 
 # Emacs #
-###################
+#########
 .smex-items
 *~$
 places
@@ -213,7 +202,15 @@ projectile.cache
 auto-save-list
 backups
 
-# Docker Wrapper #
-##################
-DWfile
+# ctags #
+#########
+.tags
 
+# leiningen #
+#############
+repl-history
+
+# Syncthing #
+#############
+.stversions
+.stfolder

@@ -1,4 +1,6 @@
 "*":
+  "advanced-open-file":
+    fuzzyMatch: true
   "atom-beautify":
     general:
       _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
@@ -12,7 +14,7 @@
     confirmCompletion: "tab"
   autosave: {}
   "base16-syntax":
-    scheme: "Monokai"
+    scheme: "OneDark"
   "bracket-matcher":
     autocompleteSmartQuotes: false
   core:
@@ -20,9 +22,9 @@
     disabledPackages: [
       "exception-reporting"
       "metrics"
-      "Zen"
-      "save-session"
       "symbols-view"
+      "language-gfm"
+      "status-bar"
     ]
     packagesWithKeymapsDisabled: [
       "script"
@@ -35,6 +37,18 @@
     fontSize: 12
     invisibles: {}
     showIndentGuide: true
+    showInvisibles: true
+  "git-plus":
+    general:
+      _analyticsUserId: "f21f5d96-cb76-4d2c-9c07-c81870cdbc42"
+      analytics: false
+  "highlight-selected":
+    highlightBackground: true
+  "isotope-ui":
+    customBackgroundColorPicker: "#303236"
+    minimalMode: true
+  "language-log":
+    tail: true
   linter:
     errorPanelHeight: 50
     showErrorInline: false
@@ -50,6 +64,12 @@
     showInlineResults: false
   "save-session":
     dataSaveFolder: "/Users/mnewton/.atom/packages/save-session/projects"
+  "split-diff":
+    diffWords: true
+    ignoreWhitespace: true
+    leftEditorColor: "red"
+    rightEditorColor: "green"
+    syncHorizontalScroll: true
   swackets:
     syntax: "Parentheses"
   tabs:

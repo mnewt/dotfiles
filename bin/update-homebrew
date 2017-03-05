@@ -34,9 +34,9 @@ if installed brew; then
   cd "$(brew --repo)"
   git prune
   git gc
-  cd -
+  cd - > /dev/null
   brew update
-  brew upgrade --all
+  brew upgrade
   brew cleanup
   brew prune
   brew doctor

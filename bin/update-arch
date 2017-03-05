@@ -3,9 +3,9 @@
 
 if [ -e '/etc/arch-release' ]; then
   echo "Updating Arch Linux"
-  sudo /usr/bin/pacman -Syu --noconfirm
-  sudo /usr/bin/pacman -Qtdq > /dev/null && \
-    sudo /usr/bin/pacman -Rns "$(/usr/bin/pacman -Qtdq | sed -e ':a;N;\$!ba;s/\n/ /g')"
+  sudo pacman -Syu --noconfirm
+  sudo pacman -Qtdq > /dev/null && \
+    sudo pacman --noconfirm -Rns $(pacman -Qtdq)
   sudo paccache -r
   sudo paccache -ruk0
   sudo pacman-optimize

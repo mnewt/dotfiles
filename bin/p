@@ -1,0 +1,4 @@
+#!/bin/bash
+# Search processes for $1 and print the result
+
+pgrep "$@" | xargs ps p | grep --color -E "$@|$"

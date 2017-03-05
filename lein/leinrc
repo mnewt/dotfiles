@@ -2,10 +2,5 @@
 
 LEIN_FAST_TRAMPOLINE=y
 
-LEIN_JVM_OPTS="-Djava.net.preferIPv4Stack=true -client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx2g -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xverify:none"
-
-# use drip if available
-#if which drip >/dev/null 2>&1; then
-#  LEIN_JAVA_CMD=${LEIN_JAVA_CMD-drip}
-#fi
+LEIN_JVM_OPTS="-Djava.net.preferIPv4Stack=true -client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx2g -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xverify:none -XX:+AggressiveOpts"
 

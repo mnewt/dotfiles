@@ -1,0 +1,13 @@
+- [x] fix rubygems-update issue
+- [x] Migrate fish plugin manager to fisher
+- [x] aliases: move to ~ and make compatible with fish, bash, zsh so they all use the same aliases file
+- [x] do the same for private.fish
+- [x] fix arch sed error
+- [x] install.sh: colorize output
+- [x] Fix bash_prompt
+- [x] Migrate zlogin to bash aliases
+- [x] Port start_ssh_agent.fish to bash and zsh
+- [x] Vim and Emacs updates shouldn't make repo dirty -- don't store packages themselves in repo
+- [ ] Fix tmux line length bug in `fish_prompt` -- probably not stripping all control characters out when measuring the line length (`bash_prompt` does not have this problem)
+- [ ] Make tmux status bar like vim's (https://github.com/edkolev/tmuxline.vim)?
+- [ ] write blog post tour

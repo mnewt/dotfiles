@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Open in Dash
+
+open "dash://$*"

@@ -1,0 +1,1 @@
+/Users/mnewton/.config/fisherman/bass/functions/__bass.py

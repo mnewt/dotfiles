@@ -2,57 +2,28 @@
 
 set -e fish_greeting
 
-# Setup terminal, and turn on colors
-set -x TERM xterm-256color
-set -x LANG en_US.UTF-8
-set -x LC_CTYPE "en_US.UTF-8"
-set -x LC_MESSAGES "en_US.UTF-8"
-set -x LC_COLLATE C
-
-# aliases
-if test -e "$HOME/.config/fish/aliases.fish"
-  source "$HOME/.config/fish/aliases.fish"
-end
-
-# private
-if test -e "$HOME/.private.fish"
-  source "$HOME/.private.fish"
-end
-
-# path
-# Homebrew installs to /usr/local/sbin and /usr/local/opt/coreutils/libexec/gnubin
-set -e fish_user_paths
-for path in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin"
-  if test -d "$path"
-    set -U fish_user_paths $fish_user_paths "$path"
+function source_if -d "If file exists, then source it"
+  if test -e "$argv[1]"
+    source "$argv[1]"
   end
 end
 
-# minicom
-set -x MINICOM '-c on'
+# aliases and environment variables common to bash and fish
+if test -e "$HOME/.aliases"
+  bass source "$HOME/.aliases"
+end
+source_if "$HOME/.config/fish/functions.fish"
+source_if "$HOME/.private.fish"
 
-# python venv
-set -x VIRTUAL_ENV_DISABLE_PROMPT true
+# iTerm2
+if test "$TERM_PROGRAM" = "iTerm.app"
+  source_if "$HOME/.bin/iterm2_shell_integration.fish"
+end
 
-# virtualenv / virtualfish
-# requires virtualfish. Install with:
-# pip install virtualfish
-# if which virtualenv 2>&1 >/dev/null
-#   eval (python -m virtualfish auto_activation)
-# end
+if installed direnv
+  eval (direnv hook fish)
+end
 
-# iterm2
-source "$HOME/.iterm2/iterm2_shell_integration.fish"
-# alias imgcat="$HOME/.iterm2/imgcat"
-# alias it2dl="$HOME/.iterm2/it2dl"
-
-# boot-clj
-set -x BOOT_JVM_OPTIONS '-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -Xverify\:none'
-
-# Print pretty fish logo only if starting on a local machine
-# if test -z "$SSH_CLIENT"; and test -z "$TMUX"
-# 	logo
-# end
-
-start_ssh_agent
-
+if test -e "$HOME/.bin/start_ssh_agent"
+  bass source "$HOME/.bin/start_ssh_agent"
+end

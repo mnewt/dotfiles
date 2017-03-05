@@ -1,20 +1,28 @@
 #!/bin/bash
 
+# path
+# Homebrew installs to /usr/local/sbin and /usr/local/opt/coreutils/libexec/gnubin
+for p in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin"; do
+  test -d "$p" && export PATH="$p":$PATH
+done
+
+# Setup terminal, and turn on colors
+# export TERM=xterm-256color
+export LANG=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+export LC_MESSAGES=en_US.UTF-8
+export LC_COLLATE=C
+
 # misc
-alias tlf='tail -f'
+alias tf='tail -f'
 alias ln='ln -v'
 alias mkdir='mkdir -p'
 alias ...='../..'
+alias ....='../../..'
 alias df='df -h'
-alias vi='vim'
-
-# check if a program is on the path
-installed () {
-  command -v "$1" >/dev/null 2>&1
-}
 
 # grep
-# export GREP_COLOR '3;33'
+export GREP_COLOR='3;33'
 alias grep='grep --color=auto'
 
 # Enable aliases to be sudo’ed
@@ -25,38 +33,67 @@ alias sudo='sudo '
 # Detect which `ls` flavor is in use
 export CLICOLOR=1
 export LSCOLORS=ExFxCxDxBxegedabagacad
+export LS_COLORS="di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
 if ls --color > /dev/null 2>&1; then # GNU `ls`
   colorflag="--color"
-else # OS X `ls`
+else # BSD `ls`
   colorflag="-G"
 fi
-alias ls="command ls -Fh ${colorflag}"
+alias ls="command ls -Fh $colorflag"
 alias l='ls'
 alias lh='ls -Alh'
 alias ll='ls -Fhl'
-alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
+alias lsd="ls -lF $colorflag | grep --color=never '^d'"
+alias lt='ls -hltr'
 
 # vim
 alias vi='vim'
+# use vim as editor
+export EDITOR="$(which vim)"
 
 # git
 alias g="git"
+alias gs="git status"
+alias ga="git add"
+alias gc="git commit"
+alias gcm="git commit -m"
+alias gp="git push"
+# tell git to non-interactively merge commits
+export GIT_MERGE_AUTOEDIT=no
+alias gpl='git log --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+
+# tmux
+alias t='tmux'
+
+# ssh
+alias sst='ssh -t "tmux -CC attach; or tmux -CC"'
+
+# PAGER
+# use vimpager if available
+if installed vimpager; then
+  export PAGER="$(which vimpager)"
+  alias less="$PAGER"
+  alias zless="$PAGER"
+elif installed source-highlight; then
+  export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
+  export LESS=" -R "
+  alias less='less -m -g -i -J --underline-special --SILENT'
+  alias more='less'
+fi
+
+# vagrant
+alias v='vagrant'
 
 # Network
-alias whats-my-ip="dig +short myip.opendns.com @208.67.222.222 @208.67.220.220"
+alias whats-my-ip='curl -s https://diagnostic.opendns.com/myip'
 alias dis='dig +nocmd +noall +answer'
-alias listening-ports='netstat -ntlp | grep LISTEN'
-alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 
 # Reload the shell (i.e. invoke as a login shell)
 alias reload="exec $SHELL -l"
 
-
-# GRC ######################################################
-GRC=$(which grc 2>/dev/null)
-if [ "$TERM" != dumb ] && [ -n "$GRC" ]
-then
-  alias colourify="$GRC -es --colour=auto"
+# GRC
+if installed grc; then
+  alias colourify="$(which grc) -es --colour=auto"
   alias configure='colourify ./configure'
   alias diff='colourify diff'
   alias make='colourify make'
@@ -67,7 +104,8 @@ then
   alias ld='colourify ld'
   alias netstat='colourify netstat'
   alias ping='colourify ping'
-  alias traceroute='colourify /usr/sbin/traceroute'
+  alias traceroute='colourify traceroute'
+  alias tracepath='colourify -c conf.traceroute tracepath'
   alias arp='colourify -c conf.traceroute arp'
   alias tail='colourify -c conf.log tail'
   alias ps='colourify -c conf.ps ps'
@@ -76,33 +114,34 @@ then
   alias lsof='colourify -c conf.traceroute lsof'
   alias dig='colourify -c conf.traceroute dig'
   alias host='colourify -c conf.traceroute host'
-  alias curl='colourify -c conf.curl curl'
+  alias drill='colourify -c conf.traceroute drill'
+  alias curl='colourify curl'
 fi
 
-# Sublime Text #############################################
+# minicom
+export MINICOM='-c on'
 
-if [[ $('uname') == 'Linux' ]]; then
-  if [ -f '/usr/bin/sublime_text' ]; then
-    st_run() { nohup /usr/bin/sublime_text "$@" > /dev/null & }
-  else
-    st_run() { nohup /usr/bin/sublime-text "$@" > /dev/null & }
-  fi
-  alias st=st_run
-elif  [[ $('uname') == 'Darwin' ]]; then
-  _sublime_darwin_subl=/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl
-  # Check if Sublime is installed in user's home application directory
-  if [[ -a $HOME/${_sublime_darwin_subl} ]]; then
-    alias st='$HOME/${_sublime_darwin_subl}'
-  else
-    alias st='${_sublime_darwin_subl}'
-  fi
-elif  [[ $('uname') == 'CYGWIN' ]]; then
-  alias st=`which subl`
-fi
+# python venv
+export VIRTUAL_ENV_DISABLE_PROMPT=true
 
-# CYGWIN ###################################################
+# boot-clj
+export BOOT_JVM_OPTIONS='-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -Xverify\:none -XX\:+AggressiveOpts'
 
-if [[ "$OSTYPE" == "CYGWIN"* ]]; then
-  # Flush Directory Service cache
-  alias flush="ipconfig /flushdns"
-fi
+case $(uname) in
+  Linux) ;;
+  'CYGWIN*') ;;
+  Darwin)
+    # Show/hide hidden files in Finder
+    alias show-hidden-files="defaults write com.apple.finder AppleShowAllFiles -bool true; and killall Finder"
+    alias hide-hidden-files="defaults write com.apple.finder AppleShowAllFiles -bool false; and killall Finder"
+
+    # Merge PDF files
+    # Usage: `mergepdf -o output.pdf input{1,2,3}.pdf`
+    alias mergepdf='/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py'
+
+    # Disable Spotlight
+    alias spotoff="sudo mdutil -a -i off"
+    # Enable Spotlight
+    alias spoton="sudo mdutil -a -i on"
+    ;;
+esac

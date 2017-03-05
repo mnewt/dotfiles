@@ -112,7 +112,7 @@ end
 
 function do_str
   for i in (seq $argv[2])
-    printf $argv[1]
+    echo -n -s $argv[1]
   end
 end
 
@@ -120,7 +120,7 @@ function fish_prompt -d 'Write out a prompt'
   set -l last_status $status
 
   set -l left
-  if_append left "test $last_status -ne 0" (with_color red FFFFFF " $last_status ")
+  if_append left "test $last_status -ne 0" (with_color B03760 FFFFFF " $last_status ")
   # Only display username and hostname if this is an ssh session
   if set -q SSH_CLIENT
     append left (with_color yellow black " $USER ")
@@ -139,7 +139,9 @@ function fish_prompt -d 'Write out a prompt'
   if_append right datetime_helper (with_color 606060 DDD " %s ")
 
   # Strip out invisible characters before counting to get actual display width
-  set -l length (string length (string replace -ra "\e[^m]+m" "" "$left$right"))
+  set -l raw_line (string replace -ra "\e[^m]+m" "" "$left$right")
+  # set -l raw_line (echo "$left$right" | perl -pe 's/\x1b\[[^m]+m//g')
+  set -l length (string length "$raw_line")
   set -l padding (math $COLUMNS - $length)
   test $padding -lt 0; and set right ""; and set padding 1
   echo -s \r "$left" (set_color -b 333) (do_str " " $padding) "$right"
