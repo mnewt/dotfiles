@@ -6,15 +6,30 @@ This setup is mostly shell agnostic, supporting [fish](http://fishshell.com/), [
 Tour
 ====
 
-![gif of shell]()
-
+### Applications
 Included are configurations for some applications, such as:
 - [Atom](https://atom.io/)
 - [Emacs](https://www.gnu.org/software/emacs/)
-- [Leiningen](https://leiningen.org/)
+- [Clojure](https://clojure.org/) - [Leiningen](https://leiningen.org/) and [Boot](http://boot-clj.com/)
 - [ssh-agent](http://mah.everybody.org/docs/ssh)
 - [tmux](https://tmux.github.io/)
 - [Vim](https://vim.sourceforge.io/)
+
+### Prompt
+![gif of shell]()
+The prompt displays a bunch of fancy stuff in a status bar type setup, mildly inspired by [vim-lightline](https://github.com/itchyny/lightline.vim). I find this pleasant because it clearly delineates one command from the next, making scrolling through history more pleasant. Most of it is conditional based on the current machine or directory. All of this is custom with an emphasis on clarity, extensibility, and speed, even when working over slow links and network shares, when each file access is costly.
+- Error return code
+- Directory
+- Username (only within SSH)
+- Hostname (only within SSH)
+- Git repository and clean/dirty status
+- Python virtualenv
+- Node project (not nvm -- pull request?)
+- Clojure project (leiningen or boot)
+- Vagrant project
+- Background jobs
+- Tmux sessions
+- Date and time
 
 Install
 =======
@@ -72,9 +87,9 @@ To install and switch your shell to `fish` on OS X:
 And then run fish
 
     fish -l
-    fish_update_completions
+    fisher
 
-Command reference for `install.sh`:
+Command reference for the `install` script:
 -----------------------------------
 
 ```

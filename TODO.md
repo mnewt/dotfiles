@@ -8,6 +8,9 @@
 - [x] Migrate zlogin to bash aliases
 - [x] Port start_ssh_agent.fish to bash and zsh
 - [x] Vim and Emacs updates shouldn't make repo dirty -- don't store packages themselves in repo
-- [ ] Fix tmux line length bug in `fish_prompt` -- probably not stripping all control characters out when measuring the line length (`bash_prompt` does not have this problem)
+- [x] Catch-22 for running `fisher` for first time: It both requires and installs `bass`
+- [x] Fix tmux line length bug in `fish_prompt` -- probably not stripping all control characters out when measuring the line length (`bash_prompt` does not have this problem)
+- [ ] demo gif
 - [ ] Make tmux status bar like vim's (https://github.com/edkolev/tmuxline.vim)?
+- [ ] prompt - direnv
 - [ ] write blog post tour

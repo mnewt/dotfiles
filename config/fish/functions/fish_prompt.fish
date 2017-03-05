@@ -139,8 +139,7 @@ function fish_prompt -d 'Write out a prompt'
   if_append right datetime_helper (with_color 606060 DDD " %s ")
 
   # Strip out invisible characters before counting to get actual display width
-  set -l raw_line (string replace -ra "\e[^m]+m" "" "$left$right")
-  # set -l raw_line (echo "$left$right" | perl -pe 's/\x1b\[[^m]+m//g')
+  set -l raw_line (string replace -ra "(\e[^m]+m)|(\017)" "" "$left$right")
   set -l length (string length "$raw_line")
   set -l padding (math $COLUMNS - $length)
   test $padding -lt 0; and set right ""; and set padding 1
