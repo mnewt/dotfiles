@@ -3,7 +3,7 @@
 
 if installed vim; then
   echo "Updating Vim..."
-  wget -O "$HOME/.vim/plugin" "https://raw.githubusercontent.com/amix/vimrc/master/vimrcs/basic.vim"
+  wget -O "$HOME/.vim/plugin/basic.vim" "https://raw.githubusercontent.com/amix/vimrc/master/vimrcs/basic.vim"
   vim +PlugUpgrade +PlugUpdate +PlugInstall +qall
 else
   echo "Vim not found, skipping"

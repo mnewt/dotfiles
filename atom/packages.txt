@@ -3,12 +3,12 @@ advanced-open-file@0.16.5
 atom-beautify@0.29.17
 atom-ctags@5.0.0
 autoclose-html@0.23.0
-autocomplete-python@1.8.57
+autocomplete-python@1.8.60
 dash@1.7.1
 git-plus@7.3.3
 git-time-machine@1.5.6
 highlight-selected@0.12.0
-ink@0.6.4
+ink@0.6.5
 language-apache@1.7.0
 language-cisco@1.4.0
 language-docker@1.1.7
@@ -16,6 +16,7 @@ language-fish-shell@1.0.5
 language-icinga2@0.3.0
 language-ini@1.18.0
 language-liquid@0.5.1
+language-lisp@0.2.0
 language-log@1.8.0
 language-markdown@0.19.1
 language-nginx@0.6.2
