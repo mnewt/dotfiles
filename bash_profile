@@ -13,11 +13,15 @@ source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
 source_if "$HOME/.bin/bash_prompt"
 
-if installed direnv; then
-  eval "$(direnv hook bash)"
-fi
+source_if "$HOME/.bin/start_ssh_agent"
 
 [ "$TERM_PROGRAM" = "iTerm.app" ] && \
   . "$HOME/.bin/iterm2_shell_integration.bash"
 
-source_if "$HOME/.bin/start_ssh_agent"
+if installed direnv; then
+  eval "$(direnv hook bash)"
+fi
+
+if installed rbenv; then
+  eval "$(rbenv init -)"
+fi

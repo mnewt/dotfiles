@@ -6,7 +6,7 @@
 # That is why it's OK to just specify '*' for link
 
 # ignore these files (modifies include)
-ignore='install* scripts Icon* *.md *.sh TODO*'
+ignore='install* images scripts Icon* *.md *.sh TODO*'
 
 # create directory itself (not contents), then link the children of the directory
 # NOTE: it will not delete the directory. If you want to replace the directory,

@@ -27,9 +27,16 @@ git_helper () {
   local gitdir=${gitdir%/*}
   local githead && githead=$(cat "$gitdir/.git/HEAD") || return 1
   githead=${githead##*/}
-  local gitfiles; gitfiles=$(git -C "$gitdir" ls-files --exclude-standard --others)
   printf "$githead"
+  local gitfiles; gitfiles=$(git -C "$gitdir" status --porcelain)
   [ -n "$gitfiles" ] || printf "*"
+}
+
+rbenv_helper () {
+  [ -n "$RBENV_SHELL" ] || return 1
+  local rbenv_name; rbenv_name=$(rbenv version-name)
+  [ $rbenv_name = "system" ] && return 1
+  printf $rbenv_name
 }
 
 virtualenv_helper () {
@@ -132,10 +139,11 @@ bash_prompt () {
     left+=$(with_color 002 000 " $__bash_prompt_hostname ")
   fi
   if_append left git_helper         "$(with_color 005 000 ' %s ')"
-  if_append left virtualenv_helper  "$(with_color 028 255 ' %s ')"
-  if_append left node_helper        "$(with_color 023 255 ' %s ')"
-  if_append left clojure_helper     "$(with_color 024 255 ' %s ')"
-  if_append left vagrant_helper     "$(with_color 095 255 ' %s ')"
+  if_append left rbenv_helper       "$(with_color 207 255 ' %s ')"
+  if_append left virtualenv_helper  "$(with_color 021 255 ' %s ')"
+  if_append left node_helper        "$(with_color 024 255 ' %s ')"
+  if_append left clojure_helper     "$(with_color 055 255 ' %s ')"
+  if_append left vagrant_helper     "$(with_color 190 000 ' %s ')"
   if_append left directory_helper   "$(with_color 006 016 ' %s ')"
 
   local right=

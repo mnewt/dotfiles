@@ -16,20 +16,61 @@ Included are configurations for some applications, such as:
 - [Vim](https://vim.sourceforge.io/)
 
 ### Prompt
-![gif of shell]()
-The prompt displays a bunch of fancy stuff in a status bar type setup, mildly inspired by [vim-lightline](https://github.com/itchyny/lightline.vim). I find this pleasant because it clearly delineates one command from the next, making scrolling through history more pleasant. Most of it is conditional based on the current machine or directory. All of this is custom with an emphasis on clarity, extensibility, and speed, even when working over slow links and network shares, when each file access is costly.
+The prompt displays a bunch of fancy stuff in a status bar type setup, mildly inspired by [vim-lightline](https://github.com/itchyny/lightline.vim). I find this pleasant because it clearly delineates one command from the next, making scrolling through history more pleasant. Most of it is conditional based on the current machine or directory. All of this is custom with an emphasis on clarity, extensibility, and speed, even when working over slow links and network shares, when each file access is costly. Functionality is intentionally kept simple so that the above goals can be met.
 - Error return code
+  ![error code](images/error-code.png)
 - Directory
-- Username (only within SSH)
-- Hostname (only within SSH)
+  ![directory](images/directory.png)
+- Username (only displays within SSH)
+  ![username and hostname](images/username-hostname.png)
+- Hostname (only displays within SSH)
+  ![username and hostname](images/username-hostname.png)
 - Git repository and clean/dirty status
+  ![git](images/git.png)
+- Ruby rbenv
+  ![rbenv](images/rbenv.png)
 - Python virtualenv
+  ![virtualenv](images/virtualenv.png)
 - Node project (not nvm -- pull request?)
-- Clojure project (leiningen or boot)
+  ![node](images/node.png)
+- Clojure project (leiningen or boot project)
+  ![clojure](images/clojure.png)
 - Vagrant project
+  ![vagrant](images/vagrant.png)
 - Background jobs
+  ![jobs](images/jobs.png)
 - Tmux sessions
+  ![tmux](images/tmux.png)
 - Date and time
+  ![directory](images/directory.png)
+
+### Prompt Benchmarks
+External commands and especially disk access has been minimized to provide the best performance possible. Benchmarks will vary wildly across different machines, environments, and directories. Here are examples taken from my machine from my `~` directory.
+
+#### fish
+```
+> realtime 'for i in (seq 500); fish_prompt_status >/dev/null; end'
+
+real	0m43.291s
+```
+
+#### bash
+```
+$ time bash -lc 'for i in {1..500}; do bash_prompt >/dev/null; done'
+
+real	0m48.334s
+user	0m18.988s
+sys	0m18.067s
+```
+
+#### zsh
+```
+$ time zsh -lc 'for i in {1..500}; do bash_prompt >/dev/null; done'
+
+real	0m54.731s
+user	0m17.284s
+sys	0m20.014s
+```
 
 Install
 =======

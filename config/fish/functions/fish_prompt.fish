@@ -27,9 +27,16 @@ function git_helper
   # print current branch; add an asterisk if there are uncommitted changes
   set -l gitdir (string replace "/.git" "" (upsearch .git)); or return 1
   echo -n -s (cat "$gitdir/.git/HEAD" | string match -r '[^\/]*$')
-  count (git -C "$gitdir" ls-files --exclude-standard --others) >/dev/null
+  count (git -C "$gitdir" status --porcelain) >/dev/null
     and echo -n -s '*'
   return 0
+end
+
+function rbenv_helper
+  set -q RBENV_SHELL; or return 1
+  set -l rbenv_name (rbenv version-name)
+  test $rbenv_name = "system"; and return 1
+  printf $rbenv_name
 end
 
 function virtualenv_helper
@@ -49,7 +56,8 @@ function vagrant_helper
   # detect Vagrantfile
   # print .vagrant/machines/$machine_name
   set vagrantfile (upsearch Vagrantfile); or return 1
-  command ls (string replace -r '\/[^\/]*$' "/.vagrant/machines/" $vagrantfile)
+  command ls 2>/dev/null (string replace -r '\/[^\/]*$' "/.vagrant/machines/" $vagrantfile)
+   or echo -n -s "*"
 end
 
 function clojure_helper
@@ -67,10 +75,11 @@ function clojure_helper
 end
 
 function jobs_helper
-  set -l job_count (jobs -c | wc -l)
-  test $job_count -gt 0; or return 1
-  echo -ns $job_count " job"
+  set -l jobs (jobs -c); or return 1
+  set -l job_count (count $jobs)
+  echo -n -s $job_count " job"
   test $job_count -gt 1; and echo -ns "s" # make jobs plural
+  return 0
 end
 
 function tmux_helper
@@ -116,7 +125,7 @@ function do_str
   end
 end
 
-function fish_prompt -d 'Write out a prompt'
+function fish_prompt_status --on-event fish_prompt -d 'Status line above the prompt'
   set -l last_status $status
 
   set -l left
@@ -126,11 +135,12 @@ function fish_prompt -d 'Write out a prompt'
     append left (with_color yellow black " $USER ")
     append left (with_color green black " $__fish_prompt_hostname ")
   end
-  if_append left git_helper (with_color purple black " %s ")
-  if_append left virtualenv_helper (with_color blue black " %s ")
-  if_append left node_helper (with_color blue black " %s ")
-  if_append left clojure_helper (with_color blue black " %s ")
-  if_append left vagrant_helper (with_color C68 black " %s ")
+  if_append left git_helper (with_color magenta 000 " %s ")
+  if_append left rbenv_helper (with_color F1855E FFF " %s ")
+  if_append left virtualenv_helper (with_color 055EFB FFF " %s ")
+  if_append left node_helper (with_color 1C5C82 FFF " %s ")
+  if_append left clojure_helper (with_color 6137AF FFF " %s ")
+  if_append left vagrant_helper (with_color D6F52A 000 " %s ")
   if_append left directory_helper (with_color cyan 000 " %s ")
 
   set -l right
@@ -144,5 +154,8 @@ function fish_prompt -d 'Write out a prompt'
   set -l padding (math $COLUMNS - $length)
   test $padding -lt 0; and set right ""; and set padding 1
   echo -s \r "$left" (set_color -b 333) (do_str " " $padding) "$right"
+end
+
+function fish_prompt -d 'Write out a prompt'
   echo -n -s (set_color -o) "> " (set_color normal)
 end
