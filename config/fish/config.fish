@@ -9,6 +9,11 @@ function source_if -d "If file exists, then source it"
 end
 
 if status --is-interactive
+  # iTerm2
+  if test "$TERM_PROGRAM" = "iTerm.app"
+    source_if "$HOME/.bin/iterm2_shell_integration.fish"
+  end
+
   # source aliases and environment variables common to bash and fish
   if functions -q bass
     if test -e "$HOME/.aliases"
@@ -21,11 +26,6 @@ if status --is-interactive
 
   source_if "$HOME/.config/fish/functions.fish"
   source_if "$HOME/.private.fish"
-
-  # iTerm2
-  # if test "$TERM_PROGRAM" = "iTerm.app"
-  #   source_if "$HOME/.bin/iterm2_shell_integration.fish"
-  # end
 
   if installed direnv
     eval (direnv hook fish)

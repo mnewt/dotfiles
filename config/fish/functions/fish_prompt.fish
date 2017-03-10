@@ -125,7 +125,7 @@ function do_str
   end
 end
 
-function fish_prompt_status --on-event fish_prompt -d 'Status line above the prompt'
+function fish_prompt -d 'Write out a prompt'
   set -l last_status $status
 
   set -l left
@@ -154,8 +154,8 @@ function fish_prompt_status --on-event fish_prompt -d 'Status line above the pro
   set -l padding (math $COLUMNS - $length)
   test $padding -lt 0; and set right ""; and set padding 1
   echo -s \r "$left" (set_color -b 333) (do_str " " $padding) "$right"
-end
-
-function fish_prompt -d 'Write out a prompt'
+  if test "$TERM_PROGRAM" = "iTerm.app"
+    iterm2_prompt_mark
+  end
   echo -n -s (set_color -o) "> " (set_color normal)
 end
