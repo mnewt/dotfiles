@@ -14,7 +14,7 @@
     confirmCompletion: "tab"
   autosave: {}
   "base16-syntax":
-    scheme: "OneDark"
+    scheme: "Monokai"
   "bracket-matcher":
     autocompleteSmartQuotes: false
   core:
@@ -24,12 +24,20 @@
       "metrics"
       "symbols-view"
       "language-gfm"
+      "linter-clojure"
+      "linter"
+      "linter-docker"
+      "linter-ui-default"
     ]
     packagesWithKeymapsDisabled: [
       "script"
     ]
     projectHome: "/Users/mnewton/code"
     telemetryConsent: "no"
+    themes: [
+      "one-dark-ui"
+      "one-dark-material-syntax"
+    ]
     useCustomTitleBar: true
   editor:
     fontFamily: "Monaco"
@@ -51,6 +59,9 @@
   linter:
     errorPanelHeight: 50
     showErrorInline: false
+  "linter-clojure":
+    clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.9.0-alpha14/clojure-1.9.0-alpha14.jar"
+    javaExecutablePath: "/usr/bin/java"
   "one-dark-ui": {}
   "open-recent": {}
   "proto-repl":
@@ -61,8 +72,11 @@
     leinPath: "/usr/local/bin/lein"
     refreshOnReplStart: false
     showInlineResults: false
+    useClojureSyntax: false
   "save-session":
     dataSaveFolder: "/Users/mnewton/.atom/packages/save-session/projects"
+  "shebang-set-grammar":
+    changeNonPlainText: true
   "split-diff":
     diffWords: true
     ignoreWhitespace: true

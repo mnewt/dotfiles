@@ -154,6 +154,7 @@ bash_prompt () {
   # Strip out invisible characters before counting to get actual display width
   # local raw_line=$(re_replace "$left$right" "\e[^m]+m" "")
   # local raw_line; raw_line="${left//\\/}${right//\\/}"
+  # local raw_line="$(echo "$left$right" | sed -E 's/\x1B\[(([0-9]{1,2})?(;)?([0-9]{1,2})?)?[m,K,H,f,J]//g')"
   local raw_line; raw_line=$(echo "$left$right" | perl -pe 's/\x1b\[[^m]+m//g')
   local length=${#raw_line}
   local columns; columns=$(tput cols)
@@ -161,6 +162,7 @@ bash_prompt () {
   printf "\r%s%s%s\n" "$left" "$(with_color 236 236 "$(do_str " " $padding)")" "$right"
 }
 
-PS1=$(with_color 000 255 "\$ ") && export PS1
+# bash needs all escape codes in PS1 bracketed by \[ and \]
+PS1="\[\e[1;1m\]\$\[\e[0m\] " && export PS1
 
 PROMPT_COMMAND='bash_prompt' && export PROMPT_COMMAND

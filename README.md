@@ -17,31 +17,31 @@ Included are configurations for some applications, such as:
 
 ### Prompt
 The prompt displays a bunch of fancy stuff in a status bar type setup, mildly inspired by [vim-lightline](https://github.com/itchyny/lightline.vim). I find this pleasant because it clearly delineates one command from the next, making scrolling through history more pleasant. Most of it is conditional based on the current machine or directory. All of this is custom with an emphasis on clarity, extensibility, and speed, even when working over slow links and network shares, when each file access is costly. Functionality is intentionally kept simple so that the above goals can be met.
-- Error return code
+- Error return code<br>
   ![error code](images/error-code.png)
-- Directory
+- Directory<br>
   ![directory](images/directory.png)
-- Username (only displays within SSH)
+- Username (only displays within SSH)<br>
   ![username and hostname](images/username-hostname.png)
-- Hostname (only displays within SSH)
+- Hostname (only displays within SSH)<br>
   ![username and hostname](images/username-hostname.png)
-- Git repository and clean/dirty status
+- Git repository and clean/dirty status<br>
   ![git](images/git.png)
-- Ruby rbenv
+- Ruby rbenv<br>
   ![rbenv](images/rbenv.png)
-- Python virtualenv
+- Python virtualenv<br>
   ![virtualenv](images/virtualenv.png)
-- Node project (not nvm -- pull request?)
+- Node project (not nvm -- pull request?)<br>
   ![node](images/node.png)
-- Clojure project (leiningen or boot project)
+- Clojure project (leiningen or boot project)<br>
   ![clojure](images/clojure.png)
-- Vagrant project
+- Vagrant project<br>
   ![vagrant](images/vagrant.png)
-- Background jobs
+- Background jobs<br>
   ![jobs](images/jobs.png)
-- Tmux sessions
+- Tmux sessions<br>
   ![tmux](images/tmux.png)
-- Date and time
+- Date and time<br>
   ![directory](images/directory.png)
 
 ### Prompt Benchmarks
@@ -121,7 +121,7 @@ the installer multiple times to update.
 To install and switch your shell to `fish` on OS X:
 
     # Optionally install GNU coreutils, fish, grc, and vimpager
-    brew coreutils install fish grc vimpager
+    brew coreutils install fish python grc vimpager
     echo "/usr/local/bin/fish" | sudo tee -a /etc/shells
     chsh -s /usr/local/bin/fish
 

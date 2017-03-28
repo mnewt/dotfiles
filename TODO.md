@@ -11,6 +11,7 @@
 - [x] Catch-22 for running `fisher` for first time: It both requires and installs `bass`
 - [x] Fix tmux line length bug in `fish_prompt` -- probably not stripping all control characters out when measuring the line length (`bash_prompt` does not have this problem)
 - [x] prompt - direnv
+- [x] bash prompt sometimes exibits weird behavior -- moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
+- [x] Make tmux status bar more like vim's (https://github.com/edkolev/tmuxline.vim)?
 - [ ] demo gif
-- [ ] Make tmux status bar like vim's (https://github.com/edkolev/tmuxline.vim)?
 - [ ] write blog post tour

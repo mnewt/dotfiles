@@ -1,25 +1,33 @@
 #!/bin/bash
 # http://mah.everybody.org/docs/ssh
 
+SSH_KEYS=$HOME/.ssh/*_rsa
 SSH_ENV="$HOME/.ssh/environment"
+SSH_ADD="/usr/bin/ssh-add"
 
-function start_agent {
-    echo "Initializing new SSH agent..."
-    /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
-    echo succeeded
-    chmod 700 "${SSH_ENV}"
-    . "${SSH_ENV}" > /dev/null
-    /usr/bin/ssh-add;
+add_keys () {
+  for key in ${SSH_KEYS}; do
+    ${SSH_ADD} -K "${key}"
+  done
+}
+
+start_agent () {
+  echo "Initializing new SSH agent..."
+  /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+  echo succeeded
+  chmod 700 "${SSH_ENV}"
+  . "${SSH_ENV}" > /dev/null
+  add_keys
 }
 
 # Source SSH settings, if applicable
 
 if [ -f "${SSH_ENV}" ]; then
-    . "${SSH_ENV}" > /dev/null
-    #ps ${SSH_AGENT_PID} doesn't work under cywgin
-    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
-        start_agent;
-    }
+  . "${SSH_ENV}" > /dev/null
+  #ps ${SSH_AGENT_PID} doesn't work under cywgin
+  ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+    start_agent
+  }
 else
-    start_agent;
+  start_agent
 fi
