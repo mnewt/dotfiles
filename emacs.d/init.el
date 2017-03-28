@@ -5,11 +5,11 @@
 ;; Define package repositories
 (require 'package)
 (add-to-list 'package-archives
-             '("marmalade" . "http://marmalade-repo.org/packages/") t)
+             '("marmalade" . "https://marmalade-repo.org/packages/") t)
 (add-to-list 'package-archives
-             '("tromey" . "http://tromey.com/elpa/") t)
+             '("tromey" . "https://tromey.com/elpa/") t)
 (add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "https://melpa.milkbox.net/packages/") t)
 
 ;; (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
 ;;                          ("marmalade" . "http://marmalade-repo.org/packages/")
@@ -32,7 +32,7 @@
 ;; Add in your own as you wish:
 (defvar my-packages
   '(;; makes handling lisp expressions much, much easier
-    ;;parinfer-mode
+    parinfer
 
     ;; key bindings and code colorization for Clojure
     ;; https://github.com/clojure-emacs/clojure-mode
@@ -62,7 +62,10 @@
     tagedit
 
     ;; git integration
-    magit))
+    magit
+  
+    ;; Emacs shell
+    eshell))
 
 ;; On OS X, an Emacs instance started from the graphical user
 ;; interface will have a different environment than a shell in a
@@ -135,7 +138,12 @@
  '(package-selected-packages
    (quote
     (cl-lib ## tagedit smex projectile paredit magit ido-ubiquitous exec-path-from-shell clojure-mode-extra-font-locking cider))))
-(custom-set-faces)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
