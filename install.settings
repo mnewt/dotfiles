@@ -1,9 +1,15 @@
 # Settings for the `install` script
 # This file tells install.sh what to ignore, link, copy, and create
 # List files (and globs) separated by spaces
+
 # The below options are in order of priority, so ignore overrides
 # link_children, which overrides copy, which overrides link
 # That is why it's OK to just specify '*' for link
+
+# Run before the `install` operations
+before () {
+  :
+}
 
 # ignore these files (modifies include)
 ignore='install* images scripts Icon* *.md *.sh TODO*'
@@ -18,3 +24,11 @@ copy=''
 
 # list of files to link
 link='*'
+
+# Run after the `install` operations
+after () {
+  if [ ! -e "$HOME/.config/nvim" ]; then
+    ln -s ~/.vim ~/.config/nvim
+    ln -s ~/.vimrc ~/.config/nvim/init.vim
+  fi
+}

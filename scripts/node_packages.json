@@ -11,14 +11,14 @@
       "resolved": "https://registry.npmjs.org/hackmyresume/-/hackmyresume-1.8.0.tgz"
     },
     "nativefier": {
-      "version": "7.0.1",
-      "from": "nativefier@latest",
-      "resolved": "https://registry.npmjs.org/nativefier/-/nativefier-7.0.1.tgz"
+      "version": "7.1.0",
+      "from": "nativefier@7.1.0",
+      "resolved": "https://registry.npmjs.org/nativefier/-/nativefier-7.1.0.tgz"
     },
     "npm": {
-      "version": "4.4.4",
+      "version": "4.5.0",
       "from": "npm@latest",
-      "resolved": "https://registry.npmjs.org/npm/-/npm-4.4.4.tgz"
+      "resolved": "https://registry.npmjs.org/npm/-/npm-4.5.0.tgz"
     },
     "uncss": {
       "version": "0.14.1",

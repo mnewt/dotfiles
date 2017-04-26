@@ -147,6 +147,14 @@ full_path () {
 
 ### PRE-EXECUTION TASKS ###
 
+before () {
+  :
+}
+
+after () {
+  :
+}
+
 force=false
 testing=false
 
@@ -195,6 +203,8 @@ echo "  source dir:       $source_dir"
 echo "  destination dir:  $dest_dir"
 echo
 
+with_color $NORMAL $GREEN "        RUNNING: "; echo "before function"
+before
 
 ### MAKE LISTS OF SOURCES ###
 
@@ -239,3 +249,6 @@ for s in $link_children_sources; do
     make_dir "$target" && make_links "$children"
   fi
 done
+
+with_color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
+after

@@ -365,9 +365,9 @@
 	<key>NSWindow Frame SessionsPreferences</key>
 	<string>424 238 606 456 0 0 1920 1177 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>50 260 918 381 0 0 1440 878 </string>
+	<string>97 221 1016 512 0 0 1440 878 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>592 12 780 866 0 0 1440 878 </string>
+	<string>1044 237 808 860 0 0 1920 1178 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>662 33 738 656 0 0 1440 878 </string>
 	<key>New Bookmarks</key>
@@ -940,7 +940,7 @@
 			<key>Normal Font</key>
 			<string>Monaco 12</string>
 			<key>Option Key Sends</key>
-			<integer>0</integer>
+			<integer>2</integer>
 			<key>Prompt Before Closing 2</key>
 			<false/>
 			<key>Right Option Key Sends</key>

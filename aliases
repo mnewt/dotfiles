@@ -46,10 +46,15 @@ alias ll='ls -Fhl'
 alias lsd="ls -lF $colorflag | grep --color=never '^d'"
 alias lt='ls -hltr'
 
-# vim
-alias vi='vim'
-# use vim as editor
-export EDITOR="$(which vim)"
+# neovim / vim
+if installed nvim; then
+  alias vi='nvim'
+  alias vim='nvim'
+  export EDITOR="$(which nvim)"
+elif installed vim; then
+  alias vi='vim'
+  export EDITOR="$(which vim)"
+fi
 
 # git
 alias g="git"

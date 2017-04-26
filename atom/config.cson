@@ -38,7 +38,7 @@
       "one-dark-ui"
       "one-dark-material-syntax"
     ]
-    useCustomTitleBar: true
+    titleBar: "custom"
   editor:
     fontFamily: "Monaco"
     fontSize: 12
@@ -50,7 +50,7 @@
       _analyticsUserId: "f21f5d96-cb76-4d2c-9c07-c81870cdbc42"
       analytics: false
   "highlight-selected":
-    highlightBackground: true
+    showInStatusBar: false
   "isotope-ui":
     customBackgroundColorPicker: "#303236"
     minimalMode: true
