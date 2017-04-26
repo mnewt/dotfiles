@@ -2,6 +2,11 @@
 
 set -e fish_greeting
 
+# Homebrew installs to /usr/local/sbin and /usr/local/opt/coreutils/libexec/gnubin
+for p in "/usr/local/opt/coreutils/libexec/gnubin" "/usr/local/sbin" "$HOME/.bin"
+  test -d "$p"; and set -gx PATH $p $PATH
+end
+
 function source_if -d "If file exists, then source it"
   if test -e "$argv[1]"
     source "$argv[1]"

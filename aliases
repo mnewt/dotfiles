@@ -25,7 +25,7 @@ alias df='df -h'
 export GREP_COLOR='3;33'
 alias grep='grep --color=auto'
 
-# Enable aliases to be sudo’ed
+# Enable aliases to be sudo'ed
 alias sudo='sudo '
 
 # ls
