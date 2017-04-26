@@ -25,3 +25,5 @@ fi
 if installed rbenv; then
   eval "$(rbenv init -)"
 fi
+
+[ -e "$HOME/.fzf/shell/completion.bash" ] && . "$HOME/.fzf/shell/completion.bash"

@@ -1,33 +1,37 @@
 #!/bin/bash
+# Originally based on:
 # http://mah.everybody.org/docs/ssh
 
-SSH_KEYS=$HOME/.ssh/*_rsa
+[ -n "$BASH_VERSION" ] && shopt -s nullglob
+
+SSH_KEYS=($HOME/.ssh/*_rsa)
 SSH_ENV="$HOME/.ssh/environment"
 SSH_ADD="/usr/bin/ssh-add"
 
 add_keys () {
-  for key in ${SSH_KEYS}; do
-    ${SSH_ADD} -K "${key}"
+  for key in "${SSH_KEYS[@]}"; do
+    echo Adding key: ${key}
+    ${SSH_ADD} "${key}"
   done
 }
 
 start_agent () {
   echo "Initializing new SSH agent..."
   /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
-  echo succeeded
-  chmod 700 "${SSH_ENV}"
   . "${SSH_ENV}" > /dev/null
   add_keys
 }
 
-# Source SSH settings, if applicable
+main () {
+  # Source SSH settings, if applicable
+  if [ -n "${SSH_KEYS[*]}" ]; then
+    if [ -f "${SSH_ENV}" ]; then
+      . "${SSH_ENV}"
+      ps -ef | grep ${SSH_AGENT_PID} | grep -q ssh-agent || start_agent
+    else
+      start_agent
+    fi
+  fi
+}
 
-if [ -f "${SSH_ENV}" ]; then
-  . "${SSH_ENV}" > /dev/null
-  #ps ${SSH_AGENT_PID} doesn't work under cywgin
-  ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
-    start_agent
-  }
-else
-  start_agent
-fi
+main

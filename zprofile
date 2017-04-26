@@ -79,3 +79,5 @@ if [ "$TERM_PROGRAM" = "iTerm.app" ]; then
 fi
 
 source_if "$HOME/.bin/start_ssh_agent"
+
+[ -e "$HOME/.fzf/shell/completion.zsh" ] && . "$HOME/.fzf/shell/completion.zsh"
