@@ -1,1 +1,0 @@
-/Users/mnewton/.fzf/shell/key-bindings.fish

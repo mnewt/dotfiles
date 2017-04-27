@@ -1,0 +1,9 @@
+#!/usr/bin/env emacs --script
+
+(load "~/.emacs.d/init.el")
+
+(el-get-self-update)
+
+(el-get-cleanup my:el-get-packages)
+
+(el-get-update-all 't)

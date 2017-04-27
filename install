@@ -2,8 +2,8 @@
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
 scriptname="$(basename $0)"
-scriptbuildnum="0.8"
-scriptbuilddate="2017-02-24"
+scriptbuildnum="0.9"
+scriptbuilddate="2017-04-27"
 
 ### FUNCTIONS ###
 

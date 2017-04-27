@@ -40,3 +40,4 @@ if status --is-interactive
     source (rbenv init -|psub)
   end
 end
+

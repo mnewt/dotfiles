@@ -1,0 +1,16 @@
+#!/bin/bash
+# Update ruby gems
+
+if installed gem; then
+  echo "Updating ruby gems..."
+  update_rubygems
+  gem update $(gem outdated | awk '{print $1}')
+  sudo gem update --system
+  gem clean
+
+  restore_loc="$(find_dotfiles)/scripts/gem_packages"
+  echo "Saving packages list to: $restore_loc"
+  gem list > "$restore_loc"
+else
+  echo "gem not installed, skipping"
+fi

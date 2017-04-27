@@ -1,5 +1,0 @@
-#!/usr/bin/env emacs --script
-
-(load "~/.emacs.d/init.el")
-
-(package-upgrade-all)
