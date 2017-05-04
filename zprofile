@@ -61,7 +61,7 @@ source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
 source_if "$HOME/.bin/bash_prompt"
 precmd() { eval "$PROMPT_COMMAND" }
-PROMPT="$(with_color 000 255 "%% ")"
+PROMPT="$(with-color 000 255 "%% ")"
 
 # iTerm2
 if [ "$TERM_PROGRAM" = "iTerm.app" ]; then
@@ -78,6 +78,6 @@ if [ "$TERM_PROGRAM" = "iTerm.app" ]; then
   . "$HOME/.bin/iterm2_shell_integration.zsh"
 fi
 
-source_if "$HOME/.bin/start_ssh_agent"
+source_if "$HOME/.bin/start-ssh-agent"
 
 [ -e "$HOME/.fzf/shell/completion.zsh" ] && . "$HOME/.fzf/shell/completion.zsh"

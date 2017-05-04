@@ -24,8 +24,8 @@ if status --is-interactive
     if test -e "$HOME/.aliases"
       bass source "$HOME/.aliases"
     end
-    if test -e "$HOME/.bin/start_ssh_agent"
-      bass source "$HOME/.bin/start_ssh_agent"
+    if test -e "$HOME/.bin/start-ssh-agent"
+      bass source "$HOME/.bin/start-ssh-agent"
     end
   end
 

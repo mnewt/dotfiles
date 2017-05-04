@@ -16,7 +16,7 @@ MAGENTA=005
 CYAN=006
 WHITE=007
 
-with_color () {
+with-color () {
   # background
   printf "\e[48;5;${1}m"
   # foreground
@@ -91,39 +91,39 @@ remove_dupes() {
 
 remove_file() {
   if [ "$testing" = true ]; then
-    with_color $NORMAL $YELLOW "        TESTING: "; echo "rm -rf $1"
+    with-color $NORMAL $YELLOW "        TESTING: "; echo "rm -rf $1"
   elif [ "$force" = true ]; then
-    with_color $NORMAL $RED "       REMOVING: "; echo "$1"
+    with-color $NORMAL $RED "       REMOVING: "; echo "$1"
     rm -rf "$1"
   else
-    with_color $NORMAL $BLUE "NOT OVERWRITING: "; echo "$1"
+    with-color $NORMAL $BLUE "NOT OVERWRITING: "; echo "$1"
     return 1
   fi
 }
 
 link_file() {
   if [ "$testing" = true ]; then
-    with_color $NORMAL $YELLOW "        TESTING: "; echo "ln -s $1 $2"
+    with-color $NORMAL $YELLOW "        TESTING: "; echo "ln -s $1 $2"
   else
-    with_color $NORMAL $MAGENTA "        LINKING: "; echo "$2"
+    with-color $NORMAL $MAGENTA "        LINKING: "; echo "$2"
     ln -s "$1" "$2"
   fi
 }
 
 copy_file() {
   if [ "$testing" = true ]; then
-    with_color $NORMAL $YELLOW "        TESTING: "; echo "cp -R $1 $2"
+    with-color $NORMAL $YELLOW "        TESTING: "; echo "cp -R $1 $2"
   else
-    with_color $NORMAL $GREEN "        COPYING: "; echo "$2"
+    with-color $NORMAL $GREEN "        COPYING: "; echo "$2"
     cp -R "$1" "$2"
   fi
 }
 
 make_dir() {
   if [ "$testing" = true ]; then
-    with_color $NORMAL $YELLOW "        TESTING: "; echo "mkdir -p $1"
+    with-color $NORMAL $YELLOW "        TESTING: "; echo "mkdir -p $1"
   else
-    with_color $NORMAL $CYAN "       CREATING: "; echo "$1"
+    with-color $NORMAL $CYAN "       CREATING: "; echo "$1"
     mkdir -p "$1"
   fi
 }
@@ -203,7 +203,7 @@ echo "  source dir:       $source_dir"
 echo "  destination dir:  $dest_dir"
 echo
 
-with_color $NORMAL $GREEN "        RUNNING: "; echo "before function"
+with-color $NORMAL $GREEN "        RUNNING: "; echo "before function"
 before
 
 ### MAKE LISTS OF SOURCES ###
@@ -250,5 +250,5 @@ for s in $link_children_sources; do
   fi
 done
 
-with_color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
+with-color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
 after

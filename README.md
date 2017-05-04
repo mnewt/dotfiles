@@ -54,7 +54,7 @@ The prompt displays a bunch of fancy stuff in a status bar above the prompt. The
 ### Prompt Benchmarks
 External commands and especially disk accesses have been minimized to provide good performance. Benchmarks will vary wildly across different machines, environments, and directories. Here are examples taken from my machine from my dotfiles directory.
 
-    > benchmark_prompt
+    > benchmark-prompt
 
      fish
 

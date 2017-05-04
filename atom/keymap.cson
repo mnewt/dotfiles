@@ -31,5 +31,8 @@
   'cmd-shift-enter': 'proto-repl:execute-top-block'
   'cmd-alt-k': 'proto-repl:clear-repl'
 
-'ink-console':
-  'shift-space': 'unset!'
+  'alt-down': 'editor:add-selection-below'
+  'alt-up': 'editor:add-selection-above'
+
+# 'ink-console':
+#   'shift-space': 'unset!'

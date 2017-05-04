@@ -11,7 +11,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-vinegar'
   Plug 'itchyny/lightline.vim'
   Plug 'ctrlpvim/ctrlp.vim'
-  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all --no-update-rc' }
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --no-update-rc' }
   Plug 'tpope/vim-fugitive'
   Plug 'kablamo/vim-git-log'
   Plug 'tpope/vim-surround'
@@ -24,10 +24,11 @@ call plug#end()
 
 set hidden
 
-autocmd VimEnter * nnoremap <C-S-P> :CtrlPMixed<CR>
-autocmd VimEnter * nnoremap <leader>b :CtrlPBuffer<CR>
+" Ctrl-P
+nnoremap <C-S-P> :CtrlPMixed<CR>
+nnoremap <leader>b :CtrlPBuffer<CR>
 
-" netrw settings
+" netrw
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
 let g:netrw_browse_split = 4

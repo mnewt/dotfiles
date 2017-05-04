@@ -13,7 +13,7 @@ source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
 source_if "$HOME/.bin/bash_prompt"
 
-source_if "$HOME/.bin/start_ssh_agent"
+source_if "$HOME/.bin/start-ssh-agent"
 
 [ "$TERM_PROGRAM" = "iTerm.app" ] && \
   . "$HOME/.bin/iterm2_shell_integration.bash"

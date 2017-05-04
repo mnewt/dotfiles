@@ -111,7 +111,7 @@ re_replace () {
 }
 
 # Print with specified colors
-with_color () {
+with-color () {
   # background
   printf "\e[48;5;${1}m"
   # foreground
@@ -132,24 +132,24 @@ bash_prompt () {
   local last_status=$?
 
   local left=
-  [ $last_status = 0 ] || left=$(with_color 125 255 " $last_status ")
+  [ $last_status = 0 ] || left=$(with-color 125 255 " $last_status ")
   # Only display username and hostname if this is an ssh session
   if [ -n "$SSH_CLIENT" ]; then
-    left+=$(with_color 003 000 " $USER ")
-    left+=$(with_color 002 000 " $__bash_prompt_hostname ")
+    left+=$(with-color 003 000 " $USER ")
+    left+=$(with-color 002 000 " $__bash_prompt_hostname ")
   fi
-  if_append left git_helper         "$(with_color 005 000 ' %s ')"
-  if_append left rbenv_helper       "$(with_color 207 255 ' %s ')"
-  if_append left virtualenv_helper  "$(with_color 021 255 ' %s ')"
-  if_append left node_helper        "$(with_color 024 255 ' %s ')"
-  if_append left clojure_helper     "$(with_color 055 255 ' %s ')"
-  if_append left vagrant_helper     "$(with_color 190 000 ' %s ')"
-  if_append left directory_helper   "$(with_color 006 016 ' %s ')"
+  if_append left git_helper         "$(with-color 005 000 ' %s ')"
+  if_append left rbenv_helper       "$(with-color 207 255 ' %s ')"
+  if_append left virtualenv_helper  "$(with-color 021 255 ' %s ')"
+  if_append left node_helper        "$(with-color 024 255 ' %s ')"
+  if_append left clojure_helper     "$(with-color 055 255 ' %s ')"
+  if_append left vagrant_helper     "$(with-color 190 000 ' %s ')"
+  if_append left directory_helper   "$(with-color 006 016 ' %s ')"
 
   local right=
-  if_append right jobs_helper       "$(with_color 055 007 ' %s ')"
-  if_append right tmux_helper       "$(with_color 038 000 ' %s ')"
-  if_append right datetime_helper   "$(with_color 240 255 ' %s ')"
+  if_append right jobs_helper       "$(with-color 055 007 ' %s ')"
+  if_append right tmux_helper       "$(with-color 038 000 ' %s ')"
+  if_append right datetime_helper   "$(with-color 240 255 ' %s ')"
 
   # Strip out invisible characters before counting to get actual display width
   # local raw_line=$(re_replace "$left$right" "\e[^m]+m" "")
@@ -159,7 +159,7 @@ bash_prompt () {
   local length=${#raw_line}
   local columns; columns=$(tput cols)
   local padding=$(($columns - $length)) && [[ $padding -lt 0 ]] && padding=0
-  printf "\r%s%s%s\n" "$left" "$(with_color 236 236 "$(do_str " " $padding)")" "$right"
+  printf "\r%s%s%s\n" "$left" "$(with-color 236 236 "$(do_str " " $padding)")" "$right"
 }
 
 # bash needs all escape codes in PS1 bracketed by \[ and \]

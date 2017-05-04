@@ -44,7 +44,7 @@ if installed brew; then
   upgrade_casks "$@"
   brew cask cleanup
 
-  restore_loc="$(find_dotfiles)/scripts/Brewfile"
+  restore_loc="$(find-dotfiles)/scripts/Brewfile"
   echo "Saving Brewfile to: $restore_loc"
   brew bundle dump --force --file="$restore_loc"
 else

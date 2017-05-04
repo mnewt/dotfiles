@@ -3,10 +3,11 @@ fishd.*
 fish_history*
 fish_*_history
 generated_completions
-.netrwhist
 
-# vim-plug
+#vim
+.netrwhist
 vim/plugged
 
 # emacs
 emacs.d/elpa
+emacs.d/el-get

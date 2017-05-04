@@ -10,7 +10,7 @@ if [ -e '/etc/arch-release' ]; then
   sudo paccache -ruk0
   sudo pacman-optimize
 
-  restore_loc="$(find_dotfiles)/scripts/arch_packages"
+  restore_loc="$(find-dotfiles)/scripts/arch_packages"
   echo "Saving packages list to: $restore_loc"
   pacman -Qqe > "$restore_loc"
 else

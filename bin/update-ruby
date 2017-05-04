@@ -8,7 +8,7 @@ if installed gem; then
   sudo gem update --system
   gem clean
 
-  restore_loc="$(find_dotfiles)/scripts/gem_packages"
+  restore_loc="$(find-dotfiles)/scripts/gem_packages"
   echo "Saving packages list to: $restore_loc"
   gem list > "$restore_loc"
 else
