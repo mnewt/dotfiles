@@ -74,6 +74,28 @@ External commands and especially disk accesses have been minimized to provide go
     user	0m18.460s
     sys	0m21.213s
 
+###  Update scripts
+There are a pretty decent set of update scripts in the `bin` directory to keep
+all the different software on a given system up to date.
+
+Some of the things that can be updated:
+
+* Arch Linux
+* Atom Editor
+* Clojure
+* Debian/Ubuntu
+* Emacs
+* Fish Shell
+* Homebrew
+* iTerm
+* macOS
+* Node.js
+* Python
+* Ruby Gems
+* Tmux
+* Vim/Neovim
+
+The master `update` script that runs all of these in succession.
 
 Install
 =======
@@ -196,3 +218,9 @@ Install atom, then run this to install packages
 To save the list of currently installed packages
 
     apm list --bare --installed --dev false > ~/.atom/packages.txt
+
+## Emacs
+Install Emacs, edit init.el, then run `update-emacs` to install packages
+
+## Vim
+Install Vim or Neovim, edit .vimrc, then run `update-vim` to install packages

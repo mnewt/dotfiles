@@ -1,9 +1,16 @@
-#!/usr/bin/env emacs --script
+#!/bin/sh
+":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
+(pop argv)  ; Remove the -- separator
+
+;#!/usr/bin/env emacs -batch -l
 
 (load "~/.emacs.d/init.el")
 
+(el-get-elpa-build-local-recipes)
 (el-get-self-update)
-
 (el-get-cleanup my:el-get-packages)
-
 (el-get-update-all 't)
+
+(spaceline-compile)
+
+(kill-emacs 0)

@@ -16,7 +16,7 @@ source_if "$HOME/.bin/bash_prompt"
 source_if "$HOME/.bin/start-ssh-agent"
 
 [ "$TERM_PROGRAM" = "iTerm.app" ] && \
-  . "$HOME/.bin/iterm2_shell_integration.bash"
+  source_if "$HOME/.bin/iterm2_shell_integration.bash"
 
 if installed direnv; then
   eval "$(direnv hook bash)"
@@ -26,4 +26,4 @@ if installed rbenv; then
   eval "$(rbenv init -)"
 fi
 
-[ -e "$HOME/.fzf/shell/completion.bash" ] && . "$HOME/.fzf/shell/completion.bash"
+source_if "$HOME/.fzf/shell/completion.bash"

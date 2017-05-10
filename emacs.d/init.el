@@ -1,11 +1,18 @@
 ; Lots of this is based on emacs kicker
 ; (https://github.com/dimitri/emacs-kicker)
 
+;; Package system
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
-(package-initialize)
+; (package-initialize)
+; (package-refresh-contents)
 
 (require 'cl)        ; common lisp goodies, loop
 
@@ -20,6 +27,13 @@
 
 ;; now either el-get is `require'd already, or have been `load'ed by the
 ;; el-get installer.
+
+;; Use MELPA
+(require 'el-get-elpa)
+;; Build the El-Get copy of the package.el packages if we have not
+;; built it before.  Be sure to run this before installing new packages
+(unless (file-directory-p el-get-recipe-path-elpa)
+  (el-get-elpa-build-local-recipes))
 
 ;; set local recipes
 (setq
@@ -64,44 +78,47 @@
                    (add-hook 'clojure-mode-hook #'my-clojure-mode-hook)))
    (:name smartparens
           :after (require 'smartparens-config))
-   (:name moe-theme
+   (:name spaceline
           :after (progn
-                   (add-to-list 'custom-theme-load-path "~/.emacs.d/el-get/moe-theme/")
-                   (add-to-list 'load-path "~/.emacs.d/el-get/moe-theme/")
-                   (require 'moe-theme)
-                   (show-paren-mode t)
-                   (setq show-paren-style 'expression)
-                   (setq moe-theme-highlight-buffer-id t)
-                   (moe-dark)))))
-
-(el-get-bundle edpaget/parinfer-mode
-  (progn
-    (require 'parinfer-mode)
-    (add-hook 'clojure-mode-hook 'parinfer-mode)))
-
+                   (require 'spaceline-config)
+                   (spaceline-emacs-theme)
+                   (setq powerline-default-separator nil)))
+   (:name atom-one-dark-theme
+          :after (progn
+                   (add-to-list 'custom-theme-load-path "~/.emacs.d/el-get/atom-one-dark-theme/")
+                   (load-theme 'atom-one-dark t)))
+   (:name parinfer
+          :after (progn
+                   (setq parinfer-extensions
+                         '(defaults       ; should be included.
+                           pretty-parens  ; different paren styles for different modes.
+                           evil           ; If you use Evil.
+                           lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+                           paredit        ; Introduce some paredit commands.
+                           smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+                           smart-yank))   ; Yank behavior depend on mode.
+                   (add-hook 'clojure-mode-hook #'parinfer-mode)
+                   (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+                   (add-hook 'common-lisp-mode-hook #'parinfer-mode)
+                   (add-hook 'scheme-mode-hook #'parinfer-mode)
+                   (add-hook 'lisp-mode-hook #'parinfer-mode)))))
 
 ;; now set our own packages
 (setq
  my:el-get-packages
- '(el-get        ; el-get is self-hosting
+ '(el-get             ; el-get is self-hosting
    better-defaults
-   escreen                  ; screen for emacs, C-\ C-h
+   escreen            ; screen for emacs, C-\ C-h
    switch-window      ; takes over C-x o
    auto-complete      ; complete as you type with overlays
-   yasnippet         ; powerful snippet mode
-   zencoding-mode      ; http://www.emacswiki.org/emacs/ZenCoding
+   yasnippet          ; powerful snippet mode
+   zencoding-mode     ; http://www.emacswiki.org/emacs/ZenCoding
    cider))
 
 (setq my:el-get-packages
       (append
        my:el-get-packages
        (loop for src in el-get-sources collect (el-get-source-name src))))
-
-(require 'el-get-elpa)
-;; Build the El-Get copy of the package.el packages if we have not
-;; built it before.  Will have to look into updating later ...
-(unless (file-directory-p el-get-recipe-path-elpa)
-  (el-get-elpa-build-local-recipes))
 
 ;; install new packages and init already installed packages
 (el-get 'sync my:el-get-packages)
@@ -205,121 +222,3 @@
 (when (eq system-type 'darwin) ;; mac specific settings
   (setq mac-command-modifier 'meta)
   (global-set-key [kp-delete] 'delete-char)) ;; sets fn-delete to be right-delete
-
-
-;; (defun simple-mode-line-render (left right)
-;;   "Return a string of `window-width' length containing LEFT, and RIGHT
-;;    aligned respectively."
-;;   (let* ((available-width (- (window-total-width) (length left) 2)))
-;;     (format (format " %%s %%%ds " available-width) left right)))
-
-(setq modelinepos-column-limit 80)
-
-(set-face-background 'mode-line "gray30")
-(set-face-foreground 'mode-line "cyan")
-
-(setq-default mode-line-position
-              '((-3 "%p") (size-indication-mode ("/" (-4 "%I")))
-                " "
-                (line-number-mode
-                 ("%l" (column-number-mode ":%c")))))
-
-(defun triple-mode-line-render (left middle right)
-  "Return a string of `window-width' length containing LEFT, and RIGHT
-   aligned respectively."
-  (let* ((space-between (ceiling (/ (- (window-total-width)
-                                       (length left)
-                                       (length middle)
-                                       (length right)
-                                       1)
-                                    2.0))))
-    (format (format "%%s%%%ds%%s%%%ds%%s" space-between space-between) left " " middle " " right)))
-
-(setq mode-line-format
-      '((:eval (triple-mode-line-render
-                ;; left
-                (format-mode-line '("%e "
-                                    (:propertize "%*" 'face
-                                                '(:background "gray50" :foreground "white"))
-                                    " "
-                                    mode-line-buffer-identification))
-                ;; middle
-                (format-mode-line '("%[ " mode-name minor-mode-alist " %]"))
-                ;; right
-                (format-mode-line '(""
-                                    (vc-mode vc-mode)
-                                    " "
-                                    mode-line-misc-info
-                                    global-mode-string
-                                    mode-line-frame-identification
-                                    "%3p%%  %l,%2c"))))))
-
-;; (set-default mode-line-format
-;;              '("%e"
-;;                mode-line-modified
-;;                mode-line-buffer-identification
-;;                mode-line-position
-;;                vc-mode
-;;                mode-line-misc-info
-;;                mode-line-modes
-;;                mode-line-end-spaces))
-
-
-;; (setq mode-line-align-left
-;;       '(" "
-;;         (:propertize "%e%* %b " face '(:background "gray40" :foreground "white"))
-;;         "  "
-;;         (vc-mode vc-mode)))
-;; ;        (:propertize (:eval '("" (vc-mode vc-mode) " ")) face '(:background "purple"))))
-
-;; (setq mode-line-align-middle
-;;       '(" "
-;;         mode-line-modes
-;;         ))
-
-;; (setq mode-line-align-right
-;;       '("--"
-;; ;        (:propertize (:eval (shorten-directory default-directory 30)) face font-lock-string-face)
-;;         ))
-
-;; (defun mode-line-fill-right (face reserve)
-;;   "Return empty space using FACE and leaving RESERVE space on the right."
-;;   (unless reserve
-;;     (setq reserve 20))
-;;   (when (and window-system (eq 'right (get-scroll-bar-mode)))
-;;     (setq reserve (- reserve 3)))
-;;   (propertize " "
-;;               'display `((space :align-to (- (+ right right-fringe right-margin) ,reserve)))
-;;               'face face))
-
-;; (defun mode-line-fill-center (face reserve)
-;;   "Return empty space using FACE to the center of remaining space leaving RESERVE space on the right."
-;;   (unless reserve
-;;     (setq reserve 20))
-;;   (when (and window-system (eq 'right (get-scroll-bar-mode)))
-;;     (setq reserve (- reserve 3)))
-;;   (propertize " "
-;;               'display `((space :align-to (- (+ center (.5 . right-margin)) ,reserve
-;;                                              (.5 . left-margin))))
-;;               'face face))
-
-;; (defconst RIGHT_PADDING 1)
-
-;; (defun reserve-left/middle ()
-;;   (/ (length (format-mode-line mode-line-align-middle)) 2))
-
-;; (defun reserve-middle/right ()
-;;   (+ RIGHT_PADDING (length (format-mode-line mode-line-align-right))))
-
-
-;; (setq-default mode-line-format
-;;               (list
-;;                mode-line-align-left
-;;                '(:eval (mode-line-fill-center 'mode-line
-;;                                               (reserve-left/middle)))
-;;                mode-line-align-middle
-;;                '(:eval
-;;                  (mode-line-fill-right 'mode-line
-;;                                        (reserve-middle/right)))
-;;                mode-line-align-right
-;;                ))

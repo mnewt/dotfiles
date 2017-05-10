@@ -10,6 +10,9 @@
     ]
     autoBuildTagsWhenActive: true
     cmdArgs: "--exclude=node_modules --exclude=doc --exclude=release --exclude=target"
+  "atom-slime":
+    lispName: "/usr/local/bin/sbcl"
+    slimePath: "$HOME/code/slime"
   "autocomplete-plus":
     confirmCompletion: "tab"
   autosave: {}

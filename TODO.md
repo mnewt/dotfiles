@@ -13,5 +13,6 @@
 - [x] prompt - direnv
 - [x] bash prompt sometimes exibits weird behavior -- moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
 - [x] Make tmux status bar more like vim's (https://github.com/edkolev/tmuxline.vim)?
+- [x] Finish emacs tmuxline-ification
 - [ ] demo gif
 - [ ] write blog post tour
