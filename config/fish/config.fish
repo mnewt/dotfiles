@@ -20,7 +20,7 @@ if status --is-interactive
   end
 
   # If this is a new install, we need to run fisher to install plugins first
-  if ! functions -q bass
+  if not functions -q bass
     echo "Installing fish plugins using fisher..."
     fisher
   end
