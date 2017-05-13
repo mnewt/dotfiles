@@ -12,7 +12,16 @@
 - [x] Fix tmux line length bug in `fish_prompt` -- probably not stripping all control characters out when measuring the line length (`bash_prompt` does not have this problem)
 - [x] prompt - direnv
 - [x] bash prompt sometimes exibits weird behavior -- moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
-- [x] Make tmux status bar more like vim's (https://github.com/edkolev/tmuxline.vim)?
+- [x] Make tmux status bar more like vim's (https://github.com/edkolev/tmuxline.vim)
 - [x] Finish emacs tmuxline-ification
+- [ ] Only update packages lists if `--save` flag is set so that repo stays clean after `update`
+  - [ ] `update-fish`: problematic because fisher updates ~/.config/fish/functions/*
+  - [x] All the rest
+- [x] Better manage vim and nvim configs
+- [x] Is `./install -f` removing dirs during `link_children`?
+- [x] Remove noise from atom status bar
+- [x] Get rid of `basic.vim`? No, it has some nice settings.
+- [ ] install / install.settings should use arrays, not lists, for variables
+- [ ] Individual app screenshots
 - [ ] demo gif
 - [ ] write blog post tour

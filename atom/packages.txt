@@ -2,6 +2,7 @@ Parinfer@1.17.0
 advanced-open-file@0.16.6
 atom-beautify@0.29.24
 atom-ctags@5.0.0
+atom-slime@2.8.0
 autoclose-html@0.23.0
 autocomplete-bash-builtins@0.3.5
 autocomplete-python@1.8.63

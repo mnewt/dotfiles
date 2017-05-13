@@ -11,47 +11,10 @@
 
 
 /*
- * Examples
- * (To see them, uncomment and save)
+ * Original: (https://github.com/atom/atom/blob/master/dot-atom/styles.less)
  */
 
-// @background-color: hsl(0, 0%, 12%);
-
-// style the background color of the tree view
-// .tree-view {
-  // background-color: whitesmoke;
-// }
-
-// style the background and foreground colors on the atom-text-editor-element itself
-// atom-text-editor {
-  // background-color: @background-color;
-// }
-
-// .theme-one-dark-syntax atom-text-editor {
-//   background-color: @background-color;
-// }
-
-// .tab-bar .tab[data-type="TextEditor"]::after {
-//   background-color: darken(@background-color, 10%);
-//   border-bottom: @background-color;
-// }
-//
-// .tab-bar .tab[data-type$="Editor"] .title {
-//   background-color: darken(@background-color, 10%);
-//   z-index: 2;
-// }
-//
-// .tab-bar .tab.active[data-type="TextEditor"]::after {
-//   background-color: @background-color;
-//   border-bottom: @background-color;
-// }
-//
-// .tab-bar .tab.active[data-type$="Editor"] .title {
-//   background-color: @background-color;
-//   z-index: 2;
-// }
-
-// To style other content in the text editor's shadow DOM, use the ::shadow expression
-// atom-text-editor::shadow .cursor {
-  // border-color: red;
-// }
+// Don't display line feed and encoding status
+.line-ending-tile, .encoding-status {
+  display: none;
+}

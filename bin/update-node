@@ -1,14 +1,17 @@
 #!/bin/bash
 # Update node.js packages
 
+restore_loc="$(find-dotfiles)/scripts/node_packages.json"
+
 if installed npm; then
   echo "Updating npm..."
   npm install npm -g
   npm update -g
 
-  restore_loc="$(find-dotfiles)/scripts/node_packages.json"
-  echo "Saving packages list to: $restore_loc"
-  npm -g ls --depth=0 --json > "$restore_loc"
+  if [[ "$@" == "--save" ]]; then
+    echo "Saving packages list to: $restore_loc"
+    npm -g ls --depth=0 --json > "$restore_loc"
+  fi
 else
   echo "npm not found, skipping"
 fi

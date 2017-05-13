@@ -61,7 +61,7 @@ source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
 source_if "$HOME/.bin/bash_prompt"
 precmd() { eval "$PROMPT_COMMAND" }
-PROMPT="$(with-color 000 255 "%% ")"
+PROMPT="$(with_color 000 255 "%% ")"
 
 # iTerm2
 if [ "$TERM_PROGRAM" = "iTerm.app" ]; then

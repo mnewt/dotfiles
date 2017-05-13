@@ -1,6 +1,8 @@
 #!/bin/bash
 # Update Homebrew
 
+restore_loc="$(find-dotfiles)/scripts/Brewfile"
+
 upgrade_cask () {
   echo "      Upgrading cask: $1..."
   brew cask uninstall --force "$1"
@@ -44,10 +46,11 @@ if installed brew; then
   upgrade_casks "$@"
   brew cask cleanup
 
-  restore_loc="$(find-dotfiles)/scripts/Brewfile"
-  echo "Saving Brewfile to: $restore_loc"
-  brew bundle dump --force --file="$restore_loc"
+  if [[ "$@" == "--save" ]]; then
+    echo "Saving Brewfile to: $restore_loc"
+    brew bundle dump --force --file="$restore_loc"
+  fi
+
 else
   echo "Hombrew is not installed, skipping"
 fi
-

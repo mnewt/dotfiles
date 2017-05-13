@@ -1,6 +1,8 @@
 #!/bin/bash
 # Update Debian based distributions
 
+restore_loc="$(find-dotfiles)/scripts/apt-packages"
+
 if [ -e '/etc/debian_version' ] || [ -e '/etc/lsb_release' ]; then
   echo "Updating Debian based distribution"
   sudo apt update
@@ -8,9 +10,10 @@ if [ -e '/etc/debian_version' ] || [ -e '/etc/lsb_release' ]; then
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
 
-  restore_loc="$(find-dotfiles)/scripts/apt-packages"
-  echo "Saving APT packages list to: $restore_loc"
-  apt list --installed >"$restore_loc"
+  if [[ "$@" == "--save" ]]; then
+    echo "Saving APT packages list to: $restore_loc"
+    apt list --installed >"$restore_loc"
+  fi
 else
   echo "Debian based distribution not found, skipping"
 fi

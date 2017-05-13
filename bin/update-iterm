@@ -16,7 +16,7 @@ on run argv
 end run
 EOF`
 
-if [ $(uname) = "Darwin" ] && [ $(osascript -e "$APPLESCRIPT") = 1 ]; then
+if [[ "$@" == "--save" ]] && [ $(uname) = "Darwin" ] && [ $(osascript -e "$APPLESCRIPT") = 1 ]; then
   echo "Downloading the latest iterm2 shell integration scripts..."
   curl -L "https://iterm2.com/misc/fish_startup.in" >"$bin_dir/iterm2_shell_integration.fish"
   curl -L "https://iterm2.com/misc/bash_startup.in" >"$bin_dir/iterm2_shell_integration.bash"
@@ -27,5 +27,5 @@ if [ $(uname) = "Darwin" ] && [ $(osascript -e "$APPLESCRIPT") = 1 ]; then
   curl -L "https://raw.github.com/gnachman/iTerm2/master/tests/divider" >"$bin_dir/divider"
   chmod +x "$bin_dir/iterm2_shell_integration."* "$bin_dir/imgls" "$bin_dir/imgcat" "$bin_dir/download.sh" "$bin_dir/divider"
 else
-  echo "iterm2 is not running, skipping"
+  echo "Skipping iTerm"
 fi

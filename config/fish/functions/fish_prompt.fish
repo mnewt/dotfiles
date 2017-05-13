@@ -115,7 +115,7 @@ function if_append --no-scope-shadowing
   append "$argv[1]" "$__fish_value"(printf "$argv[3]" $result)
 end
 
-function with-color
+function with_color
   echo -n -s (set_color -b $argv[1]) (set_color $argv[2]) $argv[3] (set_color normal)
 end
 
@@ -129,24 +129,24 @@ function fish_prompt -d 'Write out a prompt'
   set -l last_status $status
 
   set -l left
-  if_append left "test $last_status -ne 0" (with-color B03760 FFFFFF " $last_status ")
+  if_append left "test $last_status -ne 0" (with_color B03760 FFFFFF " $last_status ")
   # Only display username and hostname if this is an ssh session
   if set -q SSH_CLIENT
-    append left (with-color yellow black " $USER ")
-    append left (with-color green black " $__fish_prompt_hostname ")
+    append left (with_color yellow black " $USER ")
+    append left (with_color green black " $__fish_prompt_hostname ")
   end
-  if_append left git_helper (with-color magenta 000 " %s ")
-  if_append left rbenv_helper (with-color F1855E FFF " %s ")
-  if_append left virtualenv_helper (with-color 055EFB FFF " %s ")
-  if_append left node_helper (with-color 1C5C82 FFF " %s ")
-  if_append left clojure_helper (with-color 6137AF FFF " %s ")
-  if_append left vagrant_helper (with-color D6F52A 000 " %s ")
-  if_append left directory_helper (with-color cyan 000 " %s ")
+  if_append left git_helper (with_color magenta 000 " %s ")
+  if_append left rbenv_helper (with_color F1855E FFF " %s ")
+  if_append left virtualenv_helper (with_color 055EFB FFF " %s ")
+  if_append left node_helper (with_color 1C5C82 FFF " %s ")
+  if_append left clojure_helper (with_color 6137AF FFF " %s ")
+  if_append left vagrant_helper (with_color D6F52A 000 " %s ")
+  if_append left directory_helper (with_color cyan 000 " %s ")
 
   set -l right
-  if_append right jobs_helper (with-color A0A0A0 black " %s ")
-  if_append right tmux_helper (with-color D0D0D0 black " %s ")
-  if_append right datetime_helper (with-color 606060 DDD " %s ")
+  if_append right jobs_helper (with_color A0A0A0 black " %s ")
+  if_append right tmux_helper (with_color D0D0D0 black " %s ")
+  if_append right datetime_helper (with_color 606060 DDD " %s ")
 
   # Strip out invisible characters before counting to get actual display width
   set -l raw_line (string replace -ra "(\e[^m]+m)|(\017)" "" "$left$right")

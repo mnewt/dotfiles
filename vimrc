@@ -7,15 +7,17 @@ endif
 
 call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-sensible'
-  Plug 'ajh17/VimCompletesMe'
   Plug 'tpope/vim-vinegar'
   Plug 'itchyny/lightline.vim'
-  Plug 'ctrlpvim/ctrlp.vim'
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --no-update-rc' }
-  Plug 'tpope/vim-fugitive'
-  Plug 'kablamo/vim-git-log'
+  Plug 'junegunn/fzf.vim'
+  Plug 'ajh17/VimCompletesMe'
+  Plug 'mbbill/undotree'
   Plug 'tpope/vim-surround'
   Plug 'scrooloose/nerdcommenter'
+  Plug 'tpope/vim-fugitive'
+  Plug 'kablamo/vim-git-log'
+  Plug 'vitalk/vim-shebang'
   Plug 'dag/vim-fish'
   Plug 'PProvost/vim-ps1'
   Plug 'bhurlow/vim-parinfer', { 'for': 'clojure' }
@@ -24,13 +26,15 @@ call plug#end()
 
 set hidden
 
-" Ctrl-P
-nnoremap <C-S-P> :CtrlPMixed<CR>
-nnoremap <leader>b :CtrlPBuffer<CR>
-
 " netrw
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
 let g:netrw_browse_split = 4
 let g:netrw_altv = 1
 let g:netrw_winsize = 25
+
+set wildmenu
+
+" NERD Commenter
+let g:NERDSpaceDelims = 1
+map <leader>; <leader>c<Space>

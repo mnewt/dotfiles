@@ -1,6 +1,8 @@
 #!/bin/bash
 # Update Arch Linux
 
+restore_loc="$(find-dotfiles)/scripts/arch_packages"
+
 if [ -e '/etc/arch-release' ]; then
   echo "Updating Arch Linux"
   sudo pacman -Syu --noconfirm
@@ -10,9 +12,10 @@ if [ -e '/etc/arch-release' ]; then
   sudo paccache -ruk0
   sudo pacman-optimize
 
-  restore_loc="$(find-dotfiles)/scripts/arch_packages"
-  echo "Saving packages list to: $restore_loc"
-  pacman -Qqe > "$restore_loc"
+  if [[ "$@" == "--save" ]]; then
+    echo "Saving packages list to: $restore_loc"
+    pacman -Qqe > "$restore_loc"
+  fi
 else
   echo "Not running Arch Linux, skipping"
 fi

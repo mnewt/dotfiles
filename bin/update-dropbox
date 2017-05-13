@@ -1,6 +1,8 @@
 #!/bin/bash
 # Update dropbox
 
-echo Updating dropbox.py script...
-wget -O ~/.bin/dropbox.py "https://www.dropbox.com/download?dl=packages/dropbox.py"
-chmod +x ~/.bin/dropbox.py
+if [[ "$@" == "--save" ]]; then
+  echo Updating dropbox.py script...
+  wget -O ~/.bin/dropbox.py "https://www.dropbox.com/download?dl=packages/dropbox.py"
+  chmod +x ~/.bin/dropbox.py
+fi

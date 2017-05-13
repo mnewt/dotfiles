@@ -1,9 +1,11 @@
 #!/bin/sh
+
+# Straightforward, zero dependency, portable distributed dotfile manager
 # Run from a dotfile directory, links all files and directories into the current user's home directory
 
 scriptname="$(basename $0)"
-scriptbuildnum="0.9"
-scriptbuilddate="2017-04-27"
+scriptbuildnum="0.10"
+scriptbuilddate="2017-05-12"
 
 ### FUNCTIONS ###
 
@@ -16,7 +18,7 @@ MAGENTA=005
 CYAN=006
 WHITE=007
 
-with-color () {
+with_color () {
   # background
   printf "\e[48;5;${1}m"
   # foreground
@@ -36,7 +38,7 @@ display_help_text () {
 
   cat <<EOF
 
-Copies/links files and directories from the current dir to the user's home dir
+Links (or copies) files and directories from the current dir to the user's home dir
 
 USAGE: $scriptname [OPTIONS] [SOURCE-DIR] [DEST-DIR]
     SOURCE-DIR defaults to the current directory
@@ -48,27 +50,15 @@ OPTIONS:
   -t (--test)     : test mode - only display changes, don't make them
                     (default is false)
   -c (--config)   : specify a configuration file
-                    (default configuration file is `install.settings`)
-                      Example config file contents:
-                        # Settings (can use globs)
-                        # ignore these files (modifies include)
-                        ignore='Icon* *.md *.sh *.txt scripts'
-                        # create dir (not contents), then sym-link children (contents)
-                        link_children='config'
-                        # copy these files
-                        copy=''
-                        # sym-link these files
-                        link='*'
-
+                    See the default configuration file (`install.settings`)
   -h (--help)     : display this help and exit
   -V (--version)  : output version information and exit
 
-  SOURCE-DIR      : directory containing dotfiles to be copied and/or linked
+SOURCE-DIR        : directory containing dotfiles to be copied and/or linked
                     (default is current directory)
                       files should NOT have leading '.'
                       example: '.bashrc' should be named 'bashrc' in SOURCE-DIR
-
-  DEST-DIR        : target directory where copies and links will be placed
+DEST-DIR          : target directory where copies and links will be placed
                     (default is '~')
 
 EOF
@@ -91,44 +81,47 @@ remove_dupes() {
 
 remove_file() {
   if [ "$testing" = true ]; then
-    with-color $NORMAL $YELLOW "        TESTING: "; echo "rm -rf $1"
+    with_color $NORMAL $YELLOW "        TESTING: "; echo "rm -rf $1"
   elif [ "$force" = true ]; then
-    with-color $NORMAL $RED "       REMOVING: "; echo "$1"
+    with_color $NORMAL $RED "       REMOVING: "; echo "$1"
     rm -rf "$1"
   else
-    with-color $NORMAL $BLUE "NOT OVERWRITING: "; echo "$1"
+    with_color $NORMAL $BLUE "NOT OVERWRITING: "; echo "$1"
     return 1
   fi
 }
 
 link_file() {
   if [ "$testing" = true ]; then
-    with-color $NORMAL $YELLOW "        TESTING: "; echo "ln -s $1 $2"
+    with_color $NORMAL $YELLOW "        TESTING: "; echo "ln -s $1 $2"
   else
-    with-color $NORMAL $MAGENTA "        LINKING: "; echo "$2"
+    with_color $NORMAL $MAGENTA "        LINKING: "; echo "$2"
     ln -s "$1" "$2"
   fi
 }
 
 copy_file() {
   if [ "$testing" = true ]; then
-    with-color $NORMAL $YELLOW "        TESTING: "; echo "cp -R $1 $2"
+    with_color $NORMAL $YELLOW "        TESTING: "; echo "cp -R $1 $2"
   else
-    with-color $NORMAL $GREEN "        COPYING: "; echo "$2"
+    with_color $NORMAL $GREEN "        COPYING: "; echo "$2"
     cp -R "$1" "$2"
   fi
 }
 
 make_dir() {
   if [ "$testing" = true ]; then
-    with-color $NORMAL $YELLOW "        TESTING: "; echo "mkdir -p $1"
+    with_color $NORMAL $YELLOW "        TESTING: "; echo "mkdir -p $1"
   else
-    with-color $NORMAL $CYAN "       CREATING: "; echo "$1"
+    with_color $NORMAL $CYAN "       CREATING: "; echo "$1"
     mkdir -p "$1"
   fi
 }
 
-make_links() {
+### PRIMARY FUNCTIONS ###
+
+make_links () {
+  # Link each argument according to the global configuration
   for s in $1; do
     target="$dest_dir/.$s"
     src="$source_dir/$s"
@@ -137,6 +130,35 @@ make_links() {
       remove_file "$target" && link_file "$src" "$target"
     else
       link_file "$src" "$target"
+    fi
+  done
+}
+
+make_copies () {
+  # Copy each argument according to the global configuration
+  for s in $1; do
+    target="$dest_dir/.$s"
+    src="$source_dir/$s"
+    # if file (or a link) exists at destination
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      remove_file "$target" && copy_file "$src" "$target"
+    else
+      copy_file "$src" "$target"
+    fi
+  done
+}
+
+link_children () {
+  # `mkdir` each argument then run `make_links` on its children
+  for s in $1; do
+    target="$dest_dir/.$s"
+    children=$(echo $s/*)
+    [ -d "$target" ] && \
+      with_color $NORMAL $YELLOW "   NOT REMOVING: "; echo "$target"
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      make_dir "$target" && make_links "$children"
+    else
+      make_dir "$target" && make_links "$children"
     fi
   done
 }
@@ -158,7 +180,7 @@ after () {
 force=false
 testing=false
 
-config_file="$(full_path $(dirname $0))/install.settings"
+config_file="$(full_path "$(dirname $0)")/install.settings"
 
 # parse arguments
 for arg in "$@"; do
@@ -198,12 +220,12 @@ source_dir="$(full_path $source_dir)"
 dest_dir="${2:-$HOME}"
 
 echo Using settings:
-echo "  config file:      $config_file"
-echo "  source dir:       $source_dir"
-echo "  destination dir:  $dest_dir"
+with_color $NORMAL $CYAN "  config file:      $config_file\n"
+with_color $NORMAL $CYAN "  source dir:       $source_dir\n"
+with_color $NORMAL $CYAN "  destination dir:  $dest_dir\n"
 echo
 
-with-color $NORMAL $GREEN "        RUNNING: "; echo "before function"
+with_color $NORMAL $GREEN "        RUNNING: "; echo "before function"
 before
 
 ### MAKE LISTS OF SOURCES ###
@@ -214,7 +236,8 @@ ignore_sources=$(cd $source_dir && echo $ignore)
 copy_sources=$(cd $source_dir && echo $copy)
 link_children_sources=$(cd $source_dir && echo $link_children)
 
-# Remove duplicate and ignored files from file-lists read from 'sources'
+# Remove duplicate and ignored files from file-lists
+# For precedence rules, see `install.settings`
 link_sources=$(remove_dupes "$link_sources" "$ignore_sources")
 link_sources=$(remove_dupes "$link_sources" "$copy_sources")
 link_sources=$(remove_dupes "$link_sources" "$link_children_sources")
@@ -224,31 +247,9 @@ link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
 
 ### EXECUTE - MAKE LINKS, COPIES, AND DIRS ##
 
-# Make links
 make_links "$link_sources"
+make_copies "$copy_sources"
+link_children "$link_children_sources"
 
-# Create copies
-for s in $copy_sources; do
-  target="$dest_dir/.$s"
-  src="$source_dir/$s"
-  # if file (or a link) exists at destination
-  if [ -e "$target" ] || [ -L "$target" ]; then
-    remove_file "$target" && copy_file "$src" "$target"
-  else
-    copy_file "$src" "$target"
-  fi
-done
-
-# mkdir then link children
-for s in $link_children_sources; do
-  target="$dest_dir/.$s"
-  children=$(echo $s/*)
-  if [ -e "$target" ] || [ -L "$target" ]; then
-    remove_file "$target" && make_dir "$target" && make_links "$children"
-  else
-    make_dir "$target" && make_links "$children"
-  fi
-done
-
-with-color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
+with_color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
 after

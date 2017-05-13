@@ -19,6 +19,12 @@ if status --is-interactive
     source_if "$HOME/.bin/iterm2_shell_integration.fish"
   end
 
+  # If this is a new install, we need to run fisher to install plugins first
+  if ! functions -q bass
+    echo "Installing fish plugins using fisher..."
+    fisher
+  end
+
   # source aliases and environment variables common to bash and fish
   if functions -q bass
     if test -e "$HOME/.aliases"
@@ -40,4 +46,3 @@ if status --is-interactive
     source (rbenv init -|psub)
   end
 end
-

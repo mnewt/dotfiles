@@ -1,34 +1,32 @@
 # Settings for the `install` script
-# This file tells install.sh what to ignore, link, copy, and create
+# This file tells install what to ignore, link, copy, and create
 # List files (and globs) separated by spaces
 
-# The below options are in order of priority, so ignore overrides
-# link_children, which overrides copy, which overrides link
-# That is why it's OK to just specify '*' for link
+# The below options are in order of precedence (1 is highest), so `ignore`
+# overrides `link_children`, which overrides `copy`, which overrides `link`
+# That is why it's acceptable to specify '*' for link, because the other patterns
+# will remove the files from link that they match.
 
 # Run before the `install` operations
 before () {
   :
 }
 
-# ignore these files (modifies include)
-ignore='install* images scripts Icon* *.md *.sh TODO*'
+# 1. Ignore these files (modifies include)
+ignore='install* images scripts Icon* *.md'
 
-# create directory itself (not contents), then link the children of the directory
-# NOTE: it will not delete the directory. If you want to replace the directory,
-#				delete it first, then run `install`
+# 2. Create directory itself (not contents), then link the children of the directory
+# NOTE: It will not delete an existing directory. If you want to do that, run:
+#       `rm -rf ~/.directory && ./install`
 link_children='config atom'
 
-# just copy these files
+# 3. Copy these files
 copy=''
 
-# list of files to link
+# 4. Link these files
 link='*'
 
 # Run after the `install` operations
 after () {
-  if [ ! -e "$HOME/.config/nvim" ]; then
-    ln -s ~/.vim ~/.config/nvim
-    ln -s ~/.vimrc ~/.config/nvim/init.vim
-  fi
+  :
 }

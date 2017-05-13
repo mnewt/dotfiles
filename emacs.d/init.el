@@ -2,19 +2,19 @@
 ; (https://github.com/dimitri/emacs-kicker)
 
 ;; Package system
-(require 'package)
-(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                         ("marmalade" . "https://marmalade-repo.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
 
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
 ; (package-initialize)
-; (package-refresh-contents)
 
-(require 'cl)        ; common lisp goodies, loop
+; (require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+
+; (require 'cl)        ; common lisp goodies, loop
 
 (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
 
@@ -54,11 +54,11 @@
    (:name magit        ; git meet emacs, and a binding
           :after (progn
                    (global-set-key (kbd "C-x C-z") 'magit-status)))
-
-   (:name goto-last-change    ; move pointer back to last change
+   (:name git-gutter
           :after (progn
-                   ;; when using AZERTY keyboard, consider C-x C-_
-                   (global-set-key (kbd "C-x C-/") 'goto-last-change)))
+                   (global-git-gutter-mode t)))
+   (:name goto-last-change    ; move pointer back to last change
+          :after (global-set-key (kbd "C-x C-/") 'goto-last-change))
    (:name smooth-scrolling
           :after (progn
                    (smooth-scrolling-mode 1)
@@ -66,8 +66,7 @@
    (:name find-file-in-project
           :after (setq ffip-prefer-ido-mode t))
    (:name clojure-mode
-          :after (progn
-                   (require 'clojure-mode-extra-font-locking)))
+          :after (require 'clojure-mode-extra-font-locking))
    (:name clj-refactor
           :after (progn
                    (defun my-clojure-mode-hook ()
@@ -78,22 +77,13 @@
                    (add-hook 'clojure-mode-hook #'my-clojure-mode-hook)))
    (:name smartparens
           :after (require 'smartparens-config))
-   (:name spaceline
-          :after (progn
-                   (require 'spaceline-config)
-                   (spaceline-emacs-theme)
-                   (setq powerline-default-separator nil)))
-   (:name atom-one-dark-theme
-          :after (progn
-                   (add-to-list 'custom-theme-load-path "~/.emacs.d/el-get/atom-one-dark-theme/")
-                   (load-theme 'atom-one-dark t)))
    (:name parinfer
           :after (progn
                    (setq parinfer-extensions
                          '(defaults       ; should be included.
                            pretty-parens  ; different paren styles for different modes.
-                           evil           ; If you use Evil.
-                           lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+                          ;  evil           ; If you use Evil.
+                          ;  lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
                            paredit        ; Introduce some paredit commands.
                            smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
                            smart-yank))   ; Yank behavior depend on mode.
@@ -101,7 +91,17 @@
                    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
                    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
                    (add-hook 'scheme-mode-hook #'parinfer-mode)
-                   (add-hook 'lisp-mode-hook #'parinfer-mode)))))
+                   (add-hook 'lisp-mode-hook #'parinfer-mode)))
+   (:name spaceline
+          :after (progn
+                   (require 'spaceline-config)
+                   (spaceline-emacs-theme)
+                   (setq powerline-default-separator nil)
+                   (spaceline-compile)))
+   (:name atom-one-dark-theme
+          :after (progn
+                   (add-to-list 'custom-theme-load-path "~/.emacs.d/el-get/atom-one-dark-theme/")
+                   (load-theme 'atom-one-dark t)))))
 
 ;; now set our own packages
 (setq
@@ -125,36 +125,14 @@
 
 ;; on to the visual settings
 (setq inhibit-splash-screen t)    ; no splash screen, thanks
-(line-number-mode 1)      ; have line numbers and
-(column-number-mode 1)      ; column numbers in the mode line
+(line-number-mode 1)              ; have line numbers and
+(column-number-mode 1)            ; column numbers in the mode line
 
-(if window-system
-    (progn
-      (tool-bar-mode -1)    ; no tool bar with icons
-      (scroll-bar-mode -1)))    ; no scroll bars
-(unless (string-match "apple-darwin" system-configuration)
-  ;; on mac, there's always a menu bar drown, don't have it empty
-  (menu-bar-mode -1))
-
-;; choose your own fonts, in a system dependant way
-(if (string-match "apple-darwin" system-configuration)
-    (set-face-font 'default "Monaco-13")
-  (set-face-font 'default "Monospace-10"))
-
-;(global-hl-line-mode)			; highlight current line
-;(global-linum-mode 1)			; add line numbers on the left
-
-;; avoid compiz manager rendering bugs
-(add-to-list 'default-frame-alist '(alpha . 100))
+(global-hl-line-mode 1)      ; highlight current line
+;(global-linum-mode 1)       ; add line numbers on the left
 
 ;; copy/paste with C-c and C-v and C-x, check out C-RET too
 (cua-mode)
-
-;; under mac, have Command as Meta and keep Option for localized input
-(when (string-match "apple-darwin" system-configuration)
-  (setq mac-allow-anti-aliasing t)
-  (setq mac-command-modifier 'meta)
-  (setq mac-option-modifier 'none))
 
 ;; Use the clipboard, pretty please, so that copy/paste "works"
 (setq x-select-enable-clipboard t)
@@ -192,17 +170,7 @@
 ;; Well the real default would be C-c C-j C-y C-c C-k.
 (define-key term-raw-map  (kbd "C-y") 'term-paste)
 
-;; use ido for minibuffer completion
-(require 'ido)
-(ido-mode t)
-(setq ido-save-directory-list-file "~/.emacs.d/.ido.last")
-(setq ido-enable-flex-matching t)
-(setq ido-use-filename-at-point 'guess)
-(setq ido-show-dot-for-dired t)
-(setq ido-default-buffer-method 'selected-window)
-
-(global-set-key (kbd "C-x C-b") 'ido-switch-buffer)
-(global-set-key (kbd "C-x B") 'ibuffer)
+(setq suggest-key-bindings 5)
 
 ;; have vertical ido completion lists
 (setq ido-decorations
@@ -221,4 +189,24 @@
 
 (when (eq system-type 'darwin) ;; mac specific settings
   (setq mac-command-modifier 'meta)
-  (global-set-key [kp-delete] 'delete-char)) ;; sets fn-delete to be right-delete
+  (setq mac-option-modifier 'none)
+  (global-set-key [kp-delete] 'delete-char) ;; sets fn-delete to be right-delete
+  (setq mac-allow-anti-aliasing t)
+  (set-face-font 'default "Monaco-13"))
+
+(unless (string-match "apple-darwin" system-configuration)
+  ;; on mac, there's always a menu bar drown, don't have it empty
+  (menu-bar-mode -1))
+
+(if window-system
+    (progn
+      (tool-bar-mode -1)          ; no tool bar with icons
+      (scroll-bar-mode -1)        ; no scroll bars
+      ;; initial window
+      (setq initial-frame-alist
+            '((width . 102)
+              (height . 50)))
+      ;; default/sebsequent window
+      (setq default-frame-alist
+            '((width . 100)
+              (height . 48)))))
