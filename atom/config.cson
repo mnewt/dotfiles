@@ -62,7 +62,7 @@
     clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.9.0-alpha14/clojure-1.9.0-alpha14.jar"
     javaExecutablePath: "/usr/bin/java"
   "linter-ui-default":
-    panelHeight: 269
+    panelHeight: 207
     showPanel: true
   "one-dark-ui": {}
   "open-recent": {}

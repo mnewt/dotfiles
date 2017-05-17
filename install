@@ -105,8 +105,12 @@ make_dir() {
   if [ "$testing" = true ]; then
     with_color $NORMAL $YELLOW "        TESTING: "; echo "mkdir -p $1"
   else
-    with_color $NORMAL $CYAN "       CREATING: "; echo "$1"
-    mkdir -p "$1"
+    if [ -e "$1" ]; then
+      with_color $NORMAL $BLUE   "   NOT CREATING: "; echo "$1"
+    else
+      with_color $NORMAL $CYAN   "       CREATING: "; echo "$1"
+      mkdir -p "$1"
+    fi
   fi
 }
 
@@ -146,7 +150,7 @@ link_children () {
     target="$dest_dir/.$s"
     children=$(echo $s/*)
     [ -d "$target" ] && \
-      with_color $NORMAL $YELLOW "   NOT REMOVING: "; echo "$target"
+      with_color $NORMAL $BLUE "   NOT REMOVING: "; echo "$target"
     if [ -e "$target" ] || [ -L "$target" ]; then
       make_dir "$target" && make_links "$children"
     else
@@ -211,7 +215,7 @@ source_dir="${1:-$(pwd)}"
 source_dir="$(full_path $source_dir)"
 dest_dir="${2:-$HOME}"
 
-echo Using settings:
+echo "Installing dotfiles using settings:"
 with_color $NORMAL $CYAN "  config file:      $config_file\n"
 with_color $NORMAL $CYAN "  source dir:       $source_dir\n"
 with_color $NORMAL $CYAN "  destination dir:  $dest_dir\n"
