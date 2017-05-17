@@ -1,44 +1,17 @@
-#!/bin/sh
-
-# Straightforward, zero dependency, portable distributed dotfile manager
-# Run from a dotfile directory, links all files and directories into the current user's home directory
+#!/bin/bash
 
 scriptname="$(basename $0)"
 scriptbuildnum="0.10"
-scriptbuilddate="2017-05-12"
+scriptbuilddate="2017-05-17"
 
 ### FUNCTIONS ###
 
-NORMAL=000
-RED=001
-GREEN=002
-YELLOW=003
-BLUE=004
-MAGENTA=005
-CYAN=006
-WHITE=007
-
-with_color () {
-  # background
-  printf "\e[48;5;${1}m"
-  # foreground
-  printf "\e[38;5;${2}m"
-  printf "${3}"
-  # reset
-  printf "\e[0m"
-}
-
-display_ver() {
-  echo "$scriptname ver $scriptbuildnum - $scriptbuilddate"
-}
-
 display_help_text () {
-
-  display_ver   # Print script-title, build-number, and build-date
-
   cat <<EOF
+$scriptname version $scriptbuildnum - $scriptbuilddate
 
-Links (or copies) files and directories from the current dir to the user's home dir
+Straightforward, zero dependency, portable distributed dotfile manager
+Run from a dotfile repository directory, links all files and directories into the current user's home directory
 
 USAGE: $scriptname [OPTIONS] [SOURCE-DIR] [DEST-DIR]
     SOURCE-DIR defaults to the current directory
@@ -62,6 +35,25 @@ DEST-DIR          : target directory where copies and links will be placed
                     (default is '~')
 
 EOF
+}
+
+NORMAL=000
+RED=001
+GREEN=002
+YELLOW=003
+BLUE=004
+MAGENTA=005
+CYAN=006
+WHITE=007
+
+with_color () {
+  # background
+  printf "\e[48;5;${1}m"
+  # foreground
+  printf "\e[38;5;${2}m"
+  printf "${3}"
+  # reset
+  printf "\e[0m"
 }
 
 list_contains() {

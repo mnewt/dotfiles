@@ -28,6 +28,7 @@
       "symbols-view"
       "language-gfm"
       "linter-docker"
+      "atom-slime"
     ]
     packagesWithKeymapsDisabled: [
       "script"
@@ -45,7 +46,6 @@
     invisibles: {}
     showIndentGuide: true
     showInvisibles: true
-    showLineNumbers: false
   "git-plus":
     general:
       _analyticsUserId: "f21f5d96-cb76-4d2c-9c07-c81870cdbc42"
@@ -61,7 +61,9 @@
   "linter-clojure":
     clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.9.0-alpha14/clojure-1.9.0-alpha14.jar"
     javaExecutablePath: "/usr/bin/java"
-  "linter-ui-default": {}
+  "linter-ui-default":
+    panelHeight: 269
+    showPanel: true
   "one-dark-ui": {}
   "open-recent": {}
   "proto-repl":

@@ -26,4 +26,12 @@ if installed rbenv; then
   eval "$(rbenv init -)"
 fi
 
+#fzf
 source_if "$HOME/.fzf/shell/completion.bash"
+# fd - cd to selected directory
+fd() {
+  local dir
+  dir=$(find ${1:-.} -path '*/\.*' -prune \
+                  -o -type d -print 2> /dev/null | fzf +m) &&
+  cd "$dir" || return
+}

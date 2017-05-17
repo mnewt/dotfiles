@@ -25,6 +25,9 @@ alias df='df -h'
 export GREP_COLOR='3;33'
 alias grep='grep --color=auto'
 
+# fzf
+alias fc='grep --line-buffered --color=never -r "" * | fzf'
+
 # Enable aliases to be sudo'ed
 alias sudo='sudo '
 

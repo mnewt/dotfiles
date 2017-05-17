@@ -21,6 +21,7 @@
 - [x] Is `./install -f` removing dirs during `link_children`?
 - [x] Remove noise from atom status bar
 - [x] Get rid of `basic.vim`? No, it has some nice settings.
+- [x] wth_color escape sequences sometimes dont' work over ssh/tmux
 - [ ] install / install.settings should use arrays, not lists, for variables
 - [ ] Individual app screenshots
 - [ ] demo gif

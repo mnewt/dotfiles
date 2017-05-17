@@ -3,7 +3,7 @@
 # Usage:
 # sshproxy [bastion] [ssh options] user@destination
 #   bastion      - first ssh host that localhost can contact directly
-#   destination  - second ssh host that only nearhost can reach
+#   destination  - second ssh host that only bastion can reach
 
 # defaults
 bastion="a"
