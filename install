@@ -48,12 +48,12 @@ WHITE=007
 
 with_color () {
   # background
-  printf "\e[48;5;${1}m"
+  printf "\033[48;5;${1}m"
   # foreground
-  printf "\e[38;5;${2}m"
+  printf "\033[38;5;${2}m"
   printf "${3}"
   # reset
-  printf "\e[0m"
+  printf "\033[0m"
 }
 
 list_contains() {
