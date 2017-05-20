@@ -1,3 +1,10 @@
+fisherman/await
 edc/bass
 fisherman/docker-completion
 clvv/fasd
+oh-my-fish/plugin-foreign-env
+fisherman/fzf
+fisherman/get
+fisherman/getopts
+fisherman/last_job_id
+oh-my-fish/plugin-thefuck

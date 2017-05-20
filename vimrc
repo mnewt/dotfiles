@@ -44,15 +44,6 @@ let g:NERDSpaceDelims = 1
 map <leader>; <leader>c<Space>
 
 " AutoPair
-function! SetAutoPairs()
-  " Set pairs to auto complete according to file type
-  if &ft =~ 'clojure\|lisp'
-    let g:AutoPairs = {'(':')', '[':']', '{':'}','"':'"', '`':'`'}
-  elseif &ft =~ 'vim'
-    let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'", '`':'`'}
-  else
-    unlet g:AutoPairs
-  endif
-endfunction
-autocmd BufWritePre * call SetAutoPairs()
+autocmd FileType clojure,lisp,scheme,racket let b:AutoPairs = {'(':')', '[':']', '{':'}','"':'"', '`':'`'}
+autocmd FileType vim let b:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'", '`':'`'}
 

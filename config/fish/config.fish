@@ -14,6 +14,9 @@ function source_if -d "If file exists, then source it"
 end
 
 if status --is-interactive
+  # Set the syntax highlighting colors
+  set_fish_colors
+
   # iTerm2
   if test "$TERM_PROGRAM" = "iTerm.app"
     source_if "$HOME/.bin/iterm2_shell_integration.fish"

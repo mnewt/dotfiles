@@ -63,7 +63,6 @@
     javaExecutablePath: "/usr/bin/java"
   "linter-ui-default":
     panelHeight: 207
-    showPanel: true
   "one-dark-ui": {}
   "open-recent": {}
   "proto-repl":

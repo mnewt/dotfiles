@@ -2,23 +2,21 @@
 # Originally based on:
 # http://mah.everybody.org/docs/ssh
 
-[ -n "$BASH_VERSION" ] && shopt -s nullglob
+shopt -s nullglob
 
-SSH_KEYS=($HOME/.ssh/*_rsa)
+declare -a SSH_KEYS=(${HOME}/.ssh/*_rsa)
 SSH_ENV="$HOME/.ssh/environment"
 SSH_ADD="/usr/bin/ssh-add"
 
 add_keys () {
-  for key in "${SSH_KEYS[@]}"; do
-    echo Adding key: ${key}
-    ${SSH_ADD} "${key}"
-  done
+  echo "Adding keys from ${HOME}/.ssh/ ..."
+  ${SSH_ADD} "${SSH_KEYS[@]}"
 }
 
 start_agent () {
-  echo "Initializing new SSH agent..."
+  echo "Starting SSH agent..."
   /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
-  . "${SSH_ENV}" > /dev/null
+  . "${SSH_ENV}"
   add_keys
 }
 

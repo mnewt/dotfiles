@@ -15,8 +15,11 @@ source_if "$HOME/.bin/bash_prompt"
 
 source_if "$HOME/.bin/start-ssh-agent"
 
-[ "$TERM_PROGRAM" = "iTerm.app" ] && \
-  source_if "$HOME/.bin/iterm2_shell_integration.bash"
+if [ "$TERM_PROGRAM" = "iTerm.app" ]; then
+  source_if "$HOME/.iterm2/iterm2_shell_integration.bash"
+  alias imgcat="$HOME/.iterm2/imgcat"
+  alias it2dl="$HOME/.iterm2/it2dl"
+fi
 
 if installed direnv; then
   eval "$(direnv hook bash)"
