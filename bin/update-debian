@@ -10,7 +10,7 @@ if [ -e '/etc/debian_version' ] || [ -e '/etc/lsb_release' ]; then
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
 
-  if [[ "$@" == "--save" ]]; then
+  if [[ "$*" == *--save* ]]; then
     echo "Saving APT packages list to: $restore_loc"
     apt list --installed >"$restore_loc"
   fi

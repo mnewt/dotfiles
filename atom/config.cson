@@ -25,13 +25,14 @@
     disabledPackages: [
       "exception-reporting"
       "metrics"
-      "symbols-view"
       "language-gfm"
       "linter-docker"
       "atom-slime"
-    ]
-    packagesWithKeymapsDisabled: [
-      "script"
+      "linter"
+      "linter-clojure"
+      "linter-shellcheck"
+      "linter-ui-default"
+      "symbols-view"
     ]
     projectHome: "/Users/mnewton/code"
     telemetryConsent: "no"
@@ -59,10 +60,11 @@
     tail: true
   linter: {}
   "linter-clojure":
-    clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.9.0-alpha14/clojure-1.9.0-alpha14.jar"
+    clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar"
     javaExecutablePath: "/usr/bin/java"
   "linter-ui-default":
-    panelHeight: 207
+    panelHeight: 176
+    showPanel: true
   "one-dark-ui": {}
   "open-recent": {}
   "proto-repl":
@@ -83,6 +85,7 @@
     ignoreWhitespace: true
     leftEditorColor: "red"
     rightEditorColor: "green"
+    scrollSyncType: "Vertical + Horizontal"
     syncHorizontalScroll: true
   swackets:
     syntax: "Parentheses"
@@ -93,6 +96,13 @@
   welcome:
     showOnStartup: false
 ".clojure.source":
+  "bracket-matcher":
+    autocompleteCharacters: [
+      "()"
+      "[]"
+      "{}"
+      "\"\""
+    ]
   editor:
     autoIndent: true
     autoIndentOnPaste: false

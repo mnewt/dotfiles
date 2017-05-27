@@ -89,9 +89,6 @@ elif installed source-highlight; then
   alias more='less'
 fi
 
-# vagrant
-alias v='vagrant'
-
 # Network
 alias whats-my-ip='curl -s https://diagnostic.opendns.com/myip'
 alias dis='dig +nocmd +noall +answer'

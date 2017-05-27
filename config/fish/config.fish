@@ -14,6 +14,18 @@ function source_if -d "If file exists, then source it"
 end
 
 if status --is-interactive
+  # source aliases and environment variables common to bash and fish
+  if functions -q fenv
+    if test -e "$HOME/.aliases"
+      fenv source "$HOME/.aliases"
+    end
+    if test -e "$HOME/.bin/start-ssh-agent"
+      fenv source "$HOME/.bin/start-ssh-agent"
+    end
+  else
+    echo "fenv is not installed -- you should probably run `fisher`"
+  end
+
   # Set the syntax highlighting colors
   set_fish_colors
 
@@ -22,23 +34,6 @@ if status --is-interactive
     source_if "$HOME/.bin/iterm2_shell_integration.fish"
   end
 
-  # If this is a new install, we need to run fisher to install plugins first
-  if not functions -q bass
-    echo "Installing fish plugins using fisher..."
-    fisher
-  end
-
-  # source aliases and environment variables common to bash and fish
-  if functions -q bass
-    if test -e "$HOME/.aliases"
-      bass source "$HOME/.aliases"
-    end
-    if test -e "$HOME/.bin/start-ssh-agent"
-      bass source "$HOME/.bin/start-ssh-agent"
-    end
-  end
-
-  source_if "$HOME/.config/fish/functions.fish"
   source_if "$HOME/.private.fish"
 
   if installed direnv

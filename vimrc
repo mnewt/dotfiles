@@ -21,6 +21,8 @@ call plug#begin('~/.vim/plugged')
   Plug 'isobit/vim-caddyfile'
 call plug#end()
 
+nnoremap <S-u> redo
+
 " tabs
 map <leader>1 1gt
 map <leader>2 2gt

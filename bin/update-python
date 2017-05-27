@@ -11,7 +11,7 @@ if [ "$pip" ]; then
   "$pip" install --upgrade pip setuptools
   "$pip" list --format=columns --outdated | awk 'NR>2 {print $1}' | xargs -n1 "$pip" install --upgrade
 
-  if [[ "$@" == "--save" ]]; then
+  if [[ "$*" == *--save* ]]; then
     echo "Saving packages list to: $restore_loc"
     "$pip" list --format=columns | awk 'NR>2 {print $1}' > "$restore_loc"
   fi

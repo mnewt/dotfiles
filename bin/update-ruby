@@ -11,7 +11,7 @@ if installed gem; then
   sudo gem update --system
   gem clean
 
-  if [[ "$@" == "--save" ]]; then
+  if [[ "$*" == *--save* ]]; then
     echo "Saving packages list to: $restore_loc"
     gem list > "$restore_loc"
   fi

@@ -12,7 +12,7 @@ if [ -e '/etc/arch-release' ]; then
   sudo paccache -ruk0
   sudo pacman-optimize
 
-  if [[ "$@" == "--save" ]]; then
+  if [[ "$*" == *--save* ]]; then
     echo "Saving packages list to: $restore_loc"
     pacman -Qqe > "$restore_loc"
   fi
