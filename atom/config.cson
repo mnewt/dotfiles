@@ -34,6 +34,17 @@
       "linter-ui-default"
       "symbols-view"
     ]
+    ignoredNames: [
+      ".git"
+      ".hg"
+      ".svn"
+      ".DS_Store"
+      "._*"
+      "Thumbs.db"
+      "desktop.ini"
+      "node_modules"
+      "target"
+    ]
     projectHome: "/Users/mnewton/code"
     telemetryConsent: "no"
     themes: [
