@@ -1,0 +1,14 @@
+#!/bin/bash
+# Save fish shell fisherman packages
+
+save_dir="$1"
+save_file="$save_dir/fishfile"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+fisher_file="${fisher_file:-$XDG_CONFIG_HOME/fish/fishfile}"
+
+if [ -e "$fisher_file" ]; then
+  echo "Saving fish shell fisherman fishfile to $save_file..."
+  cp "$fisher_file" "$save_file"
+else
+  echo "fish shell fisherman fishfile not found, skipping"
+fi

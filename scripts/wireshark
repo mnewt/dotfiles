@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-
-brew cask install xquartz
-brew cask install wireshark

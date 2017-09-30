@@ -6,8 +6,7 @@ for p in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin
   test -d "$p" && export PATH="$p":$PATH
 done
 
-# Setup terminal, and turn on colors
-# export TERM=xterm-256color
+# locale
 export LANG=en_US.UTF-8
 export LC_CTYPE=en_US.UTF-8
 export LC_MESSAGES=en_US.UTF-8
@@ -31,23 +30,31 @@ alias fc='grep --line-buffered --color=never -r "" * | fzf'
 # Enable aliases to be sudo'ed
 alias sudo='sudo '
 
-# ls
-# add formatting and color to `ls`
-# Detect which `ls` flavor is in use
-export CLICOLOR=1
-export LSCOLORS=ExFxCxDxBxegedabagacad
-export LS_COLORS="di=36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
-if ls --color > /dev/null 2>&1; then # GNU `ls`
-  colorflag="--color"
-else # BSD `ls`
-  colorflag="-G"
+# ls / exa
+if installed exa; then
+  alias ls='exa -F'
+  alias l='exa -F'
+  alias ll='exa -lgF --git'
+  alias lsd='exa -dF */'
+  alias lt='exa -lgFs modified'
+else
+  # add formatting and color to `ls`
+  # Detect which `ls` flavor is in use
+  export CLICOLOR=1
+  export LSCOLORS=ExFxCxDxBxegedabagacad
+  export LS_COLORS="di=36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:"
+  if ls --color > /dev/null 2>&1; then # GNU `ls`
+    colorflag="--color"
+  else # BSD `ls`
+    colorflag="-G"
+  fi
+  alias ls="command ls -Fh $colorflag"
+  alias l='ls'
+  alias lh='ls -Alh'
+  alias ll='ls -Fhl'
+  alias lsd="ls -d */"
+  alias lt='ls -hltr'
 fi
-alias ls="command ls -Fh $colorflag"
-alias l='ls'
-alias lh='ls -Alh'
-alias ll='ls -Fhl'
-alias lsd="ls -lF $colorflag | grep --color=never '^d'"
-alias lt='ls -hltr'
 
 # neovim / vim
 if installed nvim; then
@@ -60,18 +67,21 @@ elif installed vim; then
 fi
 
 # git
+# tell git to non-interactively merge commits
+export GIT_MERGE_AUTOEDIT=no
 alias g="git"
 alias gs="git status"
 alias ga="git add"
 alias gc="git commit"
 alias gcm="git commit -m"
 alias gp="git push"
-# tell git to non-interactively merge commits
-export GIT_MERGE_AUTOEDIT=no
-alias gpl='git log --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+alias gpl="git pull"
+alias grpl="git reset HEAD --hard; git pull"
+alias glog='git log --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
 
 # tmux
 alias t='tmux'
+alias tt='tmux attach; or tmux new'
 
 # ssh
 alias sst='ssh -t "tmux -CC attach; or tmux -CC"'
@@ -82,16 +92,20 @@ if installed vimpager; then
   export PAGER="$(which vimpager)"
   alias less="$PAGER"
   alias zless="$PAGER"
+elif installed pygmentize; then
+  export LESS=' -R '
+  export LESSOPEN='|pygmentize -f terminal256 -g %s'  
+  alias more='less'
 elif installed source-highlight; then
-  export LESSOPEN="| /usr/local/bin/src-hilite-lesspipe.sh %s"
-  export LESS=" -R "
+  export LESS=' -R '
+  export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
   alias less='less -m -g -i -J --underline-special --SILENT'
   alias more='less'
 fi
 
 # Network
 alias whats-my-ip='curl -s https://diagnostic.opendns.com/myip'
-alias dis='dig +nocmd +noall +answer'
+alias dis='drill +nocmd +noall +answer'
 
 # Reload the shell (i.e. invoke as a login shell)
 alias reload="exec $SHELL -l"

@@ -3,7 +3,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-sensible'
   Plug 'tpope/vim-vinegar'
   Plug 'itchyny/lightline.vim'
-  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --no-update-rc'}
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --key-bindings --completion --no-update-rc'}
   Plug 'junegunn/fzf.vim'
   Plug 'ajh17/VimCompletesMe'
   Plug 'mbbill/undotree'
@@ -48,4 +48,3 @@ map <leader>; <leader>c<Space>
 " AutoPair
 autocmd FileType clojure,lisp,scheme,racket let b:AutoPairs = {'(':')', '[':']', '{':'}','"':'"', '`':'`'}
 autocmd FileType vim let b:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'", '`':'`'}
-

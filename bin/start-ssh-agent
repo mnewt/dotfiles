@@ -2,7 +2,8 @@
 # Originally based on:
 # http://mah.everybody.org/docs/ssh
 
-shopt -s nullglob
+[ "$BASH_VERSION" ] && shopt -s nullglob
+[ "$ZSH_VERSION" ] && setopt null_glob
 
 declare -a SSH_KEYS=(${HOME}/.ssh/*_rsa)
 SSH_ENV="$HOME/.ssh/environment"

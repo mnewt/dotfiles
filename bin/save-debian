@@ -1,0 +1,12 @@
+#!/bin/bash
+# Save Arch Linux packages list
+
+save_dir="$1"
+save_file="$save_dir/apt.txt"
+
+if [ -e '/etc/debian_version' ] || [ -e '/etc/lsb_release' ]; then
+  echo "Saving Debian packages list from the apt database to $save_file..."
+  apt list --installed >"$save_file"
+else
+  echo "Debian based Linux not found, skipping"
+fi

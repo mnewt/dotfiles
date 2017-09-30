@@ -46,14 +46,33 @@ MAGENTA=005
 CYAN=006
 WHITE=007
 
+# Print a string with ANSI X3.64 colors
+# Color formats:
+# * 8 color (30-37 for foreground and 40-37 for background), e.g. '31'
+# * 256 color (000-255 -- must use 3 digits with leading zeros), e.g. '001'
+# * 24 bit color, e.g. RGB: 255;255;255, or hex: FFFFFF
+# * Anything else is processed as a raw ANSI escape sequence and passed directly to \e[<arg>m
 with_color () {
-  # background
-  printf "\033[48;5;${1}m"
-  # foreground
-  printf "\033[38;5;${2}m"
-  printf "${3}"
-  # reset
-  printf "\033[0m"
+  # $1: background color
+  # $2: foreground color
+  # remaining args: string to print
+
+  local bg="$1"
+  local fg="$2"
+  shift 2
+
+  case ${#bg} in
+    3)   bg="48;5;$bg"
+         fg="38;5;$fg"
+         ;;
+    6)   bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
+         fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
+         ;;
+    11)  bg="$(printf "48;2;%d;%d;%d" ${bg:0:3} ${bg:4:3} ${bg:9:3})"
+         fg="$(printf "48;2;%d;%d;%d" ${fg:0:3} ${fg:4:3} ${fg:9:3})"
+  esac
+
+  printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
 }
 
 list_contains() {
@@ -149,8 +168,10 @@ link_children () {
   for s in $1; do
     target="$dest_dir/.$s"
     children=$(echo $s/*)
-    [ -d "$target" ] && \
-      with_color $NORMAL $BLUE "   NOT REMOVING: "; echo "$target"
+    if [ -d "$target" ]; then
+      with_color $NORMAL $BLUE "   NOT REMOVING: "
+      echo "$target"
+    fi
     if [ -e "$target" ] || [ -L "$target" ]; then
       make_dir "$target" && make_links "$children"
     else
@@ -216,9 +237,12 @@ source_dir="$(full_path $source_dir)"
 dest_dir="${2:-$HOME}"
 
 echo "Installing dotfiles using settings:"
-with_color $NORMAL $CYAN "  config file:      $config_file\n"
-with_color $NORMAL $CYAN "  source dir:       $source_dir\n"
-with_color $NORMAL $CYAN "  destination dir:  $dest_dir\n"
+with_color $NORMAL $CYAN "  config file:      $config_file"
+echo
+with_color $NORMAL $CYAN "  source dir:       $source_dir"
+echo
+with_color $NORMAL $CYAN "  destination dir:  $dest_dir"
+echo
 echo
 
 with_color $NORMAL $GREEN "        RUNNING: "; echo "before function"
@@ -245,7 +269,9 @@ link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
 
 make_links "$link_sources"
 make_copies "$copy_sources"
+# set -x
 link_children "$link_children_sources"
+set +x
 
 with_color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
 after

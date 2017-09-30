@@ -56,7 +56,7 @@ source_if "$HOME/.profile"
 source_if "$HOME/.bashrc"
 source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
-source_if "$HOME/.bin/bash_prompt"
+source_if "$HOME/.bin/__prompt"
 precmd() { eval "$PROMPT_COMMAND" }
 PROMPT="$(with_color 000 255 "%% ")"
 

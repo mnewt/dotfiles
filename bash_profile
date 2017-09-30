@@ -1,7 +1,26 @@
 #!/bin/bash
 
-# simple prompt (fallback)
-export PS1="\[\033[00;33m\]\u\[\033[0m\]\[\033[00;37m\] at \[\033[0m\]\[\033[00;32m\]\h\[\033[0m\]\[\033[00;37m\] in \[\033[0m\]\[\033[00;34m\]\w\[\033[0m\]\[\033[00;37m\] \\$\[\033[0m\] "
+# simple prompt in case the fancy one isn't used
+__prompt_cmdstatus_bg=001
+__prompt_cmdstatus_fg=255
+__prompt_cmdstatus_format=' %i '
+
+__prompt_ssh_username_bg=003
+__prompt_ssh_username_fg=000
+__prompt_ssh_username_format=' %s '
+
+__prompt_hostname_bg=002
+__prompt_hostname_fg=000
+__prompt_hostname_format=' %s '
+
+__prompt_left_directory_bg=006
+__prompt_left_directory_fg=016
+__prompt_left_directory_format=' %s '
+
+__prompt_bg=000
+__prompt_fg=255
+
+export PS1="\[\033[48;5;${__prompt_cmdstatus_bg}m\033[38;5;${__prompt_cmdstatus_fg}m\]\$(s=\$? && [ \$s != 0 ] && echo "[\$s]")\[\033[48;5;${__prompt_ssh_username_bg}m\033[38;5;${__prompt_ssh_username_fg}m\] \u \[\033[48;5;${__prompt_hostname_bg}m\033[38;5;${__prompt_hostname_fg}m\] \h \[\033[48;5;${__prompt_left_directory_bg}m\033[38;5;${__prompt_left_directory_fg}m\] \w \[\033[48;5;${__prompt_bg}m\033[38;5;${__prompt_fg}m\] \$\[\033[0m\] "
 
 source_if () {
   [ -e "$1" ] && . "$1"
@@ -11,30 +30,13 @@ source_if "$HOME/.profile"
 source_if "$HOME/.bashrc"
 source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
-source_if "$HOME/.bin/bash_prompt"
+source_if "$HOME/.bin/__prompt"
 
 source_if "$HOME/.bin/start-ssh-agent"
 
-if [ "$TERM_PROGRAM" = "iTerm.app" ]; then
+[ "$TERM_PROGRAM" = "iTerm.app" ] && \
   source_if "$HOME/.iterm2/iterm2_shell_integration.bash"
-  alias imgcat="$HOME/.iterm2/imgcat"
-  alias it2dl="$HOME/.iterm2/it2dl"
-fi
 
-if installed direnv; then
-  eval "$(direnv hook bash)"
-fi
+installed direnv && eval "$(direnv hook bash)"
 
-if installed rbenv; then
-  eval "$(rbenv init -)"
-fi
-
-#fzf
-source_if "$HOME/.fzf/shell/completion.bash"
-# fd - cd to selected directory
-fd() {
-  local dir
-  dir=$(find ${1:-.} -path '*/\.*' -prune \
-                  -o -type d -print 2> /dev/null | fzf +m) &&
-  cd "$dir" || return
-}
+installed rbenv && eval "$(rbenv init -)"

@@ -16,11 +16,13 @@ Included are configurations for some programs, such as:
 - [Atom](https://atom.io/)
 - [Clojure](https://clojure.org/) - [Leiningen](https://leiningen.org/) and [Boot](http://boot-clj.com/)
 - [Emacs](https://www.gnu.org/software/emacs/)
+  ![emacs status line](images/emacs.png)
 - [Git](https://git-scm.com/)
 - [ssh-agent](http://mah.everybody.org/docs/ssh)
 - [tmux](https://tmux.github.io/)
   ![tmux status line](images/tmux-status.png)
 - [Vim](https://vim.sourceforge.io/) / [NeoVim](https://neovim.io/)
+  ![vim status line](images/vim.png)
 
 ### Prompt
 The prompt displays a bunch of fancy stuff in a status bar above the prompt. The status bar is mildly inspired by [vim-lightline](https://github.com/itchyny/lightline.vim). I find this pleasant because it clearly delineates one command from the next, making it easier to spot previous commands while scrolling through history. Most of the status modules are conditional based on the current machine or directory. None of them use any outside dependencies. I have tried to implement this with clarity, extensibility, and speed in mind. The prompt should always be fast--even when working over slow links and network shares, when each file access is costly. Functionality is intentionally kept simple (e.g. git status indicates only current branch and a loose interpretation of dirty status) so that the above goals can be met.
@@ -152,19 +154,6 @@ It creates symlinks for all dotfiles in your home directory. You can safely run
 the installer multiple times to update. It will not overwrite existing files
 without the `-f` parameter.
 
-
-## fish shell
-
-To install and switch your shell to `fish` on macOS:
-
-    brew install fish
-    chsh -s $(which fish)
-
-And then run fish
-
-    fish -l
-    fisher
-
 Command reference for the `install` script:
 -----------------------------------
 
@@ -220,7 +209,24 @@ To save the list of currently installed packages
     apm list --bare --installed --dev false > ~/.atom/packages.txt
 
 ## Emacs
-Install Emacs, edit init.el, then run `update-emacs` to install packages
+On macOS, it seems the version of markinfo is too old and causes problems with [ivy](https://github.com/abo-abo/swiper). To fix that, run:
+
+    brew install texinfo
+    brew link --force texinfo
+
+Install Emacs, edit init.el and el-get.el, then run `update-emacs` to install packages
+
+## fish shell
+
+To install and switch your shell to `fish` on macOS:
+
+    brew install fish
+    chsh -s $(which fish)
+
+And then run fish
+
+    fish -l
+    fisher install "$HOME/.config/fish_config"
 
 ## Vim
 Install Vim or Neovim, edit .vimrc, then run `update-vim` to install packages

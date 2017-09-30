@@ -1,16 +1,14 @@
 #!/bin/bash
 # Update N?Vim
 
-if installed vim; then
-  echo "Updating Vim..."
-  vim +PlugUpgrade +PlugUpdate +PlugInstall +qall
+vim=
+installed vim && vim="$(which vim)"
+installed nvim && vim="$(which nvim)"
+
+if [ "$vim"  ]; then
+  echo "Updating N?Vim..."
+  "$vim" +PlugUpgrade +PlugUpdate +PlugInstall +qall
 else
-  echo "Vim not found, skipping"
+  echo "N?Vim not found, skipping"
 fi
 
-if installed nvim; then
-  echo "Updating NeoVim..."
-  nvim +PlugUpgrade +PlugUpdate +PlugInstall +qall
-else
-  echo "NeoVim not found, skipping"
-fi

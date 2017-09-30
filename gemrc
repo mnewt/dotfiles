@@ -1,2 +1,2 @@
+gem: --user-install
 gem: -n /usr/local/bin
-

@@ -1,8 +1,0 @@
-#!/bin/sh 
-
-# repositories
-brew tap caskroom/cask
-
-# Casks
-brew cask install 1password iterm2 google-chrome evernote alfred keka vlc bittorrent-sync viscosity steam jump-desktop virtualbox dropbox flux cyberduck vmware-fusion vagrant
-

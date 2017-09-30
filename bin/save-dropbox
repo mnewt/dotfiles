@@ -1,0 +1,8 @@
+#!/bin/bash
+# Update dropbox management script
+
+save_file="$HOME/.bin/dropbox.py"
+
+echo Updating dropbox.py script...
+curl -z "$save_file" -Lo "$save_file" "https://www.dropbox.com/download?dl=packages/dropbox.py"
+chmod +x ~/.bin/dropbox.py

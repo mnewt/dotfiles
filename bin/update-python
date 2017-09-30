@@ -1,20 +1,14 @@
 #!/bin/bash
 # Update python packages
 
-restore_loc="$(find-dotfiles)/scripts/pip_packages"
-
-installed pip &&  pip=pip
+installed pip && pip=pip
 installed pip3 && pip=pip3
 
 if [ "$pip" ]; then
   echo "Updating pip..."
-  "$pip" install --upgrade pip setuptools
-  "$pip" list --format=columns --outdated | awk 'NR>2 {print $1}' | xargs -n1 "$pip" install --upgrade
+  "$pip" install --user --upgrade pip setuptools
+  "$pip" list --user --format=columns --outdated | awk 'NR>2 {print $1}' | xargs -n1 "$pip" install --user --upgrade
 
-  if [[ "$*" == *--save* ]]; then
-    echo "Saving packages list to: $restore_loc"
-    "$pip" list --format=columns | awk 'NR>2 {print $1}' > "$restore_loc"
-  fi
 else
   echo "pip not found, skipping"
 fi

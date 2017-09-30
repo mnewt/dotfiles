@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# Find dotfiles directory
-
-dotfiles_locations=("$@" "$HOME/.dotfiles" "$HOME/dotfiles")
-dotfiles=
-for l in "${dotfiles_locations[@]}"; do
-  [ -d "$l" ] && dotfiles="$l" && echo "$dotfiles" && exit
-done
-exit 1

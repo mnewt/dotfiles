@@ -324,7 +324,7 @@ flycheck_*.el
 
 # ctags #
 #########
-.tags
+.tags*
 
 # leiningen #
 #############

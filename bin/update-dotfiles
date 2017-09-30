@@ -2,7 +2,7 @@
 # Update dotfiles
 
 echo "Checking for updates to dotfiles..."
-dotfiles=$(find-dotfiles)
+dotfiles=$(find_dotfiles)
 if [ $? -eq 0 ]; then
   echo "Checking for git updates at dotfiles location: $dotfiles"
   if [ -z "$(git -C "$dotfiles" ls-files --exclude-standard --others)" ]; then

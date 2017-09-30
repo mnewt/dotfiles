@@ -1,7 +1,0 @@
-#!/usr/bin/env sh
-
-# Install virtualbox
-brew cask install virtualbox
-
-# Install vagrant
-brew cask install vagrant

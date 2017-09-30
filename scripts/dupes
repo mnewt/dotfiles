@@ -1,7 +1,0 @@
-# brew brewdle [Brewfile]
-
-tap 'Homebrew/dupes'
-brew 'grep'
-brew 'less'
-brew 'make'
-brew 'openssh', args: ['--with-brewed-openssl']

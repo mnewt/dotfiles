@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Download a file iff URL's HTTP If-Modified-Since header is more recent than
+# the local file timestamp
+url="$1"
+file="$2"
+shift 2
+curl -z "$file" -Lo "$file" "$url" "$@"
