@@ -94,7 +94,7 @@ if installed vimpager; then
   alias zless="$PAGER"
 elif installed pygmentize; then
   export LESS=' -R '
-  export LESSOPEN='|pygmentize -f terminal256 -g %s'  
+  export LESSOPEN='|pygmentize -f terminal256 -g %s'
   alias more='less'
 elif installed source-highlight; then
   export LESS=' -R '
@@ -134,8 +134,22 @@ if installed grc; then
   alias dig='colourify -c conf.traceroute dig'
   alias host='colourify -c conf.traceroute host'
   alias drill='colourify -c conf.traceroute drill'
-  alias curl='colourify curl'
+  alias curl='colourify -c conf.curl curl'
 fi
+
+# Emacs
+emacs="$(which emacs)"
+if [ -e '/Applications/Emacs.app' ]; then
+  emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
+  emacsclient='/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'
+else
+  emacs="$(which emacs)"
+  emacsclient="$(which emacsclient)"
+fi
+
+alias emd="$emacs --daemon"
+alias em="$emacsclient --no-wait"
+alias emn="$emacsclient -c --no-wait"
 
 # minicom
 export MINICOM='-c on'

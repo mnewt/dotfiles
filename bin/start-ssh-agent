@@ -5,7 +5,7 @@
 [ "$BASH_VERSION" ] && shopt -s nullglob
 [ "$ZSH_VERSION" ] && setopt null_glob
 
-declare -a SSH_KEYS=(${HOME}/.ssh/*_rsa)
+declare -a SSH_KEYS=( ${HOME}/.ssh/*_?sa )
 SSH_ENV="$HOME/.ssh/environment"
 SSH_ADD="/usr/bin/ssh-add"
 

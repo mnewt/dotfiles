@@ -12,7 +12,7 @@
     cmdArgs: "--exclude=node_modules --exclude=doc --exclude=release --exclude=target"
   "atom-slime":
     lispName: "/usr/local/bin/sbcl"
-    slimePath: "$HOME/code/slime"
+    slimePath: "/Users/mnewton/code/slime"
   "autocomplete-plus":
     confirmCompletion: "tab"
   "autocomplete-python":
@@ -28,7 +28,6 @@
       "exception-reporting"
       "metrics"
       "language-gfm"
-      "symbols-view"
     ]
     ignoredNames: [
       ".git"
@@ -58,6 +57,8 @@
     general:
       _analyticsUserId: "f21f5d96-cb76-4d2c-9c07-c81870cdbc42"
       analytics: false
+  "goto-definition":
+    performanceMode: true
   "highlight-selected":
     showInStatusBar: false
   "isotope-ui":

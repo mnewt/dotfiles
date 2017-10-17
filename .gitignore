@@ -9,5 +9,6 @@ generated_completions
 vim/plugged
 
 # emacs
-emacs.d/elpa
-emacs.d/el-get
+emacs.d/straight/
+emacs.d/network-security.data
+

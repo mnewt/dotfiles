@@ -1,4 +1,4 @@
-Some dotfiles
+# Some dotfiles
 =============
 
 This setup is mostly shell agnostic, supporting [fish](http://fishshell.com/), [bash](https://www.gnu.org/software/bash/) and [zsh](http://www.zsh.org/). I spend most of my time in fish, however.
@@ -6,10 +6,9 @@ This setup is mostly shell agnostic, supporting [fish](http://fishshell.com/), [
 NOTE: The master repository is on [GitLab](https://gitlab.com/mnewt/dotfiles)
 but since most people use [GitHub](https://github.com/mnewt/dotfiles) it has been
 cloned there. Feel free to create issues or pull requests on either (but I do
-prefer GitLab).
+prefer [GitLab](https://gitlab.com)).
 
-Tour
-====
+# Tour
 
 ### Applications & Utilities
 Included are configurations for some programs, such as:
@@ -24,83 +23,7 @@ Included are configurations for some programs, such as:
 - [Vim](https://vim.sourceforge.io/) / [NeoVim](https://neovim.io/)
   ![vim status line](images/vim.png)
 
-### Prompt
-The prompt displays a bunch of fancy stuff in a status bar above the prompt. The status bar is mildly inspired by [vim-lightline](https://github.com/itchyny/lightline.vim). I find this pleasant because it clearly delineates one command from the next, making it easier to spot previous commands while scrolling through history. Most of the status modules are conditional based on the current machine or directory. None of them use any outside dependencies. I have tried to implement this with clarity, extensibility, and speed in mind. The prompt should always be fast--even when working over slow links and network shares, when each file access is costly. Functionality is intentionally kept simple (e.g. git status indicates only current branch and a loose interpretation of dirty status) so that the above goals can be met.
-- Error return code<br>
-  ![error code](images/error-code.png)
-- Directory<br>
-  ![directory](images/directory.png)
-- Username (only displays within SSH)<br>
-  ![username and hostname](images/username-hostname.png)
-- Hostname (only displays within SSH)<br>
-  ![username and hostname](images/username-hostname.png)
-- Git repository and clean/dirty status<br>
-  ![git](images/git.png)
-- Ruby rbenv<br>
-  ![rbenv](images/rbenv.png)
-- Python virtualenv<br>
-  ![virtualenv](images/virtualenv.png)
-- Node project (not nvm -- pull request?)<br>
-  ![node](images/node.png)
-- Clojure project (leiningen or boot project)<br>
-  ![clojure](images/clojure.png)
-- Vagrant project<br>
-  ![vagrant](images/vagrant.png)
-- Background jobs<br>
-  ![jobs](images/jobs.png)
-- Tmux sessions<br>
-  ![tmux](images/tmux.png)
-- Date and time<br>
-  ![directory](images/directory.png)
-
-### Prompt Benchmarks
-External commands and especially disk accesses have been minimized to provide good performance. Benchmarks will vary wildly across different machines, environments, and directories. Here are examples taken from my machine from my dotfiles directory.
-
-    > benchmark-prompt
-
-     fish
-
-    real	0m43.238s
-    user	0m20.676s
-    sys	0m13.999s
-
-     bash
-
-    real	0m54.019s
-    user	0m20.819s
-    sys	0m21.674s
-
-     zsh
-
-    real	0m50.815s
-    user	0m18.460s
-    sys	0m21.213s
-
-###  Update scripts
-There are a pretty decent set of update scripts in the `bin` directory to keep
-all the different software on a given system up to date.
-
-Some of the things that can be updated:
-
-* Arch Linux
-* Atom Editor
-* Clojure
-* Debian/Ubuntu
-* Emacs
-* Fish Shell
-* Homebrew
-* iTerm
-* macOS
-* Node.js
-* Python
-* Ruby Gems
-* Tmux
-* Vim/Neovim
-
-The master `update` script that runs all of these in succession.
-
-Install
-=======
+# Install
 
 ### Clone the repository
 
@@ -154,8 +77,7 @@ It creates symlinks for all dotfiles in your home directory. You can safely run
 the installer multiple times to update. It will not overwrite existing files
 without the `-f` parameter.
 
-Command reference for the `install` script:
------------------------------------
+## Command reference for the `install` script:
 
     install ver 0.9 - 2017-04-27
     ../install: line 37: install.settings: command not found
@@ -195,8 +117,30 @@ Command reference for the `install` script:
       DEST-DIR        : target directory where copies and links will be placed
                         (default is '~')
 
-Notes on Applications
-============
+#  Update scripts
+There are set of update scripts in the `bin` directory to keep
+all the different software on a given system up to date.
+
+Some of the things that can be updated:
+
+* Arch Linux
+* Atom Editor
+* Clojure
+* Debian/Ubuntu
+* Emacs
+* Fish Shell
+* Homebrew
+* iTerm
+* macOS
+* Node.js
+* Python
+* Ruby Gems
+* Tmux
+* Vim/Neovim
+
+The master `update` script that runs all of these in succession.
+
+# Application Notes
 
 ## Atom
 Install atom, then run this to install packages
@@ -209,24 +153,25 @@ To save the list of currently installed packages
     apm list --bare --installed --dev false > ~/.atom/packages.txt
 
 ## Emacs
-On macOS, it seems the version of markinfo is too old and causes problems with [ivy](https://github.com/abo-abo/swiper). To fix that, run:
+On macOS, it seems the version of makeinfo is too old and causes problems with [ivy](https://github.com/abo-abo/swiper). Install a newer version, then install Emacs, edit init.el and packages.el, and run `update-emacs` to install packages.
+
 
     brew install texinfo
     brew link --force texinfo
+    update-emacs
 
-Install Emacs, edit init.el and el-get.el, then run `update-emacs` to install packages
-
-## fish shell
+## Fish Shell
 
 To install and switch your shell to `fish` on macOS:
 
     brew install fish
     chsh -s $(which fish)
-
-And then run fish
-
     fish -l
-    fisher install "$HOME/.config/fish_config"
+    fisher "$HOME/.config/fish_config" install mnewt/fix mnewt/teleprompt
+    update-fish
 
 ## Vim
-Install Vim or Neovim, edit .vimrc, then run `update-vim` to install packages
+
+Install Vim or Neovim, edit .vimrc, then run `update-vim` to install packages.
+
+    update-vim
