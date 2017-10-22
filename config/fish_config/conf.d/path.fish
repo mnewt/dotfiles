@@ -1,6 +1,7 @@
-# Homebrew installs to /usr/local/sbin and /usr/local/opt/coreutils/libexec/gnubin
-for p in  "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin" "$HOME/.bin" "$GOPATH/bin"
-  if test -d "$p"; and not contains "$p" $PATH
-    set PATH "$p" $PATH
+for p in "$HOME/.bin" "$GOPATH/bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin" $PATH
+  if test -d "$p"; and not contains "$p" $new_path
+    set new_path $new_path "$p"
   end
 end
+
+set PATH $new_path

@@ -49,7 +49,7 @@
     titleBar: "custom"
   editor:
     fontFamily: "Monaco"
-    fontSize: 12
+    fontSize: 13
     invisibles: {}
     showIndentGuide: true
     showInvisibles: true

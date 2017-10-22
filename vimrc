@@ -21,6 +21,16 @@ call plug#begin('~/.vim/plugged')
   Plug 'isobit/vim-caddyfile'
 call plug#end()
 
+" lightline
+set noshowmode
+let g:lightline = {
+      \ 'active': {
+      \   'right': [ [ 'lineinfo' ],
+      \              [ 'percent' ],
+      \              [ 'filetype' ] ]
+      \ },
+      \ }
+
 nnoremap <S-u> redo
 
 " tabs
@@ -48,3 +58,4 @@ map <leader>; <leader>c<Space>
 " AutoPair
 autocmd FileType clojure,lisp,scheme,racket let b:AutoPairs = {'(':')', '[':']', '{':'}','"':'"', '`':'`'}
 autocmd FileType vim let b:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'", '`':'`'}
+

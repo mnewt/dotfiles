@@ -45,7 +45,15 @@
 (use-package fill-column-indicator
   :commands fci-mode
   :init
-  (add-hook 'after-change-major-mode-hook 'fci-mode))
+  (add-hook 'after-change-major-mode-hook 'fci-mode)
+  :config
+  (progn
+    (defun on-off-fci-before-company(command)
+      (when (string= "show" command)
+        (turn-off-fci-mode))
+      (when (string= "hide" command)
+        (turn-on-fci-mode)))
+    (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
 
 (use-package highlight-indent-guides
   :init
@@ -55,6 +63,12 @@
 
 (use-package company
   :init (add-hook 'after-init-hook 'global-company-mode))
+
+(use-package projectile)
+
+(use-package counsel-projectile
+  :config
+  (counsel-projectile-on))
 
 (use-package flx)
 

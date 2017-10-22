@@ -4,7 +4,7 @@ fish_history*
 fish_*_history
 generated_completions
 
-#vim
+# vim
 .netrwhist
 vim/plugged
 
@@ -12,3 +12,6 @@ vim/plugged
 emacs.d/straight/
 emacs.d/network-security.data
 
+# fish
+config/fish
+config/fisherman
