@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # path
-# Homebrew installs to /usr/local/sbin and /usr/local/opt/coreutils/libexec/gnubin
 for p in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin"; do
-  test -d "$p" && export PATH="$p":$PATH
+  test -d "$p" && PATH="$p:$PATH"
 done
 
 # locale
@@ -138,18 +137,20 @@ if installed grc; then
 fi
 
 # Emacs
-emacs="$(which emacs)"
-if [ -e '/Applications/Emacs.app' ]; then
-  emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
-  emacsclient='/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'
-else
+if installed emacs; then
   emacs="$(which emacs)"
-  emacsclient="$(which emacsclient)"
-fi
+  if [ -e '/Applications/Emacs.app' ]; then
+    emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
+    emacsclient='/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'
+  else
+    emacs="$(which emacs)"
+    emacsclient="$(which emacsclient)"
+  fi
 
-alias emd="$emacs --daemon"
-alias em="$emacsclient --no-wait"
-alias emn="$emacsclient -c --no-wait"
+  alias emd="$emacs --daemon"
+  alias em="$emacsclient --no-wait"
+  alias emn="$emacsclient -c --no-wait"
+fi
 
 # minicom
 export MINICOM='-c on'

@@ -11,14 +11,14 @@
       "resolved": "https://registry.npmjs.org/hackmyresume/-/hackmyresume-1.8.0.tgz"
     },
     "nativefier": {
-      "version": "7.1.0",
-      "from": "nativefier@7.1.0",
-      "resolved": "https://registry.npmjs.org/nativefier/-/nativefier-7.1.0.tgz"
+      "version": "7.4.1",
+      "from": "nativefier@7.4.1",
+      "resolved": "https://registry.npmjs.org/nativefier/-/nativefier-7.4.1.tgz"
     },
     "npm": {
-      "version": "5.0.3",
+      "version": "5.5.1",
       "from": "npm",
-      "resolved": "https://registry.npmjs.org/npm/-/npm-5.0.3.tgz"
+      "resolved": "https://registry.npmjs.org/npm/-/npm-5.5.1.tgz"
     },
     "uncss": {
       "version": "0.14.1",
@@ -26,14 +26,14 @@
       "resolved": "https://registry.npmjs.org/uncss/-/uncss-0.14.1.tgz"
     },
     "webpack": {
-      "version": "2.2.1",
-      "from": "webpack@2.2.1",
-      "resolved": "https://registry.npmjs.org/webpack/-/webpack-2.2.1.tgz"
+      "version": "2.7.0",
+      "from": "webpack@2.7.0",
+      "resolved": "https://registry.npmjs.org/webpack/-/webpack-2.7.0.tgz"
     },
     "webpack-bundle-size-analyzer": {
-      "version": "2.4.0",
-      "from": "webpack-bundle-size-analyzer@2.4.0",
-      "resolved": "https://registry.npmjs.org/webpack-bundle-size-analyzer/-/webpack-bundle-size-analyzer-2.4.0.tgz"
+      "version": "2.7.0",
+      "from": "webpack-bundle-size-analyzer@2.7.0",
+      "resolved": "https://registry.npmjs.org/webpack-bundle-size-analyzer/-/webpack-bundle-size-analyzer-2.7.0.tgz"
     }
   }
 }

@@ -1,10 +1,2 @@
-fisherman/await
-oh-my-fish/plugin-direnv
-fisherman/docker-completion
-mnewt/plugin-foreign-env
-fisherman/fzf
-fisherman/get
-fisherman/getopts
-fisherman/last_job_id
-fisherman/rbenv
-oh-my-fish/plugin-thefuck
+mnewt/fix
+mnewt/teleprompt

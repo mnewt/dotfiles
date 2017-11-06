@@ -88,50 +88,134 @@ when `mac-key-mode' is on.")
 (defvar mac-key-backup-command-modifier nil
   "Internal variable.  Do not use this.")
 
-
 ;; process objects
 (defvar mac-key-speech-process nil
   "The process object for text-to-speech subprocess.")
 (defvar mac-key-ql-process nil
   "The process object for Quick Look subprocess.")
 
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (beginning-of-line)
+  (set-mark (line-end-position)))
+
+(defun xah-cut-line-or-region ()
+  "Cut current line, or text selection.
+When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
+
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2015-06-10"
+  (interactive)
+  (if current-prefix-arg
+      (progn ; not using kill-region because we don't want to include previous kill
+        (kill-new (buffer-string))
+        (delete-region (point-min) (point-max)))
+    (progn (if (use-region-p)
+               (kill-region (region-beginning) (region-end) t)
+             (kill-region (line-beginning-position) (line-beginning-position 2))))))
+
+(defun xah-copy-line-or-region ()
+  "Copy current line, or text selection.
+When called repeatedly, append copy subsequent lines.
+When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
+
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2017-07-08"
+  (interactive)
+  (if current-prefix-arg
+      (progn
+        (kill-ring-save (point-min) (point-max))
+        (message "All visible buffer text copied"))
+    (if (use-region-p)
+        (progn
+          (kill-ring-save (region-beginning) (region-end))
+          (message "Active region copied"))
+      (if (eq last-command this-command)
+          (if (eobp)
+              (progn (message "empty line at end of buffer."))
+            (progn
+              (kill-append "\n" nil)
+              (kill-append
+               (buffer-substring-no-properties (line-beginning-position) (line-end-position))
+               nil)
+              (message "Line copy appended")
+              (progn
+                (end-of-line)
+                (forward-char))))
+        (if (eobp)
+            (if (eq (char-before) 10)
+                (progn (message "empty line at end of buffer."))
+              (progn
+                (kill-ring-save (line-beginning-position) (line-end-position))
+                (end-of-line)
+                (message "line copied")))
+          (progn
+            (kill-ring-save (line-beginning-position) (line-end-position))
+            (end-of-line)
+            (forward-char)
+            (message "line copied")))))))
+
+(defun comment-toggle ()
+  "Toggles comments for the region. If no region is selected, toggles comments
+  for the line"
+  (interactive)
+  (let ((start (line-beginning-position))
+        (end (line-end-position)))
+    (when (or (not transient-mark-mode) (region-active-p))
+      (setq start (save-excursion
+                    (goto-char (region-beginning))
+                    (beginning-of-line)
+                    (point))
+            end (save-excursion
+                  (goto-char (region-end))
+                  (end-of-line)
+                  (point))))
+    (comment-or-uncomment-region start end)))
 
 (defvar mac-key-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(alt o)] (lambda()(interactive)(let(last-nonmenu-event)(menu-find-file-existing))))
+    ;; (define-key map [(alt o)] (lambda()(interactive)(let(last-nonmenu-event)(menu-find-file-existing))))
+    ;; (define-key map [(alt o)] 'counsel-find-file)
     (define-key map [(alt w)] 'mac-key-close-window)
     (define-key map [(alt s)] 'save-buffer)
     (define-key map [(alt shift s)] 'mac-key-save-as)
     (define-key map [(alt i)] 'mac-key-show-in-finder)
-    (define-key map [(alt p)] 'print-buffer)
+    ;; (define-key map [(alt p)] 'print-buffer)
     (define-key map [(alt q)] 'save-buffers-kill-emacs)
     (define-key map [(alt z)] 'undo)
     (define-key map [(alt shift z)] 'redo)
-    (define-key map [(alt x)] 'clipboard-kill-region)
-    (define-key map [(alt c)] 'clipboard-kill-ring-save)
+    (define-key map [(alt y)] 'redo)
+    ;; (define-key map [(alt x)] 'clipboard-kill-region)
+    ;; (define-key map [(alt c)] 'clipboard-kill-ring-save)
+    (define-key map [(alt x)] 'xah-cut-line-or-region)
+    (define-key map [(alt c)] 'xah-copy-line-or-region)
     (define-key map [(alt v)] 'clipboard-yank)
     (define-key map [(alt a)] 'mark-whole-buffer)
-    (define-key map [(alt f)] 'isearch-forward)
-    (define-key map [(alt meta f)] 'occur)
+    ;; (define-key map [(alt f)] 'isearch-forward)
+    ;; (define-key map [(alt meta f)] 'occur)
     (define-key map [(alt g)] 'isearch-repeat-forward)
     (define-key map [(alt shift g)] 'isearch-repeat-backward)
-    (define-key map [(alt l)] 'goto-line)
+    ;; (define-key map [(alt l)] 'goto-line)
+    (define-key map [(alt l)] 'select-current-line)
     (define-key map [(alt t)] 'mac-font-panel-mode)
     (define-key map [(alt m)] 'iconify-frame)
     (define-key map [(alt \`)] 'other-frame)
     (define-key map [(alt shift n)] 'make-frame-command)
     (define-key map [(alt shift w)] 'delete-frame)
     (define-key map [(alt \?)] 'info)
-    (define-key map [(alt /)] 'info)
+    (define-key map [(alt /)] 'comment-toggle)
     (define-key map [(alt .)] 'keyboard-quit)
     (define-key map [(alt up)] 'beginning-of-buffer)
     (define-key map [(alt down)] 'end-of-buffer)
     (define-key map [(alt left)] 'beginning-of-line)
     (define-key map [(alt right)] 'end-of-line)
+    (define-key map [(meta left)] 'backward-word)
+    (define-key map [(meta right)] 'forward-word)
     (define-key map [A-mouse-1] 'browse-url-at-mouse)
     (define-key map [C-down-mouse-1] 'mac-key-context-menu)
     (define-key map [mouse-3] 'mac-key-context-menu)
-;;    (define-key map [C-mouse-1] 'mac-key-context-menu)
+    (define-key map [C-mouse-1] 'mac-key-context-menu)
     (define-key map [A-S-mouse-1] 'mouse-buffer-menu)
     (define-key map [S-down-mouse-1] 'mac-key-shift-mouse-select)
     (define-key map [(alt h)] 'ns-do-hide-emacs)
@@ -163,6 +247,8 @@ When Mac Key mode is enabled, mac-style key bindings are provided."
         (setq mac-command-modifier 'alt)
         (if (boundp 'mac-key-mode-internal)
             (setq mac-key-mode-internal t))
+
+        (delete-selection-mode 1)
 
         ;; turn on advanced settings
         (when mac-key-advanced-setting
@@ -198,8 +284,6 @@ When Mac Key mode is enabled, mac-style key bindings are provided."
             (add-hook 'dired-mode-hook
                       (lambda () (interactive)
                         (define-key dired-mode-map " " 'mac-key-quick-look))))))
-            
-
           
     (progn
 

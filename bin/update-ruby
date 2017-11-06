@@ -3,12 +3,10 @@
 
 if installed gem; then
   echo "Updating ruby gems..."
-  installed update_rubygems || sudo gem install rubygems-update
+  installed update_rubygems || gem install rubygems-update
   update_rubygems
-  # gem update $(gem outdated | awk '{print $1}')
-  gem update --system
+  gem update
   gem clean
-
 else
   echo "gem not installed, skipping"
 fi

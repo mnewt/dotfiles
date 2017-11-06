@@ -17,7 +17,7 @@ save () {
   # search for all save-* scripts and run them in succession
   for f in $save_scripts; do
     printf "\033[48;5;040m\033[38;5;016m  %s  \033[0m  " "$(basename $f)"
-    eval $f "$@"
+    eval $f "$save_root" "$@"
   done
 }
 

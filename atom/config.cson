@@ -9,7 +9,7 @@
       "meta"
     ]
     autoBuildTagsWhenActive: true
-    cmdArgs: "--exclude=node_modules --exclude=doc --exclude=release --exclude=target"
+    cmdArgs: "--exclude=node_modules --exclude=doc --exclude=release --exclude=target --exclude=resources/public"
   "atom-slime":
     lispName: "/usr/local/bin/sbcl"
     slimePath: "/Users/mnewton/code/slime"
@@ -28,6 +28,7 @@
       "exception-reporting"
       "metrics"
       "language-gfm"
+      "symbols-view"
     ]
     ignoredNames: [
       ".git"
@@ -49,7 +50,7 @@
     titleBar: "custom"
   editor:
     fontFamily: "Monaco"
-    fontSize: 13
+    fontSize: 12
     invisibles: {}
     showIndentGuide: true
     showInvisibles: true

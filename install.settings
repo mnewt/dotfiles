@@ -28,12 +28,5 @@ link='*'
 
 # Run after the `install` operations
 after () {
-  if installed fish; then
-    fish -c '
-    if test ! -e "$HOME/.config/fish/functions/fisher.fish"
-      curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
-    end
-    fisher "$HOME/.config/fish_config"
-    '
-  fi
+  :
 }

@@ -9,8 +9,11 @@ generated_completions
 vim/plugged
 
 # emacs
-emacs.d/straight/
+emacs.d/straight
 emacs.d/network-security.data
+emacs.d/elpa
+.emacs.desktop*
+.mc-lists.el
 
 # fish
 config/fish
