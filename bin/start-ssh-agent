@@ -6,31 +6,25 @@
 [ "$ZSH_VERSION" ] && setopt null_glob
 
 declare -a SSH_KEYS=( ${HOME}/.ssh/*_?sa )
+
 SSH_ENV="$HOME/.ssh/environment"
 SSH_ADD="/usr/bin/ssh-add"
-
-add_keys () {
-  echo "Adding keys from ${HOME}/.ssh/ ..."
-  ${SSH_ADD} "${SSH_KEYS[@]}"
-}
 
 start_agent () {
   echo "Starting SSH agent..."
   /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
   . "${SSH_ENV}"
-  add_keys
+  echo "Adding keys:"
+  echo "${SSH_KEYS[@]}"
+  ${SSH_ADD} "${SSH_KEYS[@]}"
 }
 
-main () {
-  # Source SSH settings, if applicable
-  if [ -n "${SSH_KEYS[*]}" ]; then
-    if [ -f "${SSH_ENV}" ]; then
-      . "${SSH_ENV}"
-      ps -ef | grep ${SSH_AGENT_PID} | grep -q ssh-agent || start_agent
-    else
-      start_agent
-    fi
+# Source SSH settings, if applicable
+if [ -n "${SSH_KEYS[*]}" ]; then
+  if [ -f "${SSH_ENV}" ]; then
+    . "${SSH_ENV}"
+    ps -ef | grep ${SSH_AGENT_PID} | grep -q ssh-agent || start_agent
+  else
+    start_agent
   fi
-}
-
-main
+fi

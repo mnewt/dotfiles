@@ -1,15 +1,12 @@
 "*":
   "advanced-open-file":
     fuzzyMatch: true
-  "atom-beautify":
-    general:
-      _analyticsUserId: "355848f7-63e3-4970-8206-4d493d0fdb99"
   "atom-ctags":
     GotoSymbolKey: [
       "meta"
     ]
     autoBuildTagsWhenActive: true
-    cmdArgs: "--exclude=node_modules --exclude=doc --exclude=release --exclude=target --exclude=resources/public"
+    cmd: "ctags"
   "atom-slime":
     lispName: "/usr/local/bin/sbcl"
     slimePath: "/Users/mnewton/code/slime"
@@ -18,8 +15,6 @@
   "autocomplete-python":
     useKite: false
   autosave: {}
-  "base16-syntax":
-    scheme: "Monokai"
   "bracket-matcher":
     autocompleteSmartQuotes: false
   core:
@@ -50,29 +45,28 @@
     titleBar: "custom"
   editor:
     fontFamily: "Monaco"
-    fontSize: 12
+    fontSize: 13
     invisibles: {}
     showIndentGuide: true
     showInvisibles: true
   "git-plus":
     general:
-      _analyticsUserId: "f21f5d96-cb76-4d2c-9c07-c81870cdbc42"
       analytics: false
   "goto-definition":
     performanceMode: true
   "highlight-selected":
     showInStatusBar: false
-  "isotope-ui":
-    customBackgroundColorPicker: "#303236"
-    minimalMode: true
   "language-log":
     tail: true
-  linter: {}
+  linter:
+    lintOnChange: false
+    lintOnOpen: false
+    lintPreviewTabs: false
   "linter-clojure":
     clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar"
     javaExecutablePath: "/usr/bin/java"
   "linter-ui-default":
-    panelHeight: 176
+    panelHeight: 207
     showPanel: true
   "one-dark-ui": {}
   "open-recent": {}
@@ -100,6 +94,9 @@
     refreshOnReplStart: false
     showInlineResults: false
     useClojureSyntax: false
+  "remote-edit2":
+    filterHostsUsing:
+      alias: true
   "save-session":
     dataSaveFolder: "/Users/mnewton/.atom/packages/save-session/projects"
   "shebang-set-grammar":
@@ -111,8 +108,6 @@
     rightEditorColor: "green"
     scrollSyncType: "Vertical + Horizontal"
     syncHorizontalScroll: true
-  swackets:
-    syntax: "Parentheses"
   tabs:
     usePreviewTabs: true
   "tree-view":

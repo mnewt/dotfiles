@@ -85,6 +85,11 @@ when `mac-key-mode' is on.")
   :group 'mac-key-mode
   :type 'boolean)
 
+(defcustom mac-key-keep-highlight t
+  "If non-nil, `mac-key-mode' keeps highlights when copying a region (kill-ring-save)"
+  :group 'mac-key-mode
+  :type 'boolean)
+
 (defvar mac-key-backup-command-modifier nil
   "Internal variable.  Do not use this.")
 
@@ -100,36 +105,40 @@ when `mac-key-mode' is on.")
   (beginning-of-line)
   (set-mark (line-end-position)))
 
-(defun xah-cut-line-or-region ()
+(defun cut-line-or-region ()
   "Cut current line, or text selection.
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
 
-URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
-Version 2015-06-10"
+Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
   (interactive)
   (if current-prefix-arg
-      (progn ; not using kill-region because we don't want to include previous kill
+      (progn ; not using clipboard-kill-region because we don't want to include previous kill
         (kill-new (buffer-string))
         (delete-region (point-min) (point-max)))
     (progn (if (use-region-p)
-               (kill-region (region-beginning) (region-end) t)
-             (kill-region (line-beginning-position) (line-beginning-position 2))))))
+               (clipboard-kill-region (region-beginning) (region-end) t)
+             (clipboard-kill-region (line-beginning-position) (line-beginning-position 2))))))
 
-(defun xah-copy-line-or-region ()
+(defun kill-ring-save-keep-highlight (beg end)
+  "Keep the region active after the kill"
+  (interactive "r")
+  (prog1 (kill-ring-save beg end)
+    (if mac-key-keep-highlight (setq deactivate-mark nil))))
+
+(defun copy-line-or-region ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
 When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
 
-URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
-Version 2017-07-08"
+Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
   (interactive)
   (if current-prefix-arg
       (progn
-        (kill-ring-save (point-min) (point-max))
+        (kill-ring-save-keep-highlight (point-min) (point-max))
         (message "All visible buffer text copied"))
     (if (use-region-p)
         (progn
-          (kill-ring-save (region-beginning) (region-end))
+          (kill-ring-save-keep-highlight (region-beginning) (region-end))
           (message "Active region copied"))
       (if (eq last-command this-command)
           (if (eobp)
@@ -147,14 +156,21 @@ Version 2017-07-08"
             (if (eq (char-before) 10)
                 (progn (message "empty line at end of buffer."))
               (progn
-                (kill-ring-save (line-beginning-position) (line-end-position))
+                (kill-ring-save-keep-highlight (line-beginning-position) (line-end-position))
                 (end-of-line)
                 (message "line copied")))
           (progn
-            (kill-ring-save (line-beginning-position) (line-end-position))
+            (kill-ring-save-keep-highlight (line-beginning-position) (line-end-position))
             (end-of-line)
             (forward-char)
             (message "line copied")))))))
+
+(defun clipboard-yank-and-indent ()
+  "Yank and then indent the newly formed region according to mode."
+  (interactive)
+  (if (and delete-selection-mode (use-region-p)) (delete-active-region))
+  (clipboard-yank))
+  ;; (call-interactively 'indent-region))  
 
 (defun comment-toggle ()
   "Toggles comments for the region. If no region is selected, toggles comments
@@ -171,7 +187,8 @@ Version 2017-07-08"
                   (goto-char (region-end))
                   (end-of-line)
                   (point))))
-    (comment-or-uncomment-region start end)))
+    (comment-or-uncomment-region start end))
+  (if (bound-and-true-p parinfer-mode) (parinfer--invoke-parinfer)))
 
 (defvar mac-key-mode-map
   (let ((map (make-sparse-keymap)))
@@ -186,11 +203,11 @@ Version 2017-07-08"
     (define-key map [(alt z)] 'undo)
     (define-key map [(alt shift z)] 'redo)
     (define-key map [(alt y)] 'redo)
-    ;; (define-key map [(alt x)] 'clipboard-kill-region)
-    ;; (define-key map [(alt c)] 'clipboard-kill-ring-save)
-    (define-key map [(alt x)] 'xah-cut-line-or-region)
-    (define-key map [(alt c)] 'xah-copy-line-or-region)
-    (define-key map [(alt v)] 'clipboard-yank)
+    ;; (define-key map [(alt x)] 'clipboard-clipboard-kill-region)
+    ;; (define-key map [(alt c)] 'clipboard-kill-ring-save-keep-highlight)
+    (define-key map [(alt x)] 'cut-line-or-region)
+    (define-key map [(alt c)] 'copy-line-or-region)
+    (define-key map [(alt v)] 'clipboard-yank-and-indent)
     (define-key map [(alt a)] 'mark-whole-buffer)
     ;; (define-key map [(alt f)] 'isearch-forward)
     ;; (define-key map [(alt meta f)] 'occur)
@@ -205,11 +222,17 @@ Version 2017-07-08"
     (define-key map [(alt shift w)] 'delete-frame)
     (define-key map [(alt \?)] 'info)
     (define-key map [(alt /)] 'comment-toggle)
-    (define-key map [(alt .)] 'keyboard-quit)
+    ;; (define-key map [(alt .)] 'keyboard-quit)
     (define-key map [(alt up)] 'beginning-of-buffer)
     (define-key map [(alt down)] 'end-of-buffer)
-    (define-key map [(alt left)] 'beginning-of-line)
-    (define-key map [(alt right)] 'end-of-line)
+    (define-key map [(alt left)] 'mwim-beginning-of-code-or-line)
+    ;; (define-key map [(alt left)] (if (fboundp 'mwim-beginning-of-code-or-line)
+    ;;                                  'mwim-beginning-of-code-or-line
+    ;;                                  'beginning-of-line))
+    (define-key map [(alt right)] 'mwim-end-of-code-or-line)
+    ;; (define-key map [(alt right)] (if (fboundp 'mwim-end-of-code-or-line)
+    ;;                                   'mwim-end-of-code-or-line
+    ;;                                   'end-of-line))
     (define-key map [(meta left)] 'backward-word)
     (define-key map [(meta right)] 'forward-word)
     (define-key map [A-mouse-1] 'browse-url-at-mouse)
@@ -538,7 +561,7 @@ the mouse.  This should be bound to a mouse click event type."
      ["--" nil]
      ["Cut"   (clipboard-kill-region beg end) :active (and editable mark-active)
       :help "Delete text in region and copy it to the clipboard"]
-     ["Copy"  (clipboard-kill-ring-save beg end) :active mark-active
+     ["Copy"  (clipboard-kill-ring-save-keep-highlight beg end) :active mark-active
       :help "Copy text in region to the clipboard"]
      ["Paste" (clipboard-yank) :active editable
       :help "Paste text from clipboard"]

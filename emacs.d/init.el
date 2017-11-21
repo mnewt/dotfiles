@@ -37,11 +37,7 @@
 ;; content to reflect what's on-disk.
 (global-auto-revert-mode 1)
 
-(setq suggest-key-bindings 5)
-
-;; C-x C-j opens dired with the cursor right on the file you're editing
-(require 'dired-x)
-(global-set-key (kbd "A-M-<up>") 'dired-jump)
+(setq blink-cursor-mode nil)
 
 ;; full screen
 (defun fullscreen ()
@@ -49,6 +45,12 @@
   (set-frame-parameter nil 'fullscreen
                        (if (frame-parameter nil 'fullscreen) nil 'fullboth)))
 (global-set-key (kbd "A-C-f") 'fullscreen)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Help
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq suggest-key-bindings 5)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GUI
@@ -59,38 +61,52 @@
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (setq initial-frame-alist
-        '((width . 140)
+        '((top . 0) (left . 56)
+          (width . 160)
           (height . 50)))
   (setq default-frame-alist
-        '((width . 138)
-          (height . 48))))
+        '((top . 60) (left . 80)
+          (width . 160)
+          (height . 49))))
 
 (when (eq system-type 'darwin)
-  (setq mac-command-modifier 'alt mac-option-modifier 'meta)
+  (setq mac-command-modifier 'alt
+        mac-option-modifier 'meta)
   (load-file "~/.emacs.d/mac-key-mode.el")
   (mac-key-mode 1)
   (setq mac-allow-anti-aliasing t)
   (set-face-font 'default "Monaco-13"))
 
 ;; slow down mouse wheel scrolling
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
+;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
+(setq scroll-margin 1
+      scroll-conservatively 0
+      scroll-up-aggressively 0.01
+      scroll-down-aggressively 0.01)
+(setq-default scroll-up-aggressively 0.01
+              scroll-down-aggressively 0.01)
 ;(setq mouse-wheel-progressive-speed nil)
+
+(goto-address-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Navigation and Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Save buffer config on exit and restore on startup
 (desktop-save-mode 1)
 
 ;; Navigate windows with M-<arrows>
 (windmove-default-keybindings 'meta)
 (setq windmove-wrap-around t)
+(global-set-key (kbd "M-]") 'windmove-right)
+(global-set-key (kbd "M-[") 'windmove-left)
 
 ;; winner-mode provides C-c <left> to get back to previous window layout
 (winner-mode 1)
 
 ;; navigating with mark
-(global-set-key (kbd "A-M-,") 'pop-global-mark)
+(global-set-key (kbd "A-M-,") 'pop-to-mark-command)
 
 ;; quick switch buffers
 (global-set-key (kbd "A-M-<right>") 'next-buffer)
@@ -110,6 +126,10 @@
 ;; Editing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(delete-selection-mode 1)
+
+(global-set-key [remap kill-ring-save] 'my-kill-ring-save)
+
 ;; tabs
 (setq-default indent-tabs-mode nil)                  ; set tab to spaces
 (setq-default tab-width 2)                           ; render tabs as two spaces
@@ -119,6 +139,7 @@
 (setq sh-basic-offset tab-width
       sh-indentation tab-width)
 
+;; To quickly change indent level
 ;; (setq indent-vars
 ;;       '(nginx-indent-level))
 
@@ -130,9 +151,7 @@
 
 ;; (setup-indent tab-width)
 
-(electric-pair-mode)
-
-(global-set-key (kbd "C-c C-p") 'indent-pp-sexp)
+;; (global-set-key (kbd "C-c C-p") 'indent-pp-sexp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Lisp
@@ -141,13 +160,24 @@
 (global-set-key (kbd "A-<return>") 'eval-last-sexp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Shells and SSH
+;; Shell and SSH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq explicit-shell-file-name "/bin/bash")
-(setq shell-file-name "bash")
-(setq explicit-bash-args '("--noediting" "--login" "-i"))
+(setq explicit-shell-file-name "/bin/bash"
+      shell-file-name "/bin/bash"
+      explicit-bash-args '("--noediting" "--login" "-i")
+      tramp-default-method "ssh")
+
 (setenv "SHELL" shell-file-name)
+
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (toggle-read-only)
+  (ansi-color-apply-on-region (point-min) (point-max))
+  (toggle-read-only))
+
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+(add-hook 'shell-mode-hook 'compilation-shell-minor-mode)
 
 (defun bash ()
   "Runs Bash in a `term' buffer."
@@ -164,7 +194,7 @@
 (defun ssh-sudo (hostname)
   "ssh to host, sudo to root, open dired"
   (interactive "MHostname: ")
-  (find-file (concat "/ssh:" hostname "|sudo:" hostname ":/")))
+  (find-file (concat "/sshx:" hostname "|sudo:" hostname ":/")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Server
@@ -189,8 +219,25 @@
 
 ;; Load and configure Packages
 (load-file "~/.emacs.d/packages.el")
-(load-file "~/.emacs.d/update.el")
+(load-file "~/.emacs.d/hydra.el")
+;; (load-file "~/.emacs.d/update.el")
+
+;; Private settings
+(let ((private "~/.private.el"))
+  (if (file-exists-p private) (load-file private)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (custom-set-variables)
+;;  ;; custom-set-variables was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  ;; '(powerline-default-separator nil))
+;; (custom-set-faces
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(default ((t (:inherit nil :stipple nil :background "#21252b" :foreground "#ABB2BF" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 130 :width normal :foundry "nil" :family "Monaco")))))

@@ -34,5 +34,16 @@
   'alt-down': 'editor:add-selection-below'
   'alt-up': 'editor:add-selection-above'
 
-# 'ink-console':
-#   'shift-space': 'unset!'
+'atom-workspace atom-text-editor.editor':
+  # this toggles but won't deselect when toggling back off
+  'ctrl-space': 'selection-mode:toggle-without-deselecting'
+
+'atom-workspace atom-text-editor.editor.selection-mode':
+  # this is your dedicated toggle-off-and-deselect
+  'escape': 'selection-mode:cancel'
+
+'atom-text-editor':
+  'cmd-d': 'expand-region:expand'
+  'cmd-shift-d': 'expand-region:shrink'
+  'ctrl-d': 'find-and-replace:select-next'
+  # 'alt-cmd-enter': 'goto-definition:go'

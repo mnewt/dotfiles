@@ -1,2 +1,13 @@
-gem: --user-install
+update_sources: true
+sources:
+- http://gems.rubyforge.org/
+- http://rubygems.org/
+
+backtrace: true
+bulk_threshold: 1000
+
 gem: -n /usr/local/bin
+
+install: --user-install
+update: --user-install
+uninstall: --user-install
