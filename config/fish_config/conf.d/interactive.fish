@@ -5,8 +5,6 @@ if status --is-interactive
   fix_if "$HOME/.aliases"
   fix_if "$HOME/.bin/start-ssh-agent"
 
-  set_fish_colors
-
   # iTerm2
   if test "$TERM_PROGRAM" = "iTerm.app"
     source_if "$HOME/.bin/iterm2_shell_integration.fish"
