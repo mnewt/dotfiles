@@ -1,6 +1,6 @@
 set -gx fish_color_autosuggestion 625B88
 set -gx fish_color_command brcyan
-set -gx fish_color_comment --italic 585858
+set -gx fish_color_comment 585858
 set -gx fish_color_cwd green
 set -gx fish_color_cwd_root red
 set -gx fish_color_end brgreen
