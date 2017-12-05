@@ -28,8 +28,9 @@
   unstage = reset --
   refresh = !git stash && git pull --rebase && git stash pop
   up = !git fetch origin && git rebase origin/master
+  upstream = !git fetch upstream && git rebase upstream/master
   mm = !git checkout master && git merge @{-1} --ff-only
-  
+
   # log
   snake = log --pretty=format:'' --graph
   l  = log --pretty=format:'%C(yellow)%h%Creset - %C(green)%an%Creset %C(cyan)%d %C(reset)%s %Cgreen(%cr)%Creset' --graph

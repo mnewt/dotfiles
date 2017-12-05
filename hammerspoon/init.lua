@@ -57,46 +57,38 @@ myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConf
 hs.alert.show("Config loaded")
 
 --------------------------------------------------------------------------------
--- Mount mc:/data when on home network
+-- Execute and print to console
 --------------------------------------------------------------------------------
 
-wifiWatcher = nil
-homeSSID = "rageSunset"
-lastSSID = hs.wifi.currentNetwork()
-
-function ssidChangedCallback()
-   newSSID = hs.wifi.currentNetwork()
-
-   if newSSID == homeSSID and lastSSID ~= homeSSID then
-      -- We just joined our home WiFi network
-      hs.execute("$HOME/code/hammerspoon/mnt_smb $HOME/private/config/knosis_data")
-   elseif newSSID ~= homeSSID and lastSSID == homeSSID then
-      -- We just departed our home WiFi network
-      hs.execute("$HOME/code/hammerspoon/umnt $HOME/mnt/data")
-   end
-
-   lastSSID = newSSID
+function executeAndPrint(cmd)
+  print("Executing command:")
+  print(cmd)
+  out, err = hs.execute(cmd)
+  print(out)
+  if (err ~= nil) then
+    print("Command errored.")
+    -- print(string.format("Command exited with status: %d", err))
+  end
 end
 
-wifiWatcher = hs.wifi.watcher.new(ssidChangedCallback)
-wifiWatcher:start()
-
 --------------------------------------------------------------------------------
--- Mount a:/mnt/share when on JUSTIS VPN
+-- Check if file exists
 --------------------------------------------------------------------------------
 
-vpnGateway = "10.3.231.15"
-
-function vpnChangedCallback(self, flags)
-   -- note that because having an internet connection at all will show the remote network
-   -- as "reachable", we instead look at whether or not our specific address is "local" instead
-   if (flags & hs.network.reachability.flags.isLocalAddress) > 0 then
-      -- VPN tunnel is up
-      hs.execute("$HOME/code/hammerspoon/mnt_smb_ssh $HOME/private/config/justis_share")
-   else
-      -- VPN tunnel is down
-      hs.execute("$HOME/code/hammerspoon/umnt_smb_ssh $HOME/private/config/justis_share")
-   end
+function file_exists(name)
+  local f=io.open(name,"r")
+  if f~=nil then io.close(f) return true else return false end
 end
 
-hs.network.reachability.forAddress(vpnGateway):setCallback(vpnChangedCallback):start()
+function dofile_if(name)
+  if (file_exists(name)) then
+    print("Loading " .. name .. "...")
+    dofile(name)
+  end
+end
+
+--------------------------------------------------------------------------------
+-- Load stuff
+--------------------------------------------------------------------------------
+
+dofile_if("private.lua")

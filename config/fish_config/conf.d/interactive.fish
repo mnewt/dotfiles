@@ -1,9 +1,6 @@
 # Initialization for interactive shells
 
 if status --is-interactive
-  # Enable 24-bit color
-  set fish_term24bit 1
-
   # source aliases and environment variables common to {ba,fi,z}sh
   fix_if "$HOME/.aliases"
   fix_if "$HOME/.bin/start-ssh-agent"

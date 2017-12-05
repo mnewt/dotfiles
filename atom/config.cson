@@ -1,12 +1,15 @@
 "*":
   "advanced-open-file":
     fuzzyMatch: true
+    helmDirSwitch: true
   "atom-ctags":
     GotoSymbolKey: [
       "meta"
     ]
     autoBuildTagsWhenActive: true
     cmd: "ctags"
+  "atom-fuzzy-grep":
+    grepCommandString: "rg -i -n -H --no-heading --column"
   "atom-slime":
     lispName: "/usr/local/bin/sbcl"
     slimePath: "/Users/mnewton/code/slime"
@@ -15,6 +18,12 @@
   "autocomplete-python":
     useKite: false
   autosave: {}
+  "block-cursor":
+    global:
+      blinkOn:
+        backgroundColor: "#ac00b5"
+        borderColor: "#ad00b6"
+        borderStyle: "bordered-box"
   "bracket-matcher":
     autocompleteSmartQuotes: false
   core:
@@ -24,6 +33,7 @@
       "metrics"
       "language-gfm"
       "symbols-view"
+      "linter"
     ]
     ignoredNames: [
       ".git"
@@ -35,6 +45,9 @@
       "desktop.ini"
       "node_modules"
       "target"
+    ]
+    packagesWithKeymapsDisabled: [
+      "lisp-paredit"
     ]
     projectHome: "/Users/mnewton/code"
     telemetryConsent: "no"
@@ -66,8 +79,90 @@
     clojureExecutablePath: "/Users/mnewton/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar"
     javaExecutablePath: "/usr/bin/java"
   "linter-ui-default":
-    panelHeight: 207
+    panelHeight: 300
     showPanel: true
+  "lisp-paredit":
+    indentationForms: [
+      "&"
+      "monitor-exit"
+      "/^case/"
+      "try"
+      "/^reify/"
+      "finally"
+      "/^(.*-)?loop/"
+      "/^let/"
+      "/^import/"
+      "new"
+      "/^deftype/"
+      "/^let/"
+      "fn"
+      "recur"
+      "/^set.*!$/"
+      "."
+      "var"
+      "quote"
+      "catch"
+      "throw"
+      "monitor-enter"
+      "ns"
+      "in-ns"
+      "/^([^/]+/)?def/"
+      "/^if/"
+      "/^when/"
+      "/^unless/"
+      "while"
+      "for"
+      "/(^|/)with/"
+      "testing"
+      "while"
+      "cond"
+      "condp"
+      "apply"
+      "binding"
+      "locking"
+      "proxy"
+      "reify"
+      "/^extend/"
+      "facts"
+      "do"
+      "doseq"
+      "dorun"
+      "doall"
+      "dosync"
+      "start"
+      "stop"
+      "try"
+      "catch"
+      "finally"
+      "/^let/"
+      "are"
+      "/^def/"
+      "fn"
+      "cond"
+      "condp"
+      "/^if.*/"
+      "/.*\\/for/"
+      "for"
+      "for-all"
+      "/^when.*/"
+      "testing"
+      "doseq"
+      "dotimes"
+      "ns"
+      "routes"
+      "GET"
+      "POST"
+      "PUT"
+      "DELETE"
+      "extend-protocol"
+      "loop"
+      "do"
+      "case"
+      "with-bindings"
+      "checking"
+      "with-open"
+    ]
+    strict: false
   "one-dark-ui": {}
   "open-recent": {}
   parinfer:
@@ -85,6 +180,7 @@
       ".rkt"
       ".scm"
     ]
+    "use-smart-mode?": true
   "proto-repl":
     autoPrettyPrint: true
     bootPath: "/usr/local/bin/boot"
