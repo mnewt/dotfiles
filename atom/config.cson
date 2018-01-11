@@ -3,9 +3,6 @@
     fuzzyMatch: true
     helmDirSwitch: true
   "atom-ctags":
-    GotoSymbolKey: [
-      "meta"
-    ]
     autoBuildTagsWhenActive: true
     cmd: "ctags"
   "atom-fuzzy-grep":
@@ -20,10 +17,7 @@
   autosave: {}
   "block-cursor":
     global:
-      blinkOn:
-        backgroundColor: "#ac00b5"
-        borderColor: "#ad00b6"
-        borderStyle: "bordered-box"
+      pulseDuration: 10000
   "bracket-matcher":
     autocompleteSmartQuotes: false
   core:
@@ -34,6 +28,25 @@
       "language-gfm"
       "symbols-view"
       "linter"
+      "atom-beautify"
+      "atom-fuzzy-grep"
+      "autocomplete-awk"
+      "autocomplete-json"
+      "autocomplete-modules"
+      "autocomplete-python"
+      "autocomplete-sql"
+      "busy-signal"
+      "git-time-machine"
+      "intentions"
+      "language-apache"
+      "linter-clojure"
+      "linter-ruby"
+      "linter-shellcheck"
+      "linter-ui-default"
+      "proto-repl-sayid"
+      "script"
+      "set-syntax"
+      "block-cursor"
     ]
     ignoredNames: [
       ".git"
@@ -180,7 +193,6 @@
       ".rkt"
       ".scm"
     ]
-    "use-smart-mode?": true
   "proto-repl":
     autoPrettyPrint: true
     bootPath: "/usr/local/bin/boot"

@@ -60,10 +60,30 @@ if installed nvim; then
   alias vi='nvim'
   alias vim='nvim'
   export EDITOR="$(which nvim)"
+  export MANPAGER="nvim -c 'set ft=man' -"
 elif installed vim; then
   alias vi='vim'
   export EDITOR="$(which vim)"
 fi
+
+# PAGER
+# use vimpager if available
+if installed vimpager; then
+  export PAGER="$(which vimpager)"
+  alias less="$PAGER"
+  alias zless="$PAGER"
+elif installed pygmentize; then
+  export LESS=' -R '
+  export LESSOPEN='|pygmentize -f terminal256 -g %s'
+  alias more='less'
+elif installed source-highlight; then
+  export LESS=' -R '
+  export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
+  alias less='less -m -g -i -J --underline-special --SILENT'
+  alias more='less'
+fi
+
+
 
 # git
 # tell git to non-interactively merge commits
@@ -84,23 +104,6 @@ alias tt='tmux attach; or tmux new'
 
 # ssh
 alias sst='ssh -t "tmux -CC attach; or tmux -CC"'
-
-# PAGER
-# use vimpager if available
-if installed vimpager; then
-  export PAGER="$(which vimpager)"
-  alias less="$PAGER"
-  alias zless="$PAGER"
-elif installed pygmentize; then
-  export LESS=' -R '
-  export LESSOPEN='|pygmentize -f terminal256 -g %s'
-  alias more='less'
-elif installed source-highlight; then
-  export LESS=' -R '
-  export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
-  alias less='less -m -g -i -J --underline-special --SILENT'
-  alias more='less'
-fi
 
 # Network
 alias whats-my-ip='curl -s https://diagnostic.opendns.com/myip'
@@ -139,17 +142,11 @@ fi
 # Emacs
 if installed emacs; then
   emacs="$(which emacs)"
-  if [ -e '/Applications/Emacs.app' ]; then
-    emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
-    emacsclient='/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'
-  else
-    emacs="$(which emacs)"
-    emacsclient="$(which emacsclient)"
-  fi
+  emacsclient="$(which emacsclient)"
 
-  alias emd="$emacs --daemon"
-  alias em="$emacsclient --no-wait"
-  alias emn="$emacsclient -c --no-wait"
+  alias ed="$emacs --daemon"
+  alias e="$emacsclient --no-wait"
+  alias en="$emacsclient -c --no-wait"
 fi
 
 # minicom

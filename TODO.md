@@ -15,11 +15,10 @@
 - [x] Make tmux status bar more like vim's (https://github.com/edkolev/tmuxline.vim)
 - [x] Finish emacs tmuxline-ification
 - [x] Make `PS1` fallback look like `bash_prompt`
-- [ ] Only update packages lists if `--save` flag is set so that repo stays clean after `update`
+- [x] Only update packages lists if `--save` flag is set so that repo stays clean after `update`
   - [x] Move all fish config to plugin
   - [x] `update-fish`: problematic because fisher updates ~/.config/fish/functions/*
   - [x] All the rest
-  - [ ] Move all package save/restore functionality to `save-` and `restore-`
 - [x] Better manage vim and nvim configs
 - [x] BUG: Is `./install -f` removing dirs during `link_children`?
 - [x] Remove noise from atom status bar
@@ -27,14 +26,15 @@
 - [x] wth_color escape sequences sometimes dont' work over ssh/tmux
 - [ ] Make prompt faster
   - [x] Figure out why https://github.com/edkolev/promptline.vim is so much faster, and incorporate changes
-  - [ ] Port above changes to fish
+  - [x] Port above changes to fish
   - [ ] Have upsearch only run once, searching for all relevant items. This is way more work but should also be way faster
-- [ ] BUG: update-python on arch overwrites packages that are managed by pacman, causing pacman updates to fail
+- [x] BUG: update-python on arch overwrites packages that are managed by pacman, causing pacman updates to fail
 - [x] BUG: On interactive login: `set: Tried to change the read-only variable '_'` Has something to do with adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
-- [ ] BUG: Error message is displayed from prompt when tmux is not in path
-- [ ] Move prompt to its own plugin/repo - name?
+- [x] BUG: Error message is displayed from prompt when tmux is not in path
+- [x] Move prompt to its own plugin/repo - teleprompt
+- [ ] BUG: Don't create '*' files in created directories
+- [ ] BUG: Why does it always link .parinfer-file-extentions.txt?
 - [ ] Move update/save/load to its own plugin/repo
-- [ ] Add DWfile support
 - [ ] install / install.settings should use arrays, not lists, for variables
 - [ ] Individual app screenshots
 - [ ] demo gif

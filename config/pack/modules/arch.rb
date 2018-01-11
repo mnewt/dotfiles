@@ -37,7 +37,7 @@ class Arch < Pack
     puts "Installing packages..."
     add_packages = configured_packages - installed_packages
     puts add_packages
-    add_packages.empty? or system "sudo pacman -S " + add_packages.join(" ")
+    add_packages.empty? or system "sudo pacman -S --noconfirm " + add_packages.join(" ")
   end
 
   def self.after

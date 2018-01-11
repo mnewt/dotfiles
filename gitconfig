@@ -28,7 +28,7 @@
   unstage = reset --
   refresh = !git stash && git pull --rebase && git stash pop
   up = !git fetch origin && git rebase origin/master
-  upstream = !git fetch upstream && git rebase upstream/master
+  upstream = !git stash && git fetch upstream && git rebase upstream/master && git stash pop
   mm = !git checkout master && git merge @{-1} --ff-only
 
   # log

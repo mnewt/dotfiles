@@ -26,14 +26,34 @@
 # Atom Flight Manual:
 # https://atom.io/docs/latest/using-atom-basic-customization#cson
 
+'atom-workspace':
+  # core
+  'alt-down': 'editor:add-selection-below'
+  'alt-up': 'editor:add-selection-above'
+
+  # cursor-history
+  'alt-.': 'cursor-history:next'
+  'alt-,': 'cursor-history:prev'
+  'alt->': 'cursor-history:next-within-editor'
+  'alt-<': 'cursor-history:prev-within-editor'
+
+  # advanced-open-file
+  'ctrl-cmd-o': 'advanced-open-file:toggle'
+
+# proto-repl
 'atom-workspace atom-text-editor:not([mini])':
   'cmd-enter': 'proto-repl:execute-block'
   'cmd-shift-enter': 'proto-repl:execute-top-block'
   'cmd-alt-k': 'proto-repl:clear-repl'
 
-  'alt-down': 'editor:add-selection-below'
-  'alt-up': 'editor:add-selection-above'
+# expand-region
+'atom-text-editor':
+  'cmd-d': 'expand-region:expand'
+  'cmd-shift-d': 'expand-region:shrink'
+  'ctrl-d': 'find-and-replace:select-next'
+  # 'alt-cmd-enter': 'goto-definition:go'
 
+# selection-mode
 'atom-workspace atom-text-editor.editor':
   # this toggles but won't deselect when toggling back off
   'ctrl-space': 'selection-mode:toggle-without-deselecting'
@@ -41,9 +61,3 @@
 'atom-workspace atom-text-editor.editor.selection-mode':
   # this is your dedicated toggle-off-and-deselect
   'escape': 'selection-mode:cancel'
-
-'atom-text-editor':
-  'cmd-d': 'expand-region:expand'
-  'cmd-shift-d': 'expand-region:shrink'
-  'ctrl-d': 'find-and-replace:select-next'
-  # 'alt-cmd-enter': 'goto-definition:go'

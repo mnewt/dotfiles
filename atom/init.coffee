@@ -62,3 +62,8 @@ atom.commands.add 'atom-text-editor', 'jason:indent-top-sexp', ->
     editor.setSelectedScreenRange(range)
     atom.commands.dispatch(atom.views.getView(editor), 'lisp-paredit:indent')
 
+# atom.commands.add 'atom-text-editor', 'mnewt:toggle-file-symbols', ->
+#   editor = atom.workspace.getActiveTextEditor()
+#   cursor = editor.getCursorScreenPosition()
+#   atom.commands.dispatch(atom.views.getView(editor), 'atom-ctags:toggle-file-symbols')
+#   editor.scrollToCursorPosition()

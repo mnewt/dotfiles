@@ -1,8 +1,5 @@
-(defun recompile-emacsd ()
+(defun straight-update ()
   (interactive)
-  (byte-recompile-directory (expand-file-name "~/.emacs.d") 0))
-
-(defun update ()
-  (interactive)
-  (straight-pull-all)
-  (spaceline-compile))
+  (straight-normalize-all)
+  (straight-fetch-all)
+  (straight-merge-all))

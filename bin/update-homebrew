@@ -1,37 +1,6 @@
 #!/bin/bash
 # Update Homebrew
 
-upgrade_cask () {
-  echo "      Upgrading cask: $1..."
-  brew cask uninstall --force "$1"
-  rm -rf "/opt/homebrew-cask/Caskroom/$1"
-  brew cask install "$1"
-}
-
-upgrade_casks () {
-  # update brew casks -- eventually this should not be necessary
-  # (https://github.com/caskroom/homebrew-cask/issues/4678)
-  staging_location="$(brew cask doctor | awk 'f{print;f=0} /==> Homebrew-Cask Staging Location:/{f=1}')"
-  table_divider 3
-  table_row "cask" "installed version" "current version"
-  table_divider 3
-  for cask in $(brew cask list); do
-    info="$(brew cask info $cask)"
-    current_version="$(echo "$info" | awk 'NR==1 {print $2}')"
-    installed_version="$(echo "$info" | awk -F '[/ ]' 'NR==3 {print $6}')"
-    table_row $col_length "$cask" "$installed_version" "$current_version"
-    if [ "$installed_version" != "$current_version" ]; then
-      upgrade_cask "$cask"
-    elif [ "$current_version" = "latest" ]; then
-      if [ "$1" = "-a" ]; then
-        upgrade_cask "$cask"
-      else
-        echo "Not upgrading $cask (to upgrade, run with '-a')"
-      fi
-    fi
-  done
-}
-
 if installed brew; then
   echo "Updating homebrew..."
   cd "$(brew --repo)"
@@ -43,8 +12,7 @@ if installed brew; then
   brew cleanup
   brew prune
   brew doctor
-  echo "Upgrading homebrew casks..."
-  upgrade_casks "$@"
+  brew cask upgrade
   brew cask cleanup
 else
   echo "Hombrew is not installed, skipping"

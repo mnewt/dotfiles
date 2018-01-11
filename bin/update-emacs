@@ -3,5 +3,6 @@
 (pop argv)  ; Remove the -- separator
 
 (load "~/.emacs.d/init.el")
-;(update)
+;; Can't run this in a script because it's interactive
+;; (straight-update)
 (kill-emacs 0)

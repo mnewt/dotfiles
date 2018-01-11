@@ -16,6 +16,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'jiangmiao/auto-pairs'
   Plug 'bhurlow/vim-parinfer', { 'for': 'clojure'}
   Plug 'tpope/vim-fireplace', { 'for': 'clojure'}
+  Plug 'powerman/vim-plugin-AnsiEsc'
   Plug 'dag/vim-fish'
   Plug 'PProvost/vim-ps1'
   Plug 'isobit/vim-caddyfile'
@@ -58,4 +59,3 @@ map <leader>; <leader>c<Space>
 " AutoPair
 autocmd FileType clojure,lisp,scheme,racket let b:AutoPairs = {'(':')', '[':']', '{':'}','"':'"', '`':'`'}
 autocmd FileType vim let b:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'", '`':'`'}
-

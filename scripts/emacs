@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+brew reinstall emacs-mac --with-gnutls --with-icon-for-documents --with-modern-icon --with-natural-title-bar
+brew linkapps emacs-mac
