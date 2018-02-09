@@ -1,12 +1,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Performance
+;; Top Level
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq gc-cons-threshold 20000000)
 
+(add-to-list 'load-path "~/.emacs.d/elisp/")
+
+(setq tls-checktrust t)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(toggle-frame-maximized)
 
 (setq inhibit-splash-screen t)
 
@@ -26,8 +32,10 @@
 
 (setq-default fill-column 80)
 
+;; wrap line at word boundary
+(global-visual-line-mode)
+
 (global-hl-line-mode 1)      ; highlight current line
-;; (global-linum-mode 1)       ; add line numbers on the left
 
 ;; Use the system clipboard
 (setq select-enable-clipboard t)
@@ -91,7 +99,7 @@
   (setq mac-allow-anti-aliasing t
         mac-key-advanced-setting t)
 
-  (load-file "~/.emacs.d/mac-key-mode.el")
+  (require 'mac-key-mode)
   (mac-key-mode +1)
 
   (set-face-font 'default "Monaco-13")
@@ -114,7 +122,10 @@
 (setq-default scroll-up-aggressively 0.01
               scroll-down-aggressively 0.01)
 
-(goto-address-mode)
+;; Enable `goto-address-mode' globally
+(define-globalized-minor-mode global-goto-address-mode goto-address-mode
+  (lambda () (goto-address-mode t)))
+(global-goto-address-mode t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Navigation and Management
@@ -131,14 +142,16 @@
 
 ;; winner-mode provides C-c <left> to get back to previous window layout
 (winner-mode 1)
+(global-set-key (kbd "C-c [") 'winner-undo)
+(global-set-key (kbd "C-c ]") 'winner-redo)
 
 ;; navigating with mark
 (global-set-key (kbd "M-s-,") 'pop-to-mark-command)
 (global-set-key (kbd "s-,") 'pop-global-mark)
 
 ;; quick switch buffers
-(global-set-key (kbd "M-s-<right>") 'next-buffer)
-(global-set-key (kbd "M-s-<left>") 'previous-buffer)
+(global-set-key (kbd "s-}") 'next-buffer)
+(global-set-key (kbd "s-{") 'previous-buffer)
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -170,6 +183,9 @@
 ;; sh-mode
 (setq sh-basic-offset tab-width
       sh-indentation tab-width)
+
+;; dw (https://gitlab.com/mnewt/dw)
+(add-to-list 'auto-mode-alist '("\\DWfile.*\\'" . sh-mode))
 
 ;; move by whole words
 (global-superword-mode)
@@ -222,33 +238,56 @@
 ;; Shell and SSH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (setq explicit-shell-file-name "/bin/bash"
-;;       shell-file-name "/bin/bash"
-;;       explicit-bash-args '("--noediting" "--login" "-i")
-;;       tramp-default-method "ssh")
+(setq shell-file-name (executable-find "bash"))
 
-;; (setenv "SHELL" shell-file-name)
+; (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)
 
-(require 'ansi-color)
-(defun colorize-compilation-buffer ()
-  (toggle-read-only)
-  (ansi-color-apply-on-region (point-min) (point-max))
-  (toggle-read-only))
+;; Stolen from (http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html)
+;; (require 'ansi-color)
+;; (defun colorize-compilation-buffer ()
+;;   (toggle-read-only)
+;;   (ansi-color-apply-on-region (point-min) (point-max))
+;;   (toggle-read-only))
 
-(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
-(add-hook 'shell-mode-hook 'compilation-shell-minor-mode)
+;; ;; Stolen from (https://oleksandrmanzyuk.wordpress.com/2011/11/05/better-emacs-shell-part-i/)
+;; (defun regexp-alternatives (regexps)
+;;   "Return the alternation of a list of regexps."
+;;   (mapconcat (lambda (regexp)
+;;                (concat "\\(?:" regexp "\\)"))
+;;              regexps "\\|"))
 
-(defun bash ()
-  "Runs Bash in a `term' buffer."
-  (interactive)
-  (let* ((cmd "bash")
-         (args "-l")
-         (switches (split-string-and-unquote args))
-         (termbuf (apply 'make-term "Bash" cmd nil switches)))
-    (set-buffer termbuf)
-    (term-mode)
-    (term-char-mode)
-    (switch-to-buffer termbuf)))
+;; (defvar non-sgr-control-sequence-regexp nil
+;;   "Regexp that matches non-SGR control sequences.")
+
+;; (setq non-sgr-control-sequence-regexp
+;;       (regexp-alternatives
+;;        '(;; icon name escape sequences
+;;          "\033\\][0-2];.*?\007"
+;;          ;; non-SGR CSI escape sequences
+;;          "\033\\[\\??[0-9;]*[^0-9;m]"
+;;          ;; noop
+;;          "\012\033\\[2K\033\\[1F")))
+         
+;; (defun filter-non-sgr-control-sequences-in-region (begin end)
+;;   (save-excursion
+;;     (goto-char begin)
+;;     (while (re-search-forward
+;;             non-sgr-control-sequence-regexp end t)
+;;       (replace-match ""))))
+
+;; (defun filter-non-sgr-control-sequences-in-output (ignored)
+;;   (let ((start-marker
+;;          (or comint-last-output-start
+;;              (point-min-marker)))
+;;         (end-marker
+;;          (process-mark
+;;           (get-buffer-process (current-buffer)))))
+;;     (filter-non-sgr-control-sequences-in-region
+;;      start-marker
+;;      end-marker)))
+
+;; (add-hook 'comint-output-filter-functions
+;;           'filter-non-sgr-control-sequences-in-output)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Server
@@ -268,17 +307,15 @@
 (package-initialize)
 
 ;; Path
-(setenv "PATH" (concat (getenv "PATH") ":~/.bin:/usr/local/bin"))
+(setenv "PATH" (concat "~/.bin:/usr/local/bin:" (getenv "PATH")))
 (setq exec-path (append exec-path '("~/.bin" "/usr/local/bin")))
 
 ;; Load and configure Packages
-(load-file "~/.emacs.d/packages.el")
-(load-file "~/.emacs.d/hydra.el")
-;; (load-file "~/.emacs.d/update.el")
+(require 'm-packages)
+(require 'm-hydra)
 
 ;; Private settings
-(let ((private "~/.private.el"))
-  (if (file-exists-p private) (load-file private)))
+(when (file-exists-p "~/.private.el") (load-file "~/.private.el"))
 
 (defun update ()
   (interactive)

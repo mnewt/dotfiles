@@ -1,4 +1,4 @@
-;;; mac-key-mode.el --- provide mac-style key bindings on Carbon Emacs
+;; mac-key-mode.el --- provide mac-style key bindings on Carbon Emacs
 
 ;; Copyright (C) 2004-2010  Seiji Zenitani
 
@@ -207,25 +207,23 @@ Windows external keyboard from time to time."
 
 (defvar mac-key-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; (define-key map (kbd "s-o") (lambda()(interactive)(let(last-nonmenu-event)(menu-find-file-existing))))
-    ;; (define-key map (kbd "s-o") 'counsel-find-file)
+    (define-key map (kbd "s-o") 'find-file)
     (define-key map (kbd "s-w") 'mac-key-close-window)
     (define-key map (kbd "s-s") 'save-buffer)
     (define-key map (kbd "s-S") 'mac-key-save-as)
     (define-key map (kbd "s-i") 'mac-key-show-in-finder)
     ;; (define-key map (kbd "s-p") 'print-buffer)
     (define-key map (kbd "s-q") 'save-buffers-kill-emacs)
-    (define-key map (kbd "s-z") 'undo-tree-undo)
-    (define-key map (kbd "s-Z") 'undo-tree-redo)
-    (define-key map (kbd "s-y") 'undo-tree-redo)
-    ;; (define-key map (kbd "s-x") 'clipboard-clipboard-kill-region)
-    ;; (define-key map (kbd "s-c") 'clipboard-kill-ring-save-keep-highlight)
+    (define-key map (kbd "s-z") 'undo)
+    (when (require 'redo nil t)
+      ;; requires redo+
+      (define-key map (kbd "s-Z") 'redo))
     (define-key map (kbd "s-x") 'cut-line-or-region)
     (define-key map (kbd "s-c") 'copy-line-or-region)
     (define-key map (kbd "s-v") 'clipboard-yank-and-indent)
     (define-key map (kbd "s-a") 'mark-whole-buffer)
-    ;; (define-key map (kbd "s-f") 'isearch-forward)
-    ;; (define-key map (kbd "M-s f") 'occur)
+    (define-key map (kbd "s-f") 'isearch-forward)
+    (define-key map (kbd "M-s f") 'occur)
     (define-key map (kbd "s-g") 'isearch-repeat-forward)
     (define-key map (kbd "s-G") 'isearch-repeat-backward)
     ;; (define-key map (kbd "s-l") 'goto-line)
@@ -240,14 +238,12 @@ Windows external keyboard from time to time."
     ;; (define-key map (kbd "s-.") 'keyboard-quit)
     (define-key map (kbd "s-<up>") 'beginning-of-buffer)
     (define-key map (kbd "s-<down>") 'end-of-buffer)
-    (define-key map (kbd "s-<left>") 'mwim-beginning-of-code-or-line)
-    ;; (define-key map (kbd "s-left") (if (fboundp 'mwim-beginning-of-code-or-line)
-    ;;                                  'mwim-beginning-of-code-or-line
-    ;;                                  'beginning-of-line))
-    (define-key map (kbd "s-<right>") 'mwim-end-of-code-or-line)
-    ;; (define-key map (kbd "s-right") (if (fboundp 'mwim-end-of-code-or-line)
-    ;;                                   'mwim-end-of-code-or-line
-    ;;                                   'end-of-line))
+    (define-key map (kbd "s-<left>") (if (fboundp 'mwim-beginning-of-code-or-line)
+                                     'mwim-beginning-of-code-or-line
+                                     'beginning-of-line))
+    (define-key map (kbd "s-<right>") (if (fboundp 'mwim-end-of-code-or-line)
+                                      'mwim-end-of-code-or-line
+                                      'end-of-line))
     (define-key map (kbd "M-<left>") 'backward-word)
     (define-key map (kbd "M-<right>") 'forward-word)
     (define-key map (kbd "<A-mouse-1>") 'browse-url-at-mouse)

@@ -33,7 +33,9 @@ alias sudo='sudo '
 if installed exa; then
   alias ls='exa -F'
   alias l='exa -F'
+  alias lh='exa -AlhF'
   alias ll='exa -lgF --git'
+  alias la='exa -algF --git'
   alias lsd='exa -dF */'
   alias lt='exa -lgFs modified'
 else
@@ -51,6 +53,7 @@ else
   alias l='ls'
   alias lh='ls -Alh'
   alias ll='ls -Fhl'
+  alias la='ls -algF --git'
   alias lsd="ls -d */"
   alias lt='ls -hltr'
 fi
@@ -82,8 +85,6 @@ elif installed source-highlight; then
   alias less='less -m -g -i -J --underline-special --SILENT'
   alias more='less'
 fi
-
-
 
 # git
 # tell git to non-interactively merge commits

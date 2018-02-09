@@ -6,8 +6,13 @@ installed pip3 && pip=pip3
 
 if [ "$pip" ]; then
   echo "Updating pip..."
-  "$pip" install --user --upgrade pip setuptools
-  "$pip" list --user --format=columns --outdated | awk 'NR>2 {print $1}' | xargs -n1 "$pip" install --user --upgrade
+  "$pip" install --user --upgrade pip setuptools pipenv
+  if [ -d "$HOME/Library/Python" ]; then
+    python_versions=( "$HOME/Library/Python/"* )
+    python_bin="${python_versions[-1]}/bin"
+  fi
+  "$python_bin/pipenv" --update update
+  # "$pip" list --user --format=columns --outdated | awk 'NR>2 {print $1}' | xargs -n1 "$pip" install --user --upgrade
 
 else
   echo "pip not found, skipping"

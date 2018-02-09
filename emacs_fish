@@ -2,5 +2,5 @@
 
 function fish_prompt
   echo $PWD
-  echo
+  echo "> "
 end

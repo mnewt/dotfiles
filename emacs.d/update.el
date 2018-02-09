@@ -1,5 +1,0 @@
-(defun straight-update ()
-  (interactive)
-  (straight-normalize-all)
-  (straight-fetch-all)
-  (straight-merge-all))

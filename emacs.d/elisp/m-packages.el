@@ -34,7 +34,12 @@
 
 (use-package undo-tree
   :config
-  (global-undo-tree-mode))
+  (global-undo-tree-mode)
+  :bind
+  (("s-z" . undo-tree-undo)
+   ("s-Z" . undo-tree-redo)
+   ("s-y" . undo-tree-redo)
+   ("M-s-z" . undo-tree-visualize)))
 
 ;; (use-package atom-one-dark-theme
 ;;   :load-path "straight/build/atom-one-dark-theme"
@@ -85,7 +90,9 @@
 (use-package dracula-theme
   :load-path "straight/build/dracula-theme"
   :config
-  (load-theme 'dracula t))
+  (progn
+    (load-theme 'dracula t)
+    (set-cursor-color "#A831A5")))
 
 (use-package powerline
   :init
@@ -131,25 +138,6 @@
                              (powerline-fill face1 (powerline-width rhs))
                              (powerline-render rhs)))))))
 
-;; (use-package switch-buffer-functions
-;;   :config
-;;   (progn
-;;     (defun projectile-header-line-tabs (prev cur)
-;;       "Display projectile buffers in the header line"
-;;       (if (not (boundp 'projectile-header-line-tabs-list))
-;;           (setq projectile-header-line-tabs-list '()))
-;;       (let* ((buffer-names (projectile-project-buffer-names))
-;;              (tabs-list (seq-intersection projectile-header-line-tabs-list buffer-names))
-;;              (name (buffer-name))
-;;              (active (powerline-selected-window-active)))
-;;         (setq projectile-header-line-tabs-list
-;;          (append tabs-list (seq-difference buffer-names tabs-list))))
-
-;;       (setq header-line-format
-;;             (seq-map (lambda (s) (concat "[ " s " ]"))
-;;                      projectile-header-line-tabs-list)))
-;;     (add-hook 'switch-buffer-functions 'projectile-header-line-tabs)))
-
 (use-package help-macro+)
 
 (use-package help+)
@@ -158,73 +146,11 @@
 
 (use-package help-mode+)
 
+(use-package info-colors
+  :config
+  (add-hook 'Info-selection-hook 'info-colors-fontify-node))
+
 (use-package menu-bar+)
-
-;; (defun tabbar-first-buffer ()
-;;   (interactive)
-;;   (tabbar-select-tab (first (tabbar-view (tabbar-current-tabset))) (tabbar-current-tabset)))
-
-;; (use-package tabbar
-;;   :config
-;;   (progn
-;;     (tabbar-mode 1)
-;;     (setq tabbar-use-images nil)
-;;     (set-face-attribute
-;;      'tabbar-default nil
-;;      :background "gray20"
-;;      :foreground "gray20"
-;;      :box '(:line-width 1 :color "gray20" :style nil))
-;;     (set-face-attribute
-;;      'tabbar-unselected nil
-;;      :background "gray30"
-;;      :foreground "white"
-;;      :box '(:line-width 5 :color "gray30" :style nil))
-;;     (set-face-attribute
-;;      'tabbar-selected nil
-;;      :background "gray75"
-;;      :foreground "black"
-;;      :box '(:line-width 5 :color "gray75" :style nil))
-;;     (set-face-attribute
-;;      'tabbar-highlight nil
-;;      :background "white"
-;;      :foreground "black"
-;;      :underline nil
-;;      :box '(:line-width 5 :color "white" :style nil))
-;;     (set-face-attribute
-;;      'tabbar-button nil
-;;      :box '(:line-width 1 :color "gray20" :style nil))
-;;     (set-face-attribute
-;;      'tabbar-separator nil
-;;      :background "gray20"
-;;      :height 1)
-
-;;     ;; Change padding of the tabs
-;;     ;; we also need to set separator to avoid overlapping tabs by highlighted tabs
-;;     (custom-set-variables
-;;      '(tabbar-separator (quote (0.5))))
-;;     ;; adding spaces
-;;     (defun tabbar-buffer-tab-label (tab)
-;;       "Return a label for TAB.
-;;     That is, a string used to represent it on the tab bar."
-;;       (let ((label  (if tabbar--buffer-show-groups
-;;                         (format "[%s]  " (tabbar-tab-tabset tab))
-;;                       (format "%s  " (tabbar-tab-value tab)))))
-;;         ;; Unless the tab bar auto scrolls to keep the selected tab
-;;         ;; visible, shorten the tab label to keep as many tabs as possible
-;;         ;; in the visible area of the tab bar.
-;;         (if tabbar-auto-scroll-flag
-;;             label
-;;           (tabbar-shorten
-;;            label (max 1 (/ (window-width)
-;;                            (length (tabbar-view
-;;                                     (tabbar-current-tabset)))))))))
-;;    (tabbar-mode 1))
-;;   :bind
-;;   (("s-1" . tabbar-first-buffer)))
-
-;; (use-package all-the-icons
-;;   :config
-;;   (all-the-icons-install-fonts))
 
 (use-package which-key
   :config
@@ -235,16 +161,15 @@
 
 (use-package ace-window
   :bind
-  (("M-p" . ace-window)))
+  (("M-o" . ace-window)))
 
-(use-package tile
+(use-package buffer-move
   :config
-  (setq tile-cycler
-        (tile-strategies :strategies
-                         (list (tile-split-n-tall 2)
-                               tile-tall
-                               (tile-argument-buffer-fetcher :layout tile-master-left)
-                               tile-one))))
+  (progn
+    (global-set-key (kbd "M-W")     'buf-move-up)
+    (global-set-key (kbd "M-S")   'buf-move-down)
+    (global-set-key (kbd "M-A")   'buf-move-left)
+    (global-set-key (kbd "M-D")  'buf-move-right)))
 
 (use-package smooth-scrolling
   :init
@@ -254,21 +179,34 @@
 
 (use-package mwim
   :bind
-  (("M-<left>" . mwim-beginning-of-code-or-line)
-   ("M-<right>" . mwim-end-of-code-or-line)))
+  (("C-a" . mwim-beginning-of-code-or-line)
+   ("s-<left>" . mwim-beginning-of-code-or-line)
+   (("C-e" . mwim-end-of-code-or-line)
+    ("s-<right>" . mwim-end-of-code-or-line))))
 
 (use-package fill-column-indicator
-  :commands fci-mode
-  :init
-  (add-hook 'after-change-major-mode-hook 'fci-mode)
   :config
   (progn
+    (define-globalized-minor-mode global-fci-mode fci-mode
+      (lambda ()
+        (if (and
+             (not (string-match "^\*.*\*$" (buffer-name)))
+             (not (eq major-mode 'dired-mode)))
+            (fci-mode 1))))
+
+    (global-fci-mode 1)
+
     (defun on-off-fci-before-company (command)
       (when (string= "show" command)
         (turn-off-fci-mode))
       (when (string= "hide" command)
         (turn-on-fci-mode)))
+
     (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
+
+(use-package dired-details+
+  :init
+  (setq-default dired-details-hidden-string ""))
 
 (use-package direx
   :bind
@@ -294,12 +232,26 @@
    ("M-s-a"  . mc/mark-all-like-this)
    ("M-s-å"  . mc/mark-all-like-this)))
 
+(use-package mc-extras
+  :bind
+  (:map mc/keymap
+   ("C-. M-C-f" . mc/mark-next-sexps)
+   ("C-. M-C-b" . mc/mark-previous-sexps)
+   ("C-. <" . mc/mark-all-above)
+   ("C-. >" . mc/mark-all-below)
+   ("C-. C-d" . mc/remove-current-cursor)
+   ("C-. C-k" . mc/remove-cursors-at-eol)
+   ("C-. d" . mc/remove-duplicated-cursors)
+   ("C-. C-." . mc/freeze-fake-cursors-dwim)
+   ("C-. ." . mc/move-to-column)
+   ("C-. =" . mc/compare-chars)))
+
 (use-package origami
   :config
   (global-origami-mode)
   :bind
-  (("s-{" . origami-close-node-recursively)
-   ("s-}" . origami-open-node-recursively)
+  (("M-s-]" . origami-close-node-recursively)
+   ("M-s-[" . origami-open-node-recursively)
    ("s-|" . origami-recursively-toggle-node)
    ("s-+" . origami-show-only-node)
    ("s-=" . origami-open-all-nodes)))
@@ -318,7 +270,23 @@
 
 (use-package company
   :init
-  (add-hook 'after-init-hook 'global-company-mode))
+  (add-hook 'after-init-hook 'global-company-mode)
+  :bind
+  (:map company-active-map
+   ("C-n" . company-select-next)
+   ("C-p" . company-select-previous)
+   ("C-d" . company-show-doc-buffer)
+   ("M-." . company-show-location)))
+
+(use-package company-shell
+  :config
+  (add-to-list 'company-backends '(company-shell company-shell-env company-fish-shell)))
+
+(use-package readline-complete
+  :config
+  (progn
+    (push 'company-readline company-backends)
+    (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1)))))
 
 (use-package ivy-hydra)
 
@@ -329,8 +297,7 @@
     (setq ivy-use-virtual-buffers t
           enable-recursive-minibuffers t))
   :bind
-  (("C-s" . swiper)
-   ("C-c C-r" . ivy-resume)
+  (("C-c C-r" . ivy-resume)
    ("s-b" . ivy-switch-buffer)
    ("s-B" . ivy-switch-buffer-other-window)
    :map ivy-switch-buffer-map
@@ -339,7 +306,9 @@
               (ivy-set-action 'kill-buffer)
               (ivy-done)))))
 
-(use-package swiper)
+(use-package swiper
+ :bind
+ (("C-s" . swiper)))
 
 (use-package counsel
   :init
@@ -361,9 +330,9 @@
    ("C-x l" . counsel-locate)
    ("M-s-v" . counsel-yank-pop)
    ("M-s-√" . counsel-yank-pop)
-   ("M-y" . counsel-yank-pop)
+   ("M-Y" . counsel-yank-pop)
    :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line)))
+   ("M-y" . ivy-next-line-and-call)))
 
 (use-package projectile
   :init
@@ -433,6 +402,10 @@
   :config
   (global-git-gutter+-mode t))
 
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
 ;; (use-package goto-last-change
 ;;   :bind
 ;;   (("M-," . goto-last-change)))
@@ -441,28 +414,41 @@
   :init
   (setq inferior-lisp-program "/usr/local/bin/sbcl")
   :bind
-  (("M-h" . sly-documentation-lookup)))
+  (:map sly-prefix-map
+   ("M-h" . sly-documentation-lookup)))
 
 (use-package sly-company
   :config
   (progn
     (add-hook 'sly-mode-hook 'sly-company-mode)
-    (add-to-list 'company-backends 'sly-company))
-  :bind
-  (("C-n" . company-select-next)
-   ("C-p" . company-select-previous)
-   ("C-d" . company-show-doc-buffer)))
+    (add-to-list 'company-backends 'sly-company))) 
 
 ;; (use-package yasnippet
 ;;   :config
 ;;   (yas-global-mode 1))
 
+(use-package xterm-color
+  :config
+  (progn
+    (setq comint-output-filter-functions
+          (remove 'ansi-color-process-output comint-output-filter-functions))
+
+    (add-hook 'shell-mode-hook
+              (lambda () (add-hook 'comint-preoutput-filter-functions
+                                   'xterm-color-filter nil t)))
+
+    (require 'eshell)
+    (add-hook 'eshell-before-prompt-hook
+              (lambda ()
+                (setq xterm-color-preserve-properties t)))
+
+    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+    (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))
+
 (use-package clojure-mode
   :mode (("\\.edn$" . clojure-mode))
   :config
   (progn
-    (setq clojure-align-forms-automatically t)
-
     (define-clojure-indent
       (defroutes 'defun)
       (GET 2)
@@ -527,12 +513,11 @@
 (use-package clj-refactor
   :config
   (progn
-    (defun my-clojure-mode-hook ()
+    (defun clj-refactor-clojure-mode-hook ()
       (clj-refactor-mode 1)
       (yas-minor-mode 1)
-      ;; This choice of keybinding leaves cider-macroexpand-1 unbound
-      (cljr-add-keybindings-with-prefix "C-c C-m"))
-    (add-hook 'clojure-mode-hook #'my-clojure-mode-hook)))
+      (cljr-add-keybindings-with-prefix "C-c l"))
+    (add-hook 'clojure-mode-hook #'clj-refactor-clojure-mode-hook)))
 
 (defun sp-sh-post-handler (id action context)
   "Bash post handler.
@@ -677,10 +662,10 @@ ID, ACTION, CONTEXT."
 ;;     (global-aggressive-indent-mode 1)
 ;;     (add-to-list 'aggressive-indent-excluded-modes 'html-mode)))
 
-(use-package paren-face
-  :config
-  (progn
-    (set-face-foreground 'parenthesis "#5C6370")))
+;; (use-package paren-face
+;;   :config
+;;   (progn
+;;     (set-face-foreground 'parenthesis "#5C6370")))
 
 ;; (use-package paredit
 ;;   :init
@@ -714,6 +699,33 @@ ID, ACTION, CONTEXT."
   :bind
   (("C-," . parinfer-toggle-mode)))
 
+(use-package dash-at-point
+  :config
+  (progn
+    (add-to-list 'dash-at-point-mode-alist '(clojure-mode . "clojuredocs"))
+    (add-to-list 'dash-at-point-mode-alist '(clojurescript-mode . "clojuredocs"))
+    (add-to-list 'dash-at-point-mode-alist '(sh-mode . "bash"))
+    (add-to-list 'dash-at-point-mode-alist '(fish-mode . "fish"))
+    (add-to-list 'dash-at-point-mode-alist '(lisp-mode . "lisp"))
+    (add-to-list 'dash-at-point-mode-alist '(slime-repl-mode . "lisp"))
+    (add-to-list 'dash-at-point-mode-alist '(lisp-interaction-mode . "elisp"))
+    (add-to-list 'dash-at-point-mode-alist '(inferior-emacs-lisp-mode . "elisp")))
+  :bind
+  (("C-c C-d" . dash-at-point)))
+
+(use-package pcre2el
+  :config
+  (rxt-global-mode t)
+  (pcre-mode t))
+
+(use-package visual-regexp-steroids
+  :bind
+  (("C-c r" . vr/replace)
+   ("C-c q" . vr/query-replace)
+   ("C-c m" . vr/mc-mark)))
+
+(use-package elisp-format)
+
 (use-package cider
   ;; "(do (require '[figwheel-sidecar.repl-api :as fsra])
   ;;      (fsra/start-figwheel!)
@@ -722,14 +734,14 @@ ID, ACTION, CONTEXT."
   (:map cider-mode-map
         ("s-<return>" . cider-eval-last-sexp)))
 
+(defun inf-clojure-start-lumo ()
+  (interactive)
+  ;; (setq inf-clojure-lein-cmd "lumo -d")
+  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
+            (inf-clojure-minor-mode)
+            (inf-clojure "lumo -d")))
+
 (use-package inf-clojure
-  :config
-  (defun inf-clojure-start-lumo ()
-    (interactive)
-    ;; (setq inf-clojure-lein-cmd "lumo -d")
-    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
-              (inf-clojure-minor-mode)
-              (inf-clojure "lumo -d")))
   :bind
   (:map inf-clojure-minor-mode-map
         ("s-<return>" . inf-clojure-eval-last-sexp)))
@@ -751,6 +763,14 @@ ID, ACTION, CONTEXT."
     (put 'unless 'scheme-indenfunction 1)
     (put 'match 'scheme-indent-function 1)))
 
+(use-package rainbow-mode
+  :config
+  (progn
+    (define-globalized-minor-mode global-rainbow-mode rainbow-mode
+      (lambda () (rainbow-mode 1)))
+
+    (global-rainbow-mode 1)))
+
 (use-package dockerfile-mode)
 
 (use-package docker
@@ -766,6 +786,10 @@ ID, ACTION, CONTEXT."
 (use-package markdown-mode
   :init
   (setq markdown-command "multimarkdown"))
+
+(use-package bash-completion
+  :config
+  (bash-completion-setup))
 
 (use-package fish-mode)
 
@@ -794,7 +818,23 @@ ID, ACTION, CONTEXT."
           web-mode-css-indent-offset tab-width
           web-mode-code-indent-offset tab-width
           web-mode-enable-current-element-highlight t
-          web-mode-enable-current-column-highlight t)))
+          web-mode-enable-current-column-highlight t)
+    (setq web-mode-ac-sources-alist
+          '(("css" . (ac-source-css-property))
+            ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+          
+    ;; from web-mode FAQ to work with smartparens
+    (defun my-web-mode-hook ()
+      (setq web-mode-enable-auto-pairing nil))
+
+    (add-hook 'web-mode-hook  'my-web-mode-hook)
+
+    (defun sp-web-mode-is-code-context (id action context)
+      (and (eq action 'insert)
+           (not (or (get-text-property (point) 'part-side)
+                    (get-text-property (point) 'block-side)))))))
+
+    ;(sp-local-pair 'web-mode "<" nil :when '(sp-web-mode-is-code-context))))
 
 (use-package js2-mode
   :config
@@ -805,6 +845,10 @@ ID, ACTION, CONTEXT."
 
 (use-package rjsx-mode)
 
+(use-package indium)
+
+(use-package restclient)
+
 (use-package robe
   :ensure company
   :init
@@ -813,12 +857,76 @@ ID, ACTION, CONTEXT."
   (eval-after-load 'company
     '(push 'company-robe company-backends)))
 
-(use-package inf-ruby
-  :bind
-  (("C-c r r" . inf-ruby)))
+(use-package inf-ruby)
 
 (use-package lua-mode)
 
 (use-package sass-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.sss\\'" . sass-mode)))
+
+(use-package flycheck
+  :config
+  (progn
+    (add-hook 'sh-mode-hook 'flycheck-mode)))
+
+;; (use-package readline-complete)
+
+(use-package powershell-mode
+  :config
+  (setq powershell-indent tab-width
+        powershell-continuation-indent tab-width))
+
+;; `eval-in-repl' requires a number of other packages so it's best to load it last
+(use-package eval-in-repl
+  :config
+  (progn
+    (require 'eval-in-repl-ielm)
+    (define-key emacs-lisp-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
+    (define-key lisp-interaction-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
+    (define-key Info-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
+
+    (require 'eval-in-repl-cider)
+    (define-key clojure-mode-map (kbd "<C-return>") 'eir-eval-in-cider)
+
+    ;; (require 'eval-in-repl-slime)
+    ;; (add-hook 'lisp-mode-hook
+    ;;           '(lambda ()
+    ;;              (local-set-key (kbd "<C-return>") 'eir-eval-in-slime)))
+
+    (require 'eval-in-repl-geiser)
+    (add-hook 'geiser-mode-hook
+              '(lambda ()
+                 (local-set-key (kbd "<s-return>") 'eir-eval-in-geiser)))
+
+    (require 'eval-in-repl-python)
+    (add-hook 'python-mode-hook
+              '(lambda ()
+                 (local-set-key (kbd "<s-return>") 'eir-eval-in-python)))
+
+    (require 'eval-in-repl-ruby)
+    (define-key ruby-mode-map (kbd "<s-return>") 'eir-eval-in-ruby)
+
+    ;; (with-eval-after-load 'js2-mode
+    ;;   (require 'eval-in-repl-javascript)
+    ;;   (define-key js2-mode-map (kbd "<s-return>") 'eir-eval-in-javascript))
+
+    (require 'eval-in-repl-shell)
+    (add-hook 'sh-mode-hook
+              '(lambda()
+                 (local-set-key (kbd "<s-return>") 'eir-eval-in-shell)))
+    ;; Version with opposite behavior to eir-jump-after-eval configuration
+    (defun eir-eval-in-shell2 ()
+      "eval-in-repl for shell script (opposite behavior)
+
+    This version has the opposite behavior to the eir-jump-after-eval
+    configuration when invoked to evaluate a line."
+      (interactive)
+      (let ((eir-jump-after-eval (not eir-jump-after-eval)))
+        (eir-eval-in-shell)))
+    (add-hook 'sh-mode-hook
+              '(lambda()
+                 (local-set-key (kbd "C-M-<return>") 'eir-eval-in-shell2)))))
+
+
+(provide 'm-packages)

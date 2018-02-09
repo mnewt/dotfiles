@@ -12,7 +12,7 @@
    ("C-c c" . hydra-multiple-cursors/body)
    ("C-c v" . hydra-git-gutter/body)
    ("C-c C-p" . hydra-projectile/body)
-   ("C-c m" . hydra-markdown-mode/body)))
+   ("C-c C-m" . hydra-markdown-mode/body)))
 
 (define-key dired-mode-map "." 'hydra-dired/body)
 (define-key ivy-minibuffer-map "\C-o" 'soo-ivy/body)
@@ -595,3 +595,5 @@ Links, footnotes  C-c C-a    _L_: link          _U_: uri        _F_: footnote   
   ("F" markdown-insert-footnote :color blue)
   ("W" markdown-insert-wiki-link :color blue)
   ("R" markdown-insert-reference-link-dwim :color blue)) 
+
+(provide 'm-hydra)
