@@ -13,6 +13,9 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+;; https://github.com/raxod502/straight.el/issues/41
+(setq straight-check-for-modifications 'live)
+
 ;; Try to get package.el to work better with straight.el
 ;; https://github.com/raxod502/straight.el/issues/128
 (defun straight--advice-package-installed-p (original-function &rest args)
@@ -164,12 +167,11 @@
   (("M-o" . ace-window)))
 
 (use-package buffer-move
-  :config
-  (progn
-    (global-set-key (kbd "M-W")     'buf-move-up)
-    (global-set-key (kbd "M-S")   'buf-move-down)
-    (global-set-key (kbd "M-A")   'buf-move-left)
-    (global-set-key (kbd "M-D")  'buf-move-right)))
+  :bind
+  (("M-W" . buf-move-up)
+   ("M-S" . buf-move-down)
+   ("M-A" . buf-move-left)
+   ("M-D" . buf-move-right)))
 
 (use-package smooth-scrolling
   :init
@@ -181,8 +183,8 @@
   :bind
   (("C-a" . mwim-beginning-of-code-or-line)
    ("s-<left>" . mwim-beginning-of-code-or-line)
-   (("C-e" . mwim-end-of-code-or-line)
-    ("s-<right>" . mwim-end-of-code-or-line))))
+   ("C-e" . mwim-end-of-code-or-line)
+   ("s-<right>" . mwim-end-of-code-or-line)))
 
 (use-package fill-column-indicator
   :config
@@ -256,11 +258,11 @@
    ("s-+" . origami-show-only-node)
    ("s-=" . origami-open-all-nodes)))
 
-(use-package replace+)
+(use-package wgrep
+  :bind
+  (("C-c C-p" . wgrep-change-to-wgrep-mode)))
 
-(use-package wgrep)
-
-(use-package wgrep-ag)
+;; (use-package wgrep-ag)
 
 (use-package rg
   :config
@@ -272,7 +274,8 @@
   :init
   (add-hook 'after-init-hook 'global-company-mode)
   :bind
-  (:map company-active-map
+  (("<tab>" . company-indent-or-complete-common)
+   :map company-active-map
    ("C-n" . company-select-next)
    ("C-p" . company-select-previous)
    ("C-d" . company-show-doc-buffer)
@@ -287,8 +290,6 @@
   (progn
     (push 'company-readline company-backends)
     (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1)))))
-
-(use-package ivy-hydra)
 
 (use-package ivy
   :config
@@ -305,6 +306,8 @@
               (interactive)
               (ivy-set-action 'kill-buffer)
               (ivy-done)))))
+
+(use-package ivy-hydra)
 
 (use-package swiper
  :bind
@@ -332,7 +335,9 @@
    ("M-s-√" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
    :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line-and-call)))
+   ("M-y" . ivy-next-line-and-call)
+   :map mac-key-mode-map
+   ("s-f" . counsel-grep-or-swiper)))
 
 (use-package projectile
   :init
@@ -427,23 +432,23 @@
 ;;   :config
 ;;   (yas-global-mode 1))
 
-(use-package xterm-color
-  :config
-  (progn
-    (setq comint-output-filter-functions
-          (remove 'ansi-color-process-output comint-output-filter-functions))
+;; (use-package xterm-color
+;;   :config
+;;   (progn
+;;     (setq comint-output-filter-functions
+;;           (remove 'ansi-color-process-output comint-output-filter-functions))
 
-    (add-hook 'shell-mode-hook
-              (lambda () (add-hook 'comint-preoutput-filter-functions
-                                   'xterm-color-filter nil t)))
+;;     (add-hook 'shell-mode-hook
+;;               (lambda () (add-hook 'comint-preoutput-filter-functions
+;;                                    'xterm-color-filter nil t)))
 
-    (require 'eshell)
-    (add-hook 'eshell-before-prompt-hook
-              (lambda ()
-                (setq xterm-color-preserve-properties t)))
+;;     (require 'eshell)
+;;     (add-hook 'eshell-before-prompt-hook
+;;               (lambda ()
+;;                 (setq xterm-color-preserve-properties t)))
 
-    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
-    (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))
+;;     (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+;;     (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))
 
 (use-package clojure-mode
   :mode (("\\.edn$" . clojure-mode))
@@ -763,13 +768,7 @@ ID, ACTION, CONTEXT."
     (put 'unless 'scheme-indenfunction 1)
     (put 'match 'scheme-indent-function 1)))
 
-(use-package rainbow-mode
-  :config
-  (progn
-    (define-globalized-minor-mode global-rainbow-mode rainbow-mode
-      (lambda () (rainbow-mode 1)))
-
-    (global-rainbow-mode 1)))
+(use-package rainbow-mode)
 
 (use-package dockerfile-mode)
 
@@ -927,6 +926,5 @@ ID, ACTION, CONTEXT."
     (add-hook 'sh-mode-hook
               '(lambda()
                  (local-set-key (kbd "C-M-<return>") 'eir-eval-in-shell2)))))
-
 
 (provide 'm-packages)

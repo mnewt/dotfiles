@@ -222,7 +222,7 @@ Windows external keyboard from time to time."
     (define-key map (kbd "s-c") 'copy-line-or-region)
     (define-key map (kbd "s-v") 'clipboard-yank-and-indent)
     (define-key map (kbd "s-a") 'mark-whole-buffer)
-    (define-key map (kbd "s-f") 'isearch-forward)
+    (define-key map (kbd "s-f") (key-binding (kbd "C-s")))
     (define-key map (kbd "M-s f") 'occur)
     (define-key map (kbd "s-g") 'isearch-repeat-forward)
     (define-key map (kbd "s-G") 'isearch-repeat-backward)
@@ -239,11 +239,11 @@ Windows external keyboard from time to time."
     (define-key map (kbd "s-<up>") 'beginning-of-buffer)
     (define-key map (kbd "s-<down>") 'end-of-buffer)
     (define-key map (kbd "s-<left>") (if (fboundp 'mwim-beginning-of-code-or-line)
-                                     'mwim-beginning-of-code-or-line
-                                     'beginning-of-line))
+                                         'mwim-beginning-of-code-or-line
+                                       'beginning-of-line))
     (define-key map (kbd "s-<right>") (if (fboundp 'mwim-end-of-code-or-line)
-                                      'mwim-end-of-code-or-line
-                                      'end-of-line))
+                                          'mwim-end-of-code-or-line
+                                        'end-of-line))
     (define-key map (kbd "M-<left>") 'backward-word)
     (define-key map (kbd "M-<right>") 'forward-word)
     (define-key map (kbd "<A-mouse-1>") 'browse-url-at-mouse)

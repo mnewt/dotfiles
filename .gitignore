@@ -12,8 +12,11 @@ vim/plugged
 emacs.d/straight
 emacs.d/network-security.data
 emacs.d/elpa
+emacs.d/magithub
+emacs.d/url
 .emacs.desktop*
 .mc-lists.el
+
 
 # fish
 config/fish
