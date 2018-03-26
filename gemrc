@@ -6,8 +6,6 @@ sources:
 backtrace: true
 bulk_threshold: 1000
 
-gem: -n /usr/local/bin
-
 install: --user-install
 update: --user-install
 uninstall: --user-install

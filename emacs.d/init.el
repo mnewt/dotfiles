@@ -30,9 +30,13 @@
 (setq-default fill-column 80)
 
 ;; wrap line at word boundary
-(global-visual-line-mode)
+;; unfortunately, this causes performance problems, notably with swiper
+;; (global-visual-line-mode)
 
 (global-hl-line-mode 1)                 ; highlight current line
+
+;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
+(setq auto-window-vscroll nil)
 
 ;; Use the system clipboard
 (setq select-enable-clipboard t)
@@ -47,6 +51,9 @@
   (interactive) 
   (set-frame-parameter nil 'fullscreen (if (frame-parameter nil 'fullscreen) nil 'fullboth)))
 (global-set-key (kbd "A-C-f") 'fullscreen)
+
+;; change yes/no prompts to y/n
+(defalias 'yes-or-no-p 'y-or-n-p)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Help
@@ -117,6 +124,14 @@
 
 ;; Save buffer config on exit and restore on startup
 (desktop-save-mode 1)
+
+;; move persistence files to keep them out of .emacs.d
+;; this is is useful to keep dotfiles repo clean
+;; and also so that multiple computers can share the same (sync'ed) .emacs.d
+(setq emacs-persistence-directory "~/.local/emacs/")
+(unless (file-exists-p emacs-persistence-directory)
+  (make-directory emacs-persistence-directory t))
+(setq ido-save-directory-list-file (concat emacs-persistence-directory "ido-last"))
 
 ;; Navigate windows with M-<arrows>
 (windmove-default-keybindings 'meta)
@@ -244,10 +259,10 @@
 ;; Shell and SSH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq shell-file-name (executable-find "bash"))
+(add-hook 'shell-mode-hook
+          (lambda () (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)))
 
-                                        ; (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)
-
+;; This is nice, but really slow
 ;; Stolen from (http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html)
 ;; (require 'ansi-color)
 ;; (defun colorize-compilation-buffer ()
@@ -255,45 +270,45 @@
 ;;   (ansi-color-apply-on-region (point-min) (point-max))
 ;;   (toggle-read-only))
 
-;; ;; Stolen from (https://oleksandrmanzyuk.wordpress.com/2011/11/05/better-emacs-shell-part-i/)
-;; (defun regexp-alternatives (regexps)
-;;   "Return the alternation of a list of regexps."
-;;   (mapconcat (lambda (regexp)
-;;                (concat "\\(?:" regexp "\\)"))
-;;              regexps "\\|"))
+;; Stolen from (https://oleksandrmanzyuk.wordpress.com/2011/11/05/better-emacs-shell-part-i/)
+(defun regexp-alternatives (regexps)
+  "Return the alternation of a list of regexps."
+  (mapconcat (lambda (regexp)
+               (concat "\\(?:" regexp "\\)"))
+             regexps "\\|"))
 
-;; (defvar non-sgr-control-sequence-regexp nil
-;;   "Regexp that matches non-SGR control sequences.")
+(defvar non-sgr-control-sequence-regexp nil
+  "Regexp that matches non-SGR control sequences.")
 
-;; (setq non-sgr-control-sequence-regexp
-;;       (regexp-alternatives
-;;        '(;; icon name escape sequences
-;;          "\033\\][0-2];.*?\007"
-;;          ;; non-SGR CSI escape sequences
-;;          "\033\\[\\??[0-9;]*[^0-9;m]"
-;;          ;; noop
-;;          "\012\033\\[2K\033\\[1F")))
+(setq non-sgr-control-sequence-regexp
+      (regexp-alternatives
+       '(;; icon name escape sequences
+         "\033\\][0-2];.*?\007"
+         ;; non-SGR CSI escape sequences
+         "\033\\[\\??[0-9;]*[^0-9;m]"
+         ;; noop
+         "\012\033\\[2K\033\\[1F")))
 
-;; (defun filter-non-sgr-control-sequences-in-region (begin end)
-;;   (save-excursion
-;;     (goto-char begin)
-;;     (while (re-search-forward
-;;             non-sgr-control-sequence-regexp end t)
-;;       (replace-match ""))))
+(defun filter-non-sgr-control-sequences-in-region (begin end)
+  (save-excursion
+    (goto-char begin)
+    (while (re-search-forward
+            non-sgr-control-sequence-regexp end t)
+      (replace-match ""))))
 
-;; (defun filter-non-sgr-control-sequences-in-output (ignored)
-;;   (let ((start-marker
-;;          (or comint-last-output-start
-;;              (point-min-marker)))
-;;         (end-marker
-;;          (process-mark
-;;           (get-buffer-process (current-buffer)))))
-;;     (filter-non-sgr-control-sequences-in-region
-;;      start-marker
-;;      end-marker)))
+(defun filter-non-sgr-control-sequences-in-output (ignored)
+  (let ((start-marker
+         (or comint-last-output-start
+             (point-min-marker)))
+        (end-marker
+         (process-mark
+          (get-buffer-process (current-buffer)))))
+    (filter-non-sgr-control-sequences-in-region
+     start-marker
+     end-marker)))
 
-;; (add-hook 'comint-output-filter-functions
-;;           'filter-non-sgr-control-sequences-in-output)
+(add-hook 'comint-output-filter-functions
+          'filter-non-sgr-control-sequences-in-output)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Server

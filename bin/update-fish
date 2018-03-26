@@ -15,7 +15,7 @@ download_if_newer () {
 if command -v fish >/dev/null 2>&1; then
   echo "Updating fish shell..."
   download_if_newer "http://git.io/fisher" "$fisher" --create-dirs
-  fish -lc fisher update
+  fish -lc 'fisher update'
 else
   echo "fish shell not found, skipping"
 fi

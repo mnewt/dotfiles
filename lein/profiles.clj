@@ -11,7 +11,7 @@
    ;;    [proto-repl "0.3.1"]]
    :plugins
      [;[venantius/ultra "0.5.1"]
-      [lein-ancient "0.6.14"]
+      [lein-ancient "0.6.15"]
       [lein-pprint "1.2.0"]
       ;; [com.jakemccrary/lein-test-refresh "0.21.1"]
       ;; [lein-kibit "0.1.5"]

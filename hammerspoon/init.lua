@@ -1,4 +1,11 @@
 --------------------------------------------------------------------------------
+-- Settings
+--------------------------------------------------------------------------------
+
+local mash = {"cmd", "alt", "ctrl"}
+local mashshift = {"cmd", "alt", "ctrl", "shift"}
+
+--------------------------------------------------------------------------------
 -- Utility functions to convert table to string
 --------------------------------------------------------------------------------
 
@@ -55,6 +62,8 @@ function reloadConfig(files)
 end
 myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 hs.alert.show("Config loaded")
+
+hs.hotkey.bind(mash, 'r', reloadConfig)
 
 --------------------------------------------------------------------------------
 -- Execute and print to console
@@ -155,6 +164,95 @@ function dofile_if(name)
     dofile(name)
   end
 end
+
+--------------------------------------------------------------------------------
+-- Spaces
+--------------------------------------------------------------------------------
+
+-- https://gist.github.com/TwoLeaves/a9d226ac98be5109a226
+
+-- Unsupported Spaces extension. Uses private APIs but works okay.
+-- (http://github.com/asmagill/hammerspoon_asm.undocumented)
+spaces = require("hs._asm.undocumented.spaces")
+
+--------------------------------------------------------------------------------
+-- Manual window moving and resizing
+-- Credit to GitHub user: ztomer
+
+hs.grid.MARGINX = 0
+hs.grid.MARGINY = 0
+hs.grid.GRIDHEIGHT = 18
+hs.grid.GRIDWIDTH = 18
+
+--Alter gridsize
+hs.hotkey.bind(mashshift, '=', function() hs.grid.adjustHeight( 1) end)
+hs.hotkey.bind(mashshift, '-', function() hs.grid.adjustHeight(-1) end)
+hs.hotkey.bind(mash, '=', function() hs.grid.adjustWidth( 1) end)
+hs.hotkey.bind(mash, '-', function() hs.grid.adjustWidth(-1) end)
+
+--Snap windows
+hs.hotkey.bind(mash, ';', function() hs.grid.snap(hs.window.focusedWindow()) end)
+hs.hotkey.bind(mash, "'", function() hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap) end)
+
+--Move windows
+hs.hotkey.bind(mash, 'j', hs.grid.pushWindowDown)
+hs.hotkey.bind(mash, 'k', hs.grid.pushWindowUp)
+hs.hotkey.bind(mash, 'h', hs.grid.pushWindowLeft)
+hs.hotkey.bind(mash, 'l', hs.grid.pushWindowRight)
+
+--resize windows
+hs.hotkey.bind(mashshift, 'k', hs.grid.resizeWindowShorter)
+hs.hotkey.bind(mashshift, 'j', hs.grid.resizeWindowTaller)
+hs.hotkey.bind(mashshift, 'l', hs.grid.resizeWindowWider)
+hs.hotkey.bind(mashshift, 'h', hs.grid.resizeWindowThinner)
+
+-- toggle window zoom (acts like Alt+Shift+GreenPlusButton)
+hs.hotkey.bind(mash, "m", function()
+                  local win = hs.window.focusedWindow()
+                  local frame = win:frame()
+                  local id = win:id()
+
+                  -- init table to save window state
+                  savedwin = savedwin or {}
+                  savedwin[id] = savedwin[id] or {}
+
+                  if (savedwin[id].maximized == nil or savedwin[id].maximized == false) then
+                     savedwin[id].frame = frame
+                     savedwin[id].maximized = true
+                     win:maximize()
+                  else
+                     savedwin[id].maximized = false
+                     win:setFrame(savedwin[id].frame)
+                     savedwin[id] = nil
+                  end
+end)
+
+--------------------------------------------------------------------------------
+-- switch Spaces
+hs.hotkey.bind(mash, '1', function()
+                  spaces.moveToSpace("1")
+                  spaceChange()
+end)
+hs.hotkey.bind(mash, '2', function()
+                  spaces.moveToSpace("2")
+                  spaceChange()
+end)
+hs.hotkey.bind(mash, '3', function()
+                  spaces.moveToSpace("3")
+                  spaceChange()
+end)
+hs.hotkey.bind(mash, '4', function()
+                  spaces.moveToSpace("4")
+                  spaceChange()
+end)
+hs.hotkey.bind(mash, '5', function()
+                  spaces.moveToSpace("5")
+                  spaceChange()
+end)
+hs.hotkey.bind(mash, '6', function()
+                  spaces.moveToSpace("6")
+                  spaceChange()
+end)
 
 --------------------------------------------------------------------------------
 -- Load stuff

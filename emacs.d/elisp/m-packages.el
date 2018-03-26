@@ -95,7 +95,8 @@
   :config
   (progn
     (load-theme 'dracula t)
-    (set-cursor-color "#A831A5")))
+    (set-cursor-color "#A831A5")
+    (set-mouse-color "white")))
 
 (use-package powerline
   :init
@@ -173,42 +174,48 @@
    ("M-A" . buf-move-left)
    ("M-D" . buf-move-right)))
 
-(use-package smooth-scrolling
-  :init
-  (setq smooth-scroll-margin 5)
-  :config
-  (smooth-scrolling-mode 1))
+;; (use-package smooth-scrolling
+;;   :init
+;;   (setq smooth-scroll-margin 5)
+;;   :config
+;;   (smooth-scrolling-mode 1))
 
 (use-package mwim
   :bind
   (("C-a" . mwim-beginning-of-code-or-line)
-   ("s-<left>" . mwim-beginning-of-code-or-line)
    ("C-e" . mwim-end-of-code-or-line)
-   ("s-<right>" . mwim-end-of-code-or-line)))
+   :map mac-key-mode-map
+   ("s-<right>" . mwim-end-of-code-or-line)
+   ("s-<left>" . mwim-beginning-of-code-or-line)))
 
-(use-package fill-column-indicator
+;; Causes smooth scrolling to be too slow
+;; (use-package fill-column-indicator
+;;   :config
+;;   (progn
+;;     (define-globalized-minor-mode global-fci-mode fci-mode
+;;       (lambda ()
+;;         (if (and
+;;              (not (string-match "^\*.*\*$" (buffer-name)))
+;;              (not (eq major-mode 'dired-mode)))
+;;             (fci-mode 1))))
+
+;;     (global-fci-mode 1)
+
+;;     (defun on-off-fci-before-company (command)
+;;       (when (string= "show" command)
+;;         (turn-off-fci-mode))
+;;       (when (string= "hide" command)
+;;         (turn-on-fci-mode)))
+
+;;     (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
+
+(use-package dired+
   :config
   (progn
-    (define-globalized-minor-mode global-fci-mode fci-mode
-      (lambda ()
-        (if (and
-             (not (string-match "^\*.*\*$" (buffer-name)))
-             (not (eq major-mode 'dired-mode)))
-            (fci-mode 1))))
-
-    (global-fci-mode 1)
-
-    (defun on-off-fci-before-company (command)
-      (when (string= "show" command)
-        (turn-off-fci-mode))
-      (when (string= "hide" command)
-        (turn-on-fci-mode)))
-
-    (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
-
-(use-package dired-details+
-  :init
-  (setq-default dired-details-hidden-string ""))
+    (add-hook 'dired-load-hook
+              (function (lambda () (load "dired-x"))))
+    (setq diredp-hide-details-initially-flag t
+          dired-listing-switches "-alh")))
 
 (use-package direx
   :bind
@@ -262,7 +269,8 @@
   :bind
   (("C-c C-p" . wgrep-change-to-wgrep-mode)))
 
-;; (use-package wgrep-ag)
+;; some rg features require this
+(use-package wgrep-ag)
 
 (use-package rg
   :config
@@ -274,7 +282,8 @@
   :init
   (add-hook 'after-init-hook 'global-company-mode)
   :bind
-  (("<tab>" . company-indent-or-complete-common)
+  (:map prog-mode-map
+   ("<tab>" . company-indent-or-complete-common)
    :map company-active-map
    ("C-n" . company-select-next)
    ("C-p" . company-select-previous)
@@ -403,9 +412,21 @@
 
 (use-package git-link)
 
-(use-package git-gutter+
+(use-package git-gutter
   :config
-  (global-git-gutter+-mode t))
+  (global-git-gutter-mode +1)
+  :bind
+  (("C-x C-g" . git-gutter)
+   ("C-x v =" . git-gutter:popup-hunk)
+   ;; Jump to next/previous hunk
+   ("C-x p" . git-gutter:previous-hunk)
+   ("C-x n" . git-gutter:next-hunk)
+   ;; Stage current hunk
+   ("C-x v s" . git-gutter:stage-hunk)
+   ;; Revert current hunk
+   ("C-x v r" . git-gutter:revert-hunk)
+   ;; Mark current hunk
+   ("C-x v SPC" . git-gutter:mark-hunk)))
 
 (use-package editorconfig
   :config
@@ -515,14 +536,14 @@
       (interactive)
       (cider-eval-last-sexp '(1)))))
 
-(use-package clj-refactor
-  :config
-  (progn
-    (defun clj-refactor-clojure-mode-hook ()
-      (clj-refactor-mode 1)
-      (yas-minor-mode 1)
-      (cljr-add-keybindings-with-prefix "C-c l"))
-    (add-hook 'clojure-mode-hook #'clj-refactor-clojure-mode-hook)))
+;; (use-package clj-refactor
+;;   :config
+;;   (progn
+;;     (defun clj-refactor-clojure-mode-hook ()
+;;       (clj-refactor-mode 1)
+;;       (yas-minor-mode 1)
+;;       (cljr-add-keybindings-with-prefix "C-c l"))
+;;     (add-hook 'clojure-mode-hook #'clj-refactor-clojure-mode-hook)))
 
 (defun sp-sh-post-handler (id action context)
   "Bash post handler.
@@ -618,10 +639,10 @@ ID, ACTION, CONTEXT."
               (newline))))))))
 
 (use-package smartparens
+  :init
   :config
   (progn
     (require 'smartparens-config)
-
     ;; https://github.com/Fuco1/smartparens/issues/80
     (defun my-create-newline-and-enter-sexp (&rest _ignored)
       "Open a new brace or bracket expression, with relevant newlines and indent. "
@@ -631,35 +652,32 @@ ID, ACTION, CONTEXT."
       (indent-according-to-mode))
 
     (sp-with-modes
-     '(sh-mode js2-mode javascript-mode)
-     (sp-local-pair "{" nil :post-handlers '((my-create-newline-and-enter-sexp "RET"))))
+        '(sh-mode js2-mode javascript-mode)
+      (sp-local-pair "{" nil :post-handlers '((my-create-newline-and-enter-sexp "RET"))))
 
     (sp-with-modes
-     '(sh-mode)
-     (sp-local-pair "do" "done"
-                    :when '(("SPC" "RET" "<evil-ret>"))
-                    :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                    :actions '(insert navigate)
-                    :pre-handlers '(sp-sh-pre-handler)
-                    :post-handlers '(sp-sh-block-post-handler))
-     (sp-local-pair "then" "fi"
-                    :when '(("SPC" "RET" "<evil-ret>"))
-                    :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                    :actions '(insert navigate)
-                    :pre-handlers '(sp-sh-pre-handler)
-                    :post-handlers '(sp-sh-block-post-handler))
-     (sp-local-pair "case" "esac"
-                    :when '(("SPC" "RET" "<evil-ret>"))
-                    :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                    :actions '(insert navigate)
-                    :pre-handlers '(sp-sh-pre-handler)
-                    :post-handlers '(sp-sh-block-post-handler)))
-    (smartparens-global-mode))
-
-  :bind
-  (("C-)" . sp-forward-slurp-sexp)
-   ("C-}" . sp-forward-barf-sexp)
-   ("M-C-k" . sp-kill-sexp)))
+        '(sh-mode)
+      (sp-local-pair "do" "done"
+                     :when '(("SPC" "RET" "<evil-ret>"))
+                     :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                     :actions '(insert navigate)
+                     :pre-handlers '(sp-sh-pre-handler)
+                     :post-handlers '(sp-sh-block-post-handler))
+      (sp-local-pair "then" "fi"
+                     :when '(("SPC" "RET" "<evil-ret>"))
+                     :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                     :actions '(insert navigate)
+                     :pre-handlers '(sp-sh-pre-handler)
+                     :post-handlers '(sp-sh-block-post-handler))
+      (sp-local-pair "case" "esac"
+                     :when '(("SPC" "RET" "<evil-ret>"))
+                     :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                     :actions '(insert navigate)
+                     :pre-handlers '(sp-sh-pre-handler)
+                     :post-handlers '(sp-sh-block-post-handler)))
+    (sp-use-paredit-bindings))
+  :hook
+  ((prog-mode markdown-mode) . turn-on-smartparens-mode))
 
 ;; (use-package aggressive-indent
 ;;   :config
@@ -741,7 +759,6 @@ ID, ACTION, CONTEXT."
 
 (defun inf-clojure-start-lumo ()
   (interactive)
-  ;; (setq inf-clojure-lein-cmd "lumo -d")
   (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
             (inf-clojure-minor-mode)
             (inf-clojure "lumo -d")))
@@ -768,7 +785,9 @@ ID, ACTION, CONTEXT."
     (put 'unless 'scheme-indenfunction 1)
     (put 'match 'scheme-indent-function 1)))
 
-(use-package rainbow-mode)
+(use-package rainbow-mode
+  :config
+  (add-hook 'sass-mode-hook #'rainbow-mode))
 
 (use-package dockerfile-mode)
 
@@ -777,6 +796,10 @@ ID, ACTION, CONTEXT."
   (docker-global-mode))
 
 (use-package docker-tramp)
+
+(use-package highlight-escape-sequences
+  :config
+  (turn-on-hes-mode))
 
 (use-package hl-todo
   :config
@@ -846,7 +869,21 @@ ID, ACTION, CONTEXT."
 
 (use-package indium)
 
+(use-package nodejs-repl
+  :config
+  (add-hook 'js2-mode-hook
+            (lambda ()
+              (define-key js-mode-map (kbd "C-x C-e") 'nodejs-repl-send-last-expression)
+              (define-key js-mode-map (kbd "C-c C-j") 'nodejs-repl-send-line)
+              (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
+              (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
+              (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl))))
+
 (use-package restclient)
+
+(use-package know-your-http-well)
+
+(use-package company-restclient)
 
 (use-package robe
   :ensure company
