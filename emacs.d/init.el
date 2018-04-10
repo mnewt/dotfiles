@@ -2,11 +2,54 @@
 ;; Top Level
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq gc-cons-threshold 20000000)
+(setq gc-cons-threshold 40000000)
 
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
-(setq tls-checktrust t)
+(setq tls-checktrust t
+      load-prefer-newer t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Persistence
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; move persistence files to keep them out of .emacs.d
+;; this is is useful to keep dotfiles repo clean
+;; and also so that multiple computers can share the same (sync'ed) .emacs.d
+(setq emacs-persistence-directory "~/.local/emacs/")
+(unless (file-exists-p emacs-persistence-directory)
+  (make-directory emacs-persistence-directory t))
+(setq ido-save-directory-list-file (concat emacs-persistence-directory "ido-last")
+      desktop-path (list emacs-persistence-directory "~"))
+
+;; saveplace remembers your location in a file when saving files
+(setq save-place-file (expand-file-name "saveplace" emacs-persistence-directory))
+;; activate it for all buffers
+(if (< emacs-major-version 25)
+    (progn (require 'saveplace)
+           (setq-default save-place t))
+  (save-place-mode 1))
+
+;; savehist keeps track of some history
+(require 'savehist)
+(setq savehist-additional-variables
+      ;; search entries
+      '(search-ring regexp-search-ring)
+      ;; save every minute
+      savehist-autosave-interval 60
+      ;; keep the home clean
+      savehist-file (expand-file-name "savehist" emacs-persistence-directory))
+(savehist-mode +1)
+
+;; save recent files
+(require 'recentf)
+(setq recentf-save-file (expand-file-name "recentf" emacs-persistence-directory)
+      recentf-max-saved-items 500
+      recentf-max-menu-items 15
+      ;; disable recentf-cleanup on Emacs start, because it can cause
+      ;; problems with remote files
+      recentf-auto-cleanup 'never)
+(recentf-mode +1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Interface
@@ -21,11 +64,11 @@
   "A friendlier visual bell effect."
   (with-current-buffer (get-buffer " *Echo Area 0*") 
     (setq-local face-remapping-alist '((default highlight)))) 
-  (run-with-timer 0.5 nil (lambda () 
+  (run-with-timer 0.15 nil (lambda () 
                             (with-current-buffer (get-buffer " *Echo Area 0*") 
                               (setq-local face-remapping-alist '((default)))))))
 
-(setq visible-bell nil ring-bell-function #'mode-line-visible-bell)
+(setq visible-bell t ring-bell-function #'mode-line-visible-bell)
 
 (setq-default fill-column 80)
 
@@ -55,27 +98,22 @@
 ;; change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Help
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(setq suggest-key-bindings 5)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; GUI
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(when window-system (menu-bar-mode -1) 
-      (tool-bar-mode -1) 
-      (scroll-bar-mode -1) 
-      (setq initial-frame-alist '((top . 1) 
-                                  (left . 75) 
-                                  (width . 195) 
-                                  (height . 58))) 
-      (setq default-frame-alist '((top . 60) 
-                                  (left . 80) 
-                                  (width . 190) 
-                                  (height . 53))))
+(when window-system
+  (menu-bar-mode -1) 
+  (when (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))
+  (when (fboundp 'scroll-bar-mode)
+    (scroll-bar-mode -1))
+  (when (fboundp 'horizontal-scroll-bar-mode)
+    (horizontal-scroll-bar-mode -1))
+  (setq initial-frame-alist '((top . 1) 
+                              (left . 75) 
+                              (width . 195) 
+                              (height . 58))) 
+  (setq default-frame-alist '((top . 60) 
+                              (left . 80) 
+                              (width . 190) 
+                              (height . 53))))
 
 (cond ((eq system-type 'darwin) 
        (setq ns-alternate-modifier 'meta) 
@@ -118,20 +156,25 @@
     (goto-address-mode t)))
 (global-goto-address-mode t)
 
+;; ido
+(setq ido-enable-flex-matching t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Help
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq suggest-key-bindings 5
+      apropos-do-all t)
+
+(add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
+(add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Buffer Navigation and Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Save buffer config on exit and restore on startup
-(desktop-save-mode 1)
-
-;; move persistence files to keep them out of .emacs.d
-;; this is is useful to keep dotfiles repo clean
-;; and also so that multiple computers can share the same (sync'ed) .emacs.d
-(setq emacs-persistence-directory "~/.local/emacs/")
-(unless (file-exists-p emacs-persistence-directory)
-  (make-directory emacs-persistence-directory t))
-(setq ido-save-directory-list-file (concat emacs-persistence-directory "ido-last"))
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 
 ;; Navigate windows with M-<arrows>
 (windmove-default-keybindings 'meta)
@@ -143,6 +186,7 @@
 (winner-mode 1)
 (global-set-key (kbd "C-c [") 'winner-undo)
 (global-set-key (kbd "C-M-,") 'winner-undo)
+(global-set-key (kbd "C-s-p") 'winner-undo)
 (global-set-key (kbd "C-c ]") 'winner-redo)
 
 ;; navigating with mark
@@ -192,6 +236,34 @@
 ;; tags
 (global-set-key (kbd "s-R") 'find-tag-other-window)
 
+;; dired - try to use GNU ls
+(setq insert-directory-program (or (executable-find "gls")
+                                   (executable-find "ls")))
+
+;; meaningful names for buffers with the same name
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward)
+(setq uniquify-separator "/")
+(setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
+(setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
+
+(defadvice server-visit-files (before parse-numbers-in-lines (files proc &optional nowait) activate)
+  "Open file with emacsclient with cursors positioned on requested line.
+Most of console-based utilities prints filename in format
+'filename:linenumber'.  So you may wish to open filename in that format.
+Just call:
+  emacsclient filename:linenumber
+and file 'filename' will be opened and cursor set on line 'linenumber'"
+  (ad-set-arg 0
+              (mapcar (lambda (fn)
+                        (let ((name (car fn)))
+                          (if (string-match "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$" name)
+                              (cons
+                               (match-string 1 name)
+                               (cons (string-to-number (match-string 2 name))
+                                     (string-to-number (or (match-string 3 name) ""))))
+                            fn))) files)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Editing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -199,11 +271,23 @@
 ;; blinking is NOT OK
 (blink-cursor-mode -1)
 
+;; Newline at end of file
+(setq require-final-newline t)
+
+;; delete selection on insert or yank
 (delete-selection-mode 1)
+(setq save-interprogram-paste-before-kill t
+      mouse-yank-at-point t)
+
+;; store all backup and autosave files in the tmp dir
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
 
 ;; tabs
 (setq-default indent-tabs-mode nil)     ; set tab to spaces
-(setq-default tab-width 2)              ; render tabs as two spaces
+(setq-default tab-width 2)
 (setq-default tab-stop-list (number-sequence tab-width 120 tab-width))
 
 ;; sh-mode
@@ -215,17 +299,25 @@
 ;; move by whole words
 (global-superword-mode)
 
+(define-key global-map (kbd "RET") 'newline-and-indent)
+
 ;; show-paren-mode
 (defadvice show-paren-function (after show-matching-paren-offscreen activate) 
   "If the matching paren is offscreen, show the matching line in the
-        echo area. Has no effect if the character before point is not of
-        the syntax class ')'." 
+   echo area. Has no effect if the character before point is not of
+   the syntax class ')'." 
   (interactive) 
   (let* ((cb (char-before (point))) 
          (matching-text (and cb 
                              (char-equal (char-syntax cb) ?\)) 
                              (blink-matching-open)))) 
     (when matching-text (message matching-text))))
+
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
+;; make a shell script executable automatically on save
+(add-hook 'after-save-hook
+          'executable-make-buffer-file-executable-if-script-p)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tramp
@@ -262,7 +354,7 @@
 (add-hook 'shell-mode-hook
           (lambda () (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)))
 
-;; This is nice, but really slow
+;; This is pretty, but really slow with colorful commands
 ;; Stolen from (http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html)
 ;; (require 'ansi-color)
 ;; (defun colorize-compilation-buffer ()
@@ -270,6 +362,7 @@
 ;;   (ansi-color-apply-on-region (point-min) (point-max))
 ;;   (toggle-read-only))
 
+;; Filter out terminal escape sequences that emacs would otherwise inelegantly print
 ;; Stolen from (https://oleksandrmanzyuk.wordpress.com/2011/11/05/better-emacs-shell-part-i/)
 (defun regexp-alternatives (regexps)
   "Return the alternation of a list of regexps."
@@ -334,7 +427,7 @@
 
 ;; Load and configure Packages
 (require 'm-packages)
-(require 'm-hydra)
+;; (require 'm-hydra)
 
 ;; Private settings
 (when (file-exists-p "~/.private.el") 

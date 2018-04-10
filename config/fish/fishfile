@@ -1,4 +1,5 @@
 fisherman/await
+git@gitlab.com:mnewt/dotfiles.git
 mnewt/fix
 fisherman/fnm
 fisherman/get_file_age

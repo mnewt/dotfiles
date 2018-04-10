@@ -1,6 +1,6 @@
 ;; Bootstrap straight.el
-(let ((bootstrap-file (concat user-emacs-directory "straight/bootstrap.el"))
-      (bootstrap-version 2))
+(let ((bootstrap-file (concat user-emacs-directory "straight/repos/straight.el/bootstrap.el"))
+      (bootstrap-version 3))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
@@ -29,74 +29,32 @@
 ;; https://github.com/raxod502/straight.el/issues/170
 (straight-register-package
  '(seq :repo "https://git.savannah.gnu.org/git/emacs/elpa.git" :files ("packages/seq/*.el")))
+
 (use-package seq
   :config
   (require 'seq-25))
 
-(use-package better-defaults)
+(require 'bind-key)
 
-(use-package undo-tree
-  :config
-  (global-undo-tree-mode)
-  :bind
-  (("s-z" . undo-tree-undo)
-   ("s-Z" . undo-tree-redo)
-   ("s-y" . undo-tree-redo)
-   ("M-s-z" . undo-tree-visualize)))
-
-;; (use-package atom-one-dark-theme
-;;   :load-path "straight/build/atom-one-dark-theme"
-;;   :config
-;;   (progn
-;;     (load-theme 'atom-one-dark t)
-;;     (if window-system
-;;         (progn
-;;           ;; blinking is NOT OK
-;;           (blink-cursor-mode -1)
-;;           (set-cursor-color "#A831A5"))
-;;       ;; (custom-set-faces '(default ((t (:background "#21252B"))))
-;;       ;;                   '(tabbar-default ((((class color) (min-colors 89)) (:inherit default :foreground "#2F343D" :background "#2F343D" :box (:line-width 6 :color "#2F343D" :style nil)))))
-;;       ;;                   '(tabbar-button ((((class color) (min-colors 89)) (:height 1 :box (:line-width 6 :color "#2F343D" :style nil)))))
-;;       ;;                   '(tabbar-unselected ((((class color) (min-colors 89)) (:inherit tabbar-button :background "#282C34"))))
-;;       ;;                   '(tabbar-modified ((((class color) (min-colors 89)) (:inherit tabbar-unselected))))
-;;       ;;                   '(tabbar-selected ((((class color) (min-colors 89)) (:inherit tabbar-button :background "#56B6C2" :box (:line-width 6 :color "#56B6C2" :style nil)))))
-;;       ;;                   '(tabbar-separator ((((class color) (min-colors 89)) (:inherit tabbar-selected)))))
-;;       (defvar atom-one-dark-colors-alist
-;;         '(("atom-one-dark-accent"   . "#528BFF")
-;;           ("atom-one-dark-fg"       . "#ABB2BF")
-;;           ("atom-one-dark-bg"       . "gray14")
-;;           ("atom-one-dark-bg-1"     . "gray13")
-;;           ("atom-one-dark-bg-hl"    . "gray13")
-;;           ("atom-one-dark-gutter"   . "#666D7A")
-;;           ("atom-one-dark-accent"   . "#AEB9F5")
-;;           ("atom-one-dark-mono-1"   . "#ABB2BF")
-;;           ("atom-one-dark-mono-2"   . "#828997")
-;;           ("atom-one-dark-mono-3"   . "#5C6370")
-;;           ("atom-one-dark-cyan"     . "#56B6C2")
-;;           ("atom-one-dark-blue"     . "#61AFEF")
-;;           ("atom-one-dark-purple"   . "#C678DD")
-;;           ("atom-one-dark-green"    . "#98C379")
-;;           ("atom-one-dark-red-1"    . "#E06C75")
-;;           ("atom-one-dark-red-2"    . "#BE5046")
-;;           ("atom-one-dark-orange-1" . "#D19A66")
-;;           ("atom-one-dark-orange-2" . "#E5C07B")
-;;           ("atom-one-dark-gray"     . "#3E4451")
-;;           ("atom-one-dark-silver"   . "#AAAAAA")
-;;           ("atom-one-dark-black"    . "#0F1011"))
-;;         "List of Atom One Dark colors."))))
-
-;; (use-package monokai-theme
-;;   :load-path "straight/build/monokai-theme"
-;;   :config
-;;   (load-theme 'monokai t))
+(use-package epkg
+  :defer t)
 
 (use-package dracula-theme
   :load-path "straight/build/dracula-theme"
   :config
   (progn
     (load-theme 'dracula t)
-    (set-cursor-color "#A831A5")
-    (set-mouse-color "white")))
+    (set-cursor-color "#F60")
+    (set-mouse-color "white")
+    (set-background-color "#333")))
+
+;; (use-package monokai-theme
+;;   :load-path "straight/build/monokai-theme"
+;;   :config
+;;   (progn
+;;     (load-theme 'monokai t)
+;;     (setq monokai-user-variable-pitch t)
+;;     (set-cursor-color "#A831A5")
 
 (use-package powerline
   :init
@@ -142,26 +100,76 @@
                              (powerline-fill face1 (powerline-width rhs))
                              (powerline-render rhs)))))))
 
-(use-package help-macro+)
+(use-package exec-path-from-shell
+  :defer t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
 
-(use-package help+)
+(use-package help-macro+
+  :defer t)
 
-(use-package help-fns+)
+(use-package help+
+  :defer t)
 
-(use-package help-mode+)
+(use-package help-fns+
+  :defer t)
+
+(use-package help-mode+
+  :defer t)
+
+(use-package helpful
+  :bind
+  (("C-h f" . helpful-callable)
+   ("C-h v" . helpful-variable)
+   ("C-h k" . helpful-key)
+   ("C-c C-h" . helpful-at-point)))
 
 (use-package info-colors
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
-(use-package menu-bar+)
+(use-package menu-bar+
+  :defer t)
 
 (use-package which-key
   :config
-  (which-key-mode)
+  (which-key-mode t)
   :bind
   (("M-s-˙" . which-key-show-top-level)
    ("M-s-h" . which-key-show-top-level)))
+
+(use-package undo-tree
+  :config
+  (global-undo-tree-mode)
+  ;; autosave the undo-tree history
+  (setq undo-tree-history-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq undo-tree-auto-save-history t)
+  :bind
+  (("s-z" . undo-tree-undo)
+   ("s-Z" . undo-tree-redo)
+   ("s-y" . undo-tree-redo)
+   ("M-s-z" . undo-tree-visualize)))
+
+(use-package easy-kill
+  :config
+  (global-set-key [remap kill-ring-save] 'easy-kill)
+  (global-set-key [remap mark-sexp] 'easy-mark))
+
+(use-package volatile-highlights
+  :config
+  (volatile-highlights-mode t))
+
+(use-package ace-jump-mode
+  :bind
+  (("C-c SPC" . ace-jump-mode)
+   ("C-x SPC" . ace-jump-mode-pop-mark)))
+
+(use-package ace-jump-zap
+  :bind
+  (("M-z" . ace-jump-zap-up-to-char-dwim)
+   ("C-M-z" . ace-jump-zap-to-char-dwim)))
 
 (use-package ace-window
   :bind
@@ -210,18 +218,53 @@
 ;;     (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
 
 (use-package dired+
+  :defer t
+  :hook
+  (dired-load-hook . (load 'dired-x))
   :config
-  (progn
-    (add-hook 'dired-load-hook
-              (function (lambda () (load "dired-x"))))
-    (setq diredp-hide-details-initially-flag t
-          dired-listing-switches "-alh")))
+  (defun dired-open-file ()
+      "Open file at point in OS default program"
+    (interactive)
+    (let* ((file (dired-get-filename nil t)))
+      (message "Opening %s..." file)
+      (call-process "open" nil 0 nil file)))
+  
+  (setq dired-recursive-deletes 'always
+        dired-recursive-copies 'always
+        diredp-hide-details-initially-flag t
+        dired-listing-switches "-alh"
+        dired-dwim-target t)
+  :bind
+  (:map
+   dired-mode-map
+   ("C-c o" . dired-open-file)))
 
 (use-package direx
   :bind
   (("C-x C-j" . direx:jump-to-directory)
    ("M-s-<up>". direx:jump-to-directory)
    ("s-\\" . direx:jump-to-directory)))
+
+(use-package proc-net
+  :bind
+  (("C-c n" . list-network-processes)))
+
+(use-package smartrep)
+
+(use-package operate-on-number
+  :config
+  (smartrep-define-key global-map "C-c ."
+    '(("+" . apply-operation-to-number-at-point)
+      ("-" . apply-operation-to-number-at-point)
+      ("*" . apply-operation-to-number-at-point)
+      ("/" . apply-operation-to-number-at-point)
+      ("\\" . apply-operation-to-number-at-point)
+      ("^" . apply-operation-to-number-at-point)
+      ("<" . apply-operation-to-number-at-point)
+      (">" . apply-operation-to-number-at-point)
+      ("#" . apply-operation-to-number-at-point)
+      ("%" . apply-operation-to-number-at-point)
+      ("'" . operate-on-number-at-point))))
 
 (use-package expand-region
   :init
@@ -244,26 +287,27 @@
 (use-package mc-extras
   :bind
   (:map mc/keymap
-   ("C-. M-C-f" . mc/mark-next-sexps)
-   ("C-. M-C-b" . mc/mark-previous-sexps)
-   ("C-. <" . mc/mark-all-above)
-   ("C-. >" . mc/mark-all-below)
-   ("C-. C-d" . mc/remove-current-cursor)
-   ("C-. C-k" . mc/remove-cursors-at-eol)
-   ("C-. d" . mc/remove-duplicated-cursors)
-   ("C-. C-." . mc/freeze-fake-cursors-dwim)
-   ("C-. ." . mc/move-to-column)
-   ("C-. =" . mc/compare-chars)))
+        ("C-. M-C-f" . mc/mark-next-sexps)
+        ("C-. M-C-b" . mc/mark-previous-sexps)
+        ("C-. <" . mc/mark-all-above)
+        ("C-. >" . mc/mark-all-below)
+        ("C-. C-d" . mc/remove-current-cursor)
+        ("C-. C-k" . mc/remove-cursors-at-eol)
+        ("C-. d" . mc/remove-duplicated-cursors)
+        ("C-. C-." . mc/freeze-fake-cursors-dwim)
+        ("C-. ." . mc/move-to-column)
+        ("C-. =" . mc/compare-chars)))
 
 (use-package origami
-  :config
-  (global-origami-mode)
+  ;; :config
+  ;; (global-origami-mode)
   :bind
-  (("M-s-]" . origami-close-node-recursively)
-   ("M-s-[" . origami-open-node-recursively)
-   ("s-|" . origami-recursively-toggle-node)
-   ("s-+" . origami-show-only-node)
-   ("s-=" . origami-open-all-nodes)))
+  (:map origami-mode-map
+        ("M-s-]" . origami-close-node-recursively)
+        ("M-s-[" . origami-open-node-recursively)
+        ("s-|" . origami-recursively-toggle-node)
+        ("s-+" . origami-show-only-node)
+        ("s-=" . origami-open-all-nodes)))
 
 (use-package wgrep
   :bind
@@ -283,12 +327,12 @@
   (add-hook 'after-init-hook 'global-company-mode)
   :bind
   (:map prog-mode-map
-   ("<tab>" . company-indent-or-complete-common)
-   :map company-active-map
-   ("C-n" . company-select-next)
-   ("C-p" . company-select-previous)
-   ("C-d" . company-show-doc-buffer)
-   ("M-." . company-show-location)))
+        ("<tab>" . company-indent-or-complete-common)
+        :map company-active-map
+        ("C-n" . company-select-next)
+        ("C-p" . company-select-previous)
+        ("C-d" . company-show-doc-buffer)
+        ("M-." . company-show-location)))
 
 (use-package company-shell
   :config
@@ -316,11 +360,12 @@
               (ivy-set-action 'kill-buffer)
               (ivy-done)))))
 
-(use-package ivy-hydra)
+(use-package ivy-hydra
+  :defer t)
 
 (use-package swiper
- :bind
- (("C-s" . swiper)))
+  :bind
+  (("C-s" . swiper)))
 
 (use-package counsel
   :init
@@ -393,24 +438,27 @@
    ("s-." . dumb-jump-go)
    ("s-J" . dumb-jump-quick-look)))
 
-(use-package vkill
-  :bind
-  (("C-x p" . vkill)))
-
 (use-package magit
+  :init
+  (setq vc-handled-backends nil)
   :bind
-  (("C-x C-z" . magit-status)))
+  (("C-x g" . magit-status)
+   ("C-x C-g" . magit-dispatch-popup)))
 
-(use-package git-timemachine)
+(use-package git-timemachine
+  :bind
+  (("C-x t" . git-timemachine)))
 
 (use-package magithub
   :after magit
   :config
   (magithub-feature-autoinject t))
 
-(use-package gist)
+(use-package gist
+  :defer t)
 
-(use-package git-link)
+(use-package git-link
+  :defer t)
 
 (use-package git-gutter
   :config
@@ -441,7 +489,7 @@
   (setq inferior-lisp-program "/usr/local/bin/sbcl")
   :bind
   (:map sly-prefix-map
-   ("M-h" . sly-documentation-lookup)))
+        ("M-h" . sly-documentation-lookup)))
 
 (use-package sly-company
   :config
@@ -534,16 +582,12 @@
 
     (defun cider-eval-last-sexp-and-append ()
       (interactive)
-      (cider-eval-last-sexp '(1)))))
+      (cider-eval-last-sexp '(1))))
+  (add-hook 'clojure-mode 'turn-on-eldoc-mode)
+  (add-hook 'clojurescript-mode 'turn-on-eldoc-mode))
 
-;; (use-package clj-refactor
-;;   :config
-;;   (progn
-;;     (defun clj-refactor-clojure-mode-hook ()
-;;       (clj-refactor-mode 1)
-;;       (yas-minor-mode 1)
-;;       (cljr-add-keybindings-with-prefix "C-c l"))
-;;     (add-hook 'clojure-mode-hook #'clj-refactor-clojure-mode-hook)))
+(use-package clojure-mode-extra-font-locking
+  :defer t)
 
 (defun sp-sh-post-handler (id action context)
   "Bash post handler.
@@ -643,6 +687,13 @@ ID, ACTION, CONTEXT."
   :config
   (progn
     (require 'smartparens-config)
+    (setq sp-base-key-bindings 'paredit)
+    (setq sp-autoskip-closing-pair 'always)
+    (setq sp-hybrid-kill-entire-symbol nil)
+    (sp-use-paredit-bindings)
+
+    (show-smartparens-global-mode +1)
+    
     ;; https://github.com/Fuco1/smartparens/issues/80
     (defun my-create-newline-and-enter-sexp (&rest _ignored)
       "Open a new brace or bracket expression, with relevant newlines and indent. "
@@ -674,8 +725,7 @@ ID, ACTION, CONTEXT."
                      :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
                      :actions '(insert navigate)
                      :pre-handlers '(sp-sh-pre-handler)
-                     :post-handlers '(sp-sh-block-post-handler)))
-    (sp-use-paredit-bindings))
+                     :post-handlers '(sp-sh-block-post-handler))))
   :hook
   ((prog-mode markdown-mode) . turn-on-smartparens-mode))
 
@@ -719,8 +769,20 @@ ID, ACTION, CONTEXT."
     (add-hook 'common-lisp-mode-hook #'parinfer-mode)
     (add-hook 'scheme-mode-hook #'parinfer-mode)
     (add-hook 'lisp-mode-hook #'parinfer-mode))
+  :config
+  (parinfer-strategy-add 'default 'newline-and-indent)
   :bind
-  (("C-," . parinfer-toggle-mode)))
+  (("C-," . parinfer-toggle-mode)
+   :map parinfer-mode-map
+        ("<tab>" . parinfer-smart-tab:dwim-right)
+        ("S-<tab>" . parinfer-smart-tab:dwim-left)
+        ("C-i" . parinfer--reindent-sexp)
+        ("C-M-i" . parinfer-auto-fix)
+        ("C-," . parinfer-toggle-mode)
+        :map parinfer-region-mode-map
+        ("C-i" . indent-for-tab-command)
+        ("<tab>" . parinfer-smart-tab:dwim-right)
+        ("S-<tab>" . parinfer-smart-tab:dwim-left)))
 
 (use-package dash-at-point
   :config
@@ -747,12 +809,15 @@ ID, ACTION, CONTEXT."
    ("C-c q" . vr/query-replace)
    ("C-c m" . vr/mc-mark)))
 
-(use-package elisp-format)
+(use-package elisp-format
+  :defer t)
 
 (use-package cider
   ;; "(do (require '[figwheel-sidecar.repl-api :as fsra])
   ;;      (fsra/start-figwheel!)
   ;;      (fsra/cljs-repl))"
+  :hook
+  (cider-repl-mode . (lambda () (company-mode nil)))
   :bind
   (:map cider-mode-map
         ("s-<return>" . cider-eval-last-sexp)))
@@ -786,16 +851,18 @@ ID, ACTION, CONTEXT."
     (put 'match 'scheme-indent-function 1)))
 
 (use-package rainbow-mode
-  :config
-  (add-hook 'sass-mode-hook #'rainbow-mode))
+  :hook
+  (sass-mode . rainbow-mode))
 
-(use-package dockerfile-mode)
+(use-package dockerfile-mode
+  :defer t)
 
 (use-package docker
   :config
   (docker-global-mode))
 
-(use-package docker-tramp)
+(use-package docker-tramp
+  :defer t)
 
 (use-package highlight-escape-sequences
   :config
@@ -813,155 +880,129 @@ ID, ACTION, CONTEXT."
   :config
   (bash-completion-setup))
 
-(use-package fish-mode)
+(use-package fish-mode
+  :defer t)
 
-(use-package fish-completion)
+(use-package fish-completion
+  :defer t)
 
 (use-package nginx-mode
   :config
   (setq nginx-indent-level tab-width))
 
-(use-package yaml-mode)
+(use-package yaml-mode
+  :defer t)
 
-(use-package toml-mode)
+(use-package toml-mode
+  :defer t)
 
 (use-package web-mode
-  :config
-  (progn
-    (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
-    (setq web-mode-markup-indent-offset tab-width
-          web-mode-css-indent-offset tab-width
-          web-mode-code-indent-offset tab-width
-          web-mode-enable-current-element-highlight t
-          web-mode-enable-current-column-highlight t)
-    (setq web-mode-ac-sources-alist
-          '(("css" . (ac-source-css-property))
-            ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
-          
-    ;; from web-mode FAQ to work with smartparens
-    (defun my-web-mode-hook ()
-      (setq web-mode-enable-auto-pairing nil))
-
-    (add-hook 'web-mode-hook  'my-web-mode-hook)
-
-    (defun sp-web-mode-is-code-context (id action context)
-      (and (eq action 'insert)
-           (not (or (get-text-property (point) 'part-side)
-                    (get-text-property (point) 'block-side)))))))
-
-    ;(sp-local-pair 'web-mode "<" nil :when '(sp-web-mode-is-code-context))))
+  :init
+  ;; from web-mode FAQ to work with smartparens
+  (defun my-web-mode-hook ()
+    (setq web-mode-enable-auto-pairing nil))
+  (defun sp-web-mode-is-code-context (id action context)
+    (and (eq action 'insert)
+         (not (or (get-text-property (point) 'part-side)
+                  (get-text-property (point) 'block-side)))))  :mode
+  ("\\.phtml\\'"
+   "\\.tpl\\.php\\'"
+   "\\.[agj]sp\\'"
+   "\\.as[cp]x\\'"
+   "\\.erb\\'"
+   "\\.mustache\\'"
+   "\\.djhtml\\'"
+   "\\.html?\\'")
+  :custom
+  (web-mode-markup-indent-offset tab-width
+   web-mode-css-indent-offset tab-width
+   web-mode-code-indent-offset tab-width
+   web-mode-enable-current-element-highlight t
+   web-mode-enable-current-column-highlight t
+   web-mode-ac-sources-alist '(("css" . (ac-source-css-property))
+                               ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+  :hook
+  (web-mode . my-web-mode-hook))
 
 (use-package js2-mode
-  :config
-  (progn
-    (setq js2-basic-offset tab-width)
-    (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-    (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)))
+  :mode "\\.js\\'"
+  :hook
+  (js2-mode . js2-imenu-extras-mode)
+  :custom
+  (js2-basic-offset tab-width))
 
-(use-package rjsx-mode)
+(use-package rjsx-mode
+  :defer t)
 
-(use-package indium)
+(use-package indium
+  :defer t)
 
 (use-package nodejs-repl
-  :config
-  (add-hook 'js2-mode-hook
-            (lambda ()
-              (define-key js-mode-map (kbd "C-x C-e") 'nodejs-repl-send-last-expression)
-              (define-key js-mode-map (kbd "C-c C-j") 'nodejs-repl-send-line)
-              (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
-              (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
-              (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl))))
+  :bind
+  (:map
+   js2-mode-map
+   ("C-x C-e" . nodejs-repl-send-last-expression)
+   ("C-c C-j" . nodejs-repl-send-line)
+   ("C-c C-r" . nodejs-repl-send-region)
+   ("C-c C-l" . nodejs-repl-load-file)
+   ("C-c C-z" . nodejs-repl-switch-to-repl)))
 
-(use-package restclient)
+(use-package restclient
+  :defer t)
 
-(use-package know-your-http-well)
+(use-package know-your-http-well
+  :defer t)
 
-(use-package company-restclient)
+(use-package company-restclient
+  :defer t)
 
 (use-package robe
-  :ensure company
-  :init
-  (add-hook 'ruby-mode-hook 'robe-mode)
+  :hook ruby-mode
   :config
   (eval-after-load 'company
     '(push 'company-robe company-backends)))
 
-(use-package inf-ruby)
+(use-package inf-ruby
+  :defer t)
 
-(use-package lua-mode)
+(use-package lua-mode
+  :defer t)
 
 (use-package sass-mode
-  :config
-  (add-to-list 'auto-mode-alist '("\\.sss\\'" . sass-mode)))
+  :mode "\\.sss\\'")
 
-(use-package flycheck
-  :config
-  (progn
-    (add-hook 'sh-mode-hook 'flycheck-mode)))
+;; (use-package flycheck
+;;   :hook sh-mode
+;;   :commands (flycheck))
 
 ;; (use-package readline-complete)
 
 (use-package powershell-mode
-  :config
-  (setq powershell-indent tab-width
-        powershell-continuation-indent tab-width))
+  :mode "\\.ps1\\'"
+  :custom
+  (powershell-indent tab-width)
+  (powershell-continuation-indent tab-width))
 
 ;; `eval-in-repl' requires a number of other packages so it's best to load it last
 (use-package eval-in-repl
-  :config
-  (progn
-    (require 'eval-in-repl-ielm)
-    (define-key emacs-lisp-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
-    (define-key lisp-interaction-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
-    (define-key Info-mode-map (kbd "<C-return>") 'eir-eval-in-ielm)
-
-    (require 'eval-in-repl-cider)
-    (define-key clojure-mode-map (kbd "<C-return>") 'eir-eval-in-cider)
-
-    ;; (require 'eval-in-repl-slime)
-    ;; (add-hook 'lisp-mode-hook
-    ;;           '(lambda ()
-    ;;              (local-set-key (kbd "<C-return>") 'eir-eval-in-slime)))
-
-    (require 'eval-in-repl-geiser)
-    (add-hook 'geiser-mode-hook
-              '(lambda ()
-                 (local-set-key (kbd "<s-return>") 'eir-eval-in-geiser)))
-
-    (require 'eval-in-repl-python)
-    (add-hook 'python-mode-hook
-              '(lambda ()
-                 (local-set-key (kbd "<s-return>") 'eir-eval-in-python)))
-
-    (require 'eval-in-repl-ruby)
-    (define-key ruby-mode-map (kbd "<s-return>") 'eir-eval-in-ruby)
-
-    ;; (with-eval-after-load 'js2-mode
-    ;;   (require 'eval-in-repl-javascript)
-    ;;   (define-key js2-mode-map (kbd "<s-return>") 'eir-eval-in-javascript))
-
-    (require 'eval-in-repl-shell)
-    (add-hook 'sh-mode-hook
-              '(lambda()
-                 (local-set-key (kbd "<s-return>") 'eir-eval-in-shell)))
-    ;; Version with opposite behavior to eir-jump-after-eval configuration
-    (defun eir-eval-in-shell2 ()
-      "eval-in-repl for shell script (opposite behavior)
-
-    This version has the opposite behavior to the eir-jump-after-eval
-    configuration when invoked to evaluate a line."
-      (interactive)
-      (let ((eir-jump-after-eval (not eir-jump-after-eval)))
-        (eir-eval-in-shell)))
-    (add-hook 'sh-mode-hook
-              '(lambda()
-                 (local-set-key (kbd "C-M-<return>") 'eir-eval-in-shell2)))))
+  :bind
+  (:map
+   emacs-lisp-mode-map
+   ("C-<return>" . eir-eval-in-ielm)
+   :map
+   lisp-interaction-mode-map
+   ("C-<return>" . eir-eval-in-ielm)   
+   :map
+   Info-mode-map
+   ("s-<return>" . eir-eval-in-ielm)
+   :map
+   python-mode-map
+   ("s-<return>" . eir-eval-in-python)
+   :map
+   ruby-mode-map
+   ("s-<return>" . eir-eval-in-ruby)
+   :map
+   sh-mode-map
+   ("s-<return>" . eir-eval-in-shell)))   
 
 (provide 'm-packages)

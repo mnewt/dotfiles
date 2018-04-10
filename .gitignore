@@ -14,6 +14,7 @@ emacs.d/network-security.data
 emacs.d/elpa
 emacs.d/magithub
 emacs.d/url
+emacs.d/epkgs
 .emacs.desktop*
 .mc-lists.el
 
