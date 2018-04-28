@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 ;; mac-key-mode.el --- provide mac-style key bindings on Carbon Emacs
 
 ;; Copyright (C) 2004-2010  Seiji Zenitani

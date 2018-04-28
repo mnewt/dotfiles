@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 ;; Bootstrap straight.el
 (let ((bootstrap-file (concat user-emacs-directory "straight/repos/straight.el/bootstrap.el"))
       (bootstrap-version 3))
@@ -34,10 +36,8 @@
   :config
   (require 'seq-25))
 
-(require 'bind-key)
-
-(use-package epkg
-  :defer t)
+;; (use-package epkg
+;;   :defer t)
 
 (use-package dracula-theme
   :load-path "straight/build/dracula-theme"
@@ -65,7 +65,7 @@
     (defface my-inactive1 '((t (:background "#0E111E" :foreground "#666666" :inherit mode-line-inactive)))
       "Powerline inactive face 1."
       :group 'powerline)
-    (defface my-active1 '((t (:background "#545663" :foreground "#c6c6cb" :inherit default)))
+    (defface my-active1 '((t (:background "#545663" :foreground "#f9f9fe" :inherit default)))
       "Powerline active face 1."
       :group 'powerline)
     (set-face-attribute 'mode-line nil
@@ -80,9 +80,9 @@
                           (face0 (if active 'powerline-active0 'powerline-inactive0))
                           (face1 (if active 'my-active1 'my-inactive1))
                           (face2 (if active 'powerline-active2 'powerline-inactive2))
-                          (lhs (list (powerline-raw "%*" face1 'l)
-                                     (powerline-buffer-id `(mode-line-buffer-id ,face1) 'l)
-                                     (powerline-raw " " face1)))
+                          (center (list (powerline-raw "%*" face1 'l)
+                                        (powerline-buffer-id `(mode-line-buffer-id ,face1) 'l)
+                                        (powerline-raw " " face1)))
                           (rhs (if active
                                    (list (powerline-raw global-mode-string face1 'r)
                                          (powerline-raw " " face1)
@@ -90,10 +90,10 @@
                                          (powerline-raw ":" face1)
                                          (powerline-raw "%c" face1 'r)
                                          (powerline-hud face2 face1))))
-                          (center (list (powerline-raw " " face1)
-                                        (powerline-major-mode face1 'l)
-                                        ;; (powerline-process face2)
-                                        (powerline-raw " " face1))))
+                          (lhs (list (powerline-raw " " face1)
+                                     (powerline-major-mode face1 'l)
+                                     ;; (powerline-process face2)
+                                     (powerline-raw " " face1))))
                      (concat (powerline-render lhs)
                              (powerline-fill-center face1 (/ (powerline-width center) 2.0))
                              (powerline-render center)
@@ -136,8 +136,7 @@
   :config
   (which-key-mode t)
   :bind
-  (("M-s-˙" . which-key-show-top-level)
-   ("M-s-h" . which-key-show-top-level)))
+  (("M-s-h" . which-key-show-top-level)))
 
 (use-package undo-tree
   :config
@@ -157,14 +156,25 @@
   (global-set-key [remap kill-ring-save] 'easy-kill)
   (global-set-key [remap mark-sexp] 'easy-mark))
 
-(use-package volatile-highlights
-  :config
-  (volatile-highlights-mode t))
+;; (use-package volatile-highlights
+;;   :config
+;;   (volatile-highlights-mode t))
 
-(use-package ace-jump-mode
+;; (use-package ace-jump-mode
+;;   :bind
+;;   (("C-c SPC" . ace-jump-mode)
+;;    ("C-x SPC" . ace-jump-mode-pop-mark)))
+
+(use-package winner
+  :init
+  (winner-mode)
   :bind
-  (("C-c SPC" . ace-jump-mode)
-   ("C-x SPC" . ace-jump-mode-pop-mark)))
+  (("C-c [" . winner-undo)
+   ("s-[" . winner-undo)
+   ("C-M-," . winner-undo)
+   ("C-s-p" . winner-undo)
+   ("C-c ]" . winner-redo)
+   ("s-]" . winner-redo)))
 
 (use-package ace-jump-zap
   :bind
@@ -217,54 +227,48 @@
 
 ;;     (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
 
+(use-package highlight)
+
 (use-package dired+
-  :defer t
-  :hook
-  (dired-load-hook . (load 'dired-x))
+  :after highlight
+  ;; :defer t
   :config
+  (defun dired-to-default-directory ()
+    "Open directory containing the current file"
+    (interactive)
+    (dired default-directory))
+  
   (defun dired-open-file ()
-      "Open file at point in OS default program"
+    "Open file at point in OS default program"
     (interactive)
     (let* ((file (dired-get-filename nil t)))
       (message "Opening %s..." file)
       (call-process "open" nil 0 nil file)))
-  
+
   (setq dired-recursive-deletes 'always
         dired-recursive-copies 'always
-        diredp-hide-details-initially-flag t
         dired-listing-switches "-alh"
         dired-dwim-target t)
-  :bind
-  (:map
-   dired-mode-map
-   ("C-c o" . dired-open-file)))
+  
+  (require 'dired+)
 
-(use-package direx
+  :custom
+  (diredp-hide-details-initially-flag t)  
   :bind
-  (("C-x C-j" . direx:jump-to-directory)
-   ("M-s-<up>". direx:jump-to-directory)
-   ("s-\\" . direx:jump-to-directory)))
+  (("C-x C-d" . dired-to-default-directory)
+   ("C-x d" . dired)
+   :map dired-mode-map
+   ("C-c o" . dired-open-file)
+   ("C-x f" . find-file-literally-at-point)))
+
+;; (use-package direx
+;;   :bind
+;;   (("C-x C-j" . direx:jump-to-directory)
+;;    ("s-\\" . direx:jump-to-directory-other-window)))
 
 (use-package proc-net
   :bind
   (("C-c n" . list-network-processes)))
-
-(use-package smartrep)
-
-(use-package operate-on-number
-  :config
-  (smartrep-define-key global-map "C-c ."
-    '(("+" . apply-operation-to-number-at-point)
-      ("-" . apply-operation-to-number-at-point)
-      ("*" . apply-operation-to-number-at-point)
-      ("/" . apply-operation-to-number-at-point)
-      ("\\" . apply-operation-to-number-at-point)
-      ("^" . apply-operation-to-number-at-point)
-      ("<" . apply-operation-to-number-at-point)
-      (">" . apply-operation-to-number-at-point)
-      ("#" . apply-operation-to-number-at-point)
-      ("%" . apply-operation-to-number-at-point)
-      ("'" . operate-on-number-at-point))))
 
 (use-package expand-region
   :init
@@ -277,7 +281,6 @@
   :bind
   (("C-S-c C-S-c" . mc/edit-lines)
    ("M-s-m" . mc/edit-lines)
-   ("M-s-µ" . mc/edit-lines)
    ("C->" . mc/mark-next-like-this)
    ("C-<" . mc/mark-previous-like-this)
    ("C-c C-<" . mc/mark-all-like-this)
@@ -299,8 +302,6 @@
         ("C-. =" . mc/compare-chars)))
 
 (use-package origami
-  ;; :config
-  ;; (global-origami-mode)
   :bind
   (:map origami-mode-map
         ("M-s-]" . origami-close-node-recursively)
@@ -337,12 +338,6 @@
 (use-package company-shell
   :config
   (add-to-list 'company-backends '(company-shell company-shell-env company-fish-shell)))
-
-(use-package readline-complete
-  :config
-  (progn
-    (push 'company-readline company-backends)
-    (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1)))))
 
 (use-package ivy
   :config
@@ -393,6 +388,7 @@
    :map mac-key-mode-map
    ("s-f" . counsel-grep-or-swiper)))
 
+
 (use-package projectile
   :init
   (setq frame-title-format
@@ -402,12 +398,12 @@
            (when (fboundp 'projectile-project-name)
              (let ((project-name (projectile-project-name)))
                (unless (string= "-" project-name)
-                 (format "[%s]" project-name)))))))
+                 (format "[%s]" project-name))))))
+        projectile-completion-system 'ivy)
   :config
   (projectile-mode)
   :bind
-  (("M-s-f" . counsel-projectile-rg)
-   ("M-s-ƒ" . counsel-projectile-rg)))
+  (("M-s-f" . counsel-projectile-rg)))
 
 (use-package counsel-projectile
   :init
@@ -417,7 +413,6 @@
   (counsel-projectile-mode)
   :bind
   (("M-s-p" . counsel-projectile-switch-to-buffer)
-   ("M-s-π" . counsel-projectile-switch-to-buffer)
    ("s-p" . counsel-projectile)
    ("s-P" . counsel-projectile-switch-project)
    ("s-t" . counsel-imenu)))
@@ -440,14 +435,15 @@
 
 (use-package magit
   :init
-  (setq vc-handled-backends nil)
+  (setq vc-handled-backends nil
+        magit-completing-read-function 'ivy-completing-read)
   :bind
   (("C-x g" . magit-status)
    ("C-x C-g" . magit-dispatch-popup)))
 
-(use-package git-timemachine
-  :bind
-  (("C-x t" . git-timemachine)))
+;; (use-package git-timemachine
+;;   :bind
+;;   (("C-x t" . git-timemachine)))
 
 (use-package magithub
   :after magit
@@ -455,10 +451,18 @@
   (magithub-feature-autoinject t))
 
 (use-package gist
-  :defer t)
+  :bind
+  (("C-x M-g" . gist-list)))
 
 (use-package git-link
   :defer t)
+
+;; Just cannot get this to work at all
+;; (use-package diff-hl
+;;   :hook
+;;   (magit-post-refresh . diff-hl-magit-post-refresh)
+;;   ((prog-mode markdown-mode) . diff-hl-mode)
+;;   (dired-mode . diff-hl-dired-mode))
 
 (use-package git-gutter
   :config
@@ -492,10 +496,10 @@
         ("M-h" . sly-documentation-lookup)))
 
 (use-package sly-company
+  :hook
+  (sly-mode . sly-company-mode)
   :config
-  (progn
-    (add-hook 'sly-mode-hook 'sly-company-mode)
-    (add-to-list 'company-backends 'sly-company))) 
+  (add-to-list 'company-backends 'sly-company))
 
 ;; (use-package yasnippet
 ;;   :config
@@ -522,6 +526,7 @@
 (use-package clojure-mode
   :mode (("\\.edn$" . clojure-mode))
   :config
+  (add-to-list 'interpreter-mode-alist '("inlein" . clojure-mode))
   (progn
     (define-clojure-indent
       (defroutes 'defun)
@@ -583,107 +588,107 @@
     (defun cider-eval-last-sexp-and-append ()
       (interactive)
       (cider-eval-last-sexp '(1))))
-  (add-hook 'clojure-mode 'turn-on-eldoc-mode)
-  (add-hook 'clojurescript-mode 'turn-on-eldoc-mode))
+  :hook
+  (clojure-mode . turn-on-eldoc-mode)
+  (clojurescript-mode . turn-on-eldoc-mode))
 
 (use-package clojure-mode-extra-font-locking
   :defer t)
 
-(defun sp-sh-post-handler (id action context)
-  "Bash post handler.
+(use-package smartparens
+  :init
+  (defun sp-sh-post-handler (id action context)
+    "Bash post handler.
 ID, ACTION, CONTEXT."
-  (-let (((&plist :arg arg :enc enc) sp-handler-context))
-    (when (equal action 'barf-backward)
-      (sp-ruby-delete-indentation 1)
-      (indent-according-to-mode)
-      (save-excursion
-        (sp-backward-sexp) ; move to begining of current sexp
-        (sp-backward-sexp arg)
-        (sp-ruby-maybe-one-space)))
+    (-let (((&plist :arg arg :enc enc) sp-handler-context))
+      (when (equal action 'barf-backward)
+        (sp-ruby-delete-indentation 1)
+        (indent-according-to-mode)
+        (save-excursion
+          (sp-backward-sexp) ; move to begining of current sexp
+          (sp-backward-sexp arg)
+          (sp-ruby-maybe-one-space)))
 
-    (when (equal action 'barf-forward)
+      (when (equal action 'barf-forward)
+        (sp-get enc
+          (let ((beg-line (line-number-at-pos :beg-in))
+                (end-line (line-number-at-pos :end-in)))
+            (sp-forward-sexp arg)
+            (sp-ruby-maybe-one-space)
+            (when (not (= (line-number-at-pos) beg-line))
+              (sp-ruby-delete-indentation -1))
+            (indent-according-to-mode))))))
+
+  (defun sp-sh-block-post-handler (id action context)
+    "Handler for bash block insertions.
+ID, ACTION, CONTEXT."
+    (when (equal action 'insert)
+      (save-excursion
+        (newline)
+        (indent-according-to-mode))
+      (indent-according-to-mode))
+    (sp-sh-post-handler id action context))
+
+  (defun sp-sh-pre-handler (id action context)
+    "Handler for bash slurp and barf.
+ID, ACTION, CONTEXT."
+    (let ((enc (plist-get sp-handler-context :enc)))
       (sp-get enc
         (let ((beg-line (line-number-at-pos :beg-in))
               (end-line (line-number-at-pos :end-in)))
-          (sp-forward-sexp arg)
-          (sp-ruby-maybe-one-space)
-          (when (not (= (line-number-at-pos) beg-line))
-            (sp-ruby-delete-indentation -1))
-          (indent-according-to-mode))))))
 
-(defun sp-sh-block-post-handler (id action context)
-  "Handler for bash block insertions.
-ID, ACTION, CONTEXT."
-  (when (equal action 'insert)
-    (save-excursion
-      (newline)
-      (indent-according-to-mode))
-    (indent-according-to-mode))
-  (sp-sh-post-handler id action context))
+          (when (equal action 'slurp-backward)
+            (save-excursion
+              (sp-forward-sexp)
+              (when (looking-at-p ";") (forward-char))
+              (sp-ruby-maybe-one-space)
+              (when (not (= (line-number-at-pos) end-line))
+                (sp-ruby-delete-indentation -1)))
+            (while (thing-at-point-looking-at "\\.[[:blank:]\n]*")
+              (sp-backward-sexp))
+            (when (looking-back "[@$:&?!]")
+              (backward-char)
+              (when (looking-back "[@&:]")
+                (backward-char)))
+            (just-one-space)
+            (save-excursion
+              (if (= (line-number-at-pos) end-line)
+                  (insert " ")
+                (newline))))
 
-(defun sp-sh-pre-handler (id action context)
-  "Handler for bash slurp and barf.
-ID, ACTION, CONTEXT."
-  (let ((enc (plist-get sp-handler-context :enc)))
-    (sp-get enc
-      (let ((beg-line (line-number-at-pos :beg-in))
-            (end-line (line-number-at-pos :end-in)))
+          (when (equal action 'barf-backward)
+            ;; Barf whole method chains
+            (while (thing-at-point-looking-at "[(.:[][\n[:blank:]]*")
+              (sp-forward-sexp))
+            (if (looking-at-p " *$")
+                (newline)
+              (save-excursion (newline))))
 
-        (when (equal action 'slurp-backward)
-          (save-excursion
-            (sp-forward-sexp)
-            (when (looking-at-p ";") (forward-char))
-            (sp-ruby-maybe-one-space)
-            (when (not (= (line-number-at-pos) end-line))
-              (sp-ruby-delete-indentation -1)))
-          (while (thing-at-point-looking-at "\\.[[:blank:]\n]*")
-            (sp-backward-sexp))
-          (when (looking-back "[@$:&?!]")
-            (backward-char)
-            (when (looking-back "[@&:]")
-              (backward-char)))
-          (just-one-space)
-          (save-excursion
+          (when (equal action 'slurp-forward)
+            (save-excursion
+              (sp-backward-sexp)
+              (when (looking-back "\.") (backward-char))
+              (sp-ruby-maybe-one-space)
+              (when (not (= (line-number-at-pos) beg-line))
+                (if (thing-at-point-looking-at "\\.[[:blank:]\n]*")
+                    (progn
+                      (forward-symbol -1)
+                      (sp-ruby-delete-indentation -1))
+                  (sp-ruby-delete-indentation))))
+            (while (looking-at-p "::") (sp-forward-symbol))
+            (when (looking-at-p "[?!;]") (forward-char))
+            (if (= (line-number-at-pos) beg-line)
+                (insert " ")
+              (newline)))
+
+          (when (equal action 'barf-forward)
+            (when (looking-back "\\.") (backward-char))
+            (while (looking-back "::") (sp-backward-symbol))
             (if (= (line-number-at-pos) end-line)
                 (insert " ")
-              (newline))))
-
-        (when (equal action 'barf-backward)
-          ;; Barf whole method chains
-          (while (thing-at-point-looking-at "[(.:[][\n[:blank:]]*")
-            (sp-forward-sexp))
-          (if (looking-at-p " *$")
-              (newline)
-            (save-excursion (newline))))
-
-        (when (equal action 'slurp-forward)
-          (save-excursion
-            (sp-backward-sexp)
-            (when (looking-back "\.") (backward-char))
-            (sp-ruby-maybe-one-space)
-            (when (not (= (line-number-at-pos) beg-line))
-              (if (thing-at-point-looking-at "\\.[[:blank:]\n]*")
-                  (progn
-                    (forward-symbol -1)
-                    (sp-ruby-delete-indentation -1))
-                (sp-ruby-delete-indentation))))
-          (while (looking-at-p "::") (sp-forward-symbol))
-          (when (looking-at-p "[?!;]") (forward-char))
-          (if (= (line-number-at-pos) beg-line)
-              (insert " ")
-            (newline)))
-
-        (when (equal action 'barf-forward)
-          (when (looking-back "\\.") (backward-char))
-          (while (looking-back "::") (sp-backward-symbol))
-          (if (= (line-number-at-pos) end-line)
-              (insert " ")
-            (if (looking-back "^[[:blank:]]*")
-                (save-excursion (newline))
-              (newline))))))))
-
-(use-package smartparens
-  :init
+              (if (looking-back "^[[:blank:]]*")
+                  (save-excursion (newline))
+                (newline))))))))
   :config
   (progn
     (require 'smartparens-config)
@@ -729,17 +734,7 @@ ID, ACTION, CONTEXT."
   :hook
   ((prog-mode markdown-mode) . turn-on-smartparens-mode))
 
-;; (use-package aggressive-indent
-;;   :config
-;;   (progn
-;;     (global-aggressive-indent-mode 1)
-;;     (add-to-list 'aggressive-indent-excluded-modes 'html-mode)))
-
-;; (use-package paren-face
-;;   :config
-;;   (progn
-;;     (set-face-foreground 'parenthesis "#5C6370")))
-
+;; Trying out paredit with these 3 packages
 ;; (use-package paredit
 ;;   :init
 ;;   (progn
@@ -754,14 +749,24 @@ ID, ACTION, CONTEXT."
 ;;      'paredit-backward-delete
 ;;      'paredit-close-round)))
 
+;; (use-package aggressive-indent
+;;   :config
+;;   (progn
+;;     (global-aggressive-indent-mode 1)
+;;     (add-to-list 'aggressive-indent-excluded-modes 'html-mode)))
+
+;; (use-package paren-face
+;;   :config
+;;   (progn
+;;     (set-face-foreground 'parenthesis "#5C6370")))
+
 (use-package parinfer
-  ;; :ensure paredit
   :init
   (progn
     (setq parinfer-extensions
           '(defaults        ; should be included.
              pretty-parens  ; different paren styles for different modes.
-             paredit        ; Introduce some paredit commands.
+             ;; paredit        ; Introduce some paredit commands.
              smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
              smart-yank))     ; Yank behavior depend on mode.
     (add-hook 'clojure-mode-hook #'parinfer-mode)
@@ -772,13 +777,13 @@ ID, ACTION, CONTEXT."
   :config
   (parinfer-strategy-add 'default 'newline-and-indent)
   :bind
-  (("C-," . parinfer-toggle-mode)
-   :map parinfer-mode-map
+  (:map parinfer-mode-map
         ("<tab>" . parinfer-smart-tab:dwim-right)
         ("S-<tab>" . parinfer-smart-tab:dwim-left)
         ("C-i" . parinfer--reindent-sexp)
         ("C-M-i" . parinfer-auto-fix)
         ("C-," . parinfer-toggle-mode)
+        ("\"" . nil)
         :map parinfer-region-mode-map
         ("C-i" . indent-for-tab-command)
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -788,6 +793,7 @@ ID, ACTION, CONTEXT."
   :config
   (progn
     (add-to-list 'dash-at-point-mode-alist '(clojure-mode . "clojuredocs"))
+    (add-to-list 'dash-at-point-mode-alist '(clojurec-mode . "clojuredocs"))
     (add-to-list 'dash-at-point-mode-alist '(clojurescript-mode . "clojuredocs"))
     (add-to-list 'dash-at-point-mode-alist '(sh-mode . "bash"))
     (add-to-list 'dash-at-point-mode-alist '(fish-mode . "fish"))
@@ -813,25 +819,23 @@ ID, ACTION, CONTEXT."
   :defer t)
 
 (use-package cider
-  ;; "(do (require '[figwheel-sidecar.repl-api :as fsra])
-  ;;      (fsra/start-figwheel!)
-  ;;      (fsra/cljs-repl))"
-  :hook
-  (cider-repl-mode . (lambda () (company-mode nil)))
+  :config
+  (add-hook 'cider-repl-mode-hook (lambda () (company-mode nil)))
   :bind
   (:map cider-mode-map
         ("s-<return>" . cider-eval-last-sexp)))
 
-(defun inf-clojure-start-lumo ()
-  (interactive)
-  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
-            (inf-clojure-minor-mode)
-            (inf-clojure "lumo -d")))
-
 (use-package inf-clojure
+  :config
+  (defun inf-clojure-start-lumo ()
+    (interactive)
+    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
+              (inf-clojure-minor-mode)
+              (inf-clojure "lumo -d")))
   :bind
   (:map inf-clojure-minor-mode-map
-        ("s-<return>" . inf-clojure-eval-last-sexp)))
+        ("s-<return>" . inf-clojure-eval-last-sexp)
+        ("C-c C-k" . inf-clojure-eval-buffer)))
 
 (use-package geiser
   :config
@@ -915,12 +919,12 @@ ID, ACTION, CONTEXT."
    "\\.html?\\'")
   :custom
   (web-mode-markup-indent-offset tab-width
-   web-mode-css-indent-offset tab-width
-   web-mode-code-indent-offset tab-width
-   web-mode-enable-current-element-highlight t
-   web-mode-enable-current-column-highlight t
-   web-mode-ac-sources-alist '(("css" . (ac-source-css-property))
-                               ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+                                 web-mode-css-indent-offset tab-width
+                                 web-mode-code-indent-offset tab-width
+                                 web-mode-enable-current-element-highlight t
+                                 web-mode-enable-current-column-highlight t
+                                 web-mode-ac-sources-alist '(("css" . (ac-source-css-property))
+                                                             ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
   :hook
   (web-mode . my-web-mode-hook))
 
@@ -966,22 +970,23 @@ ID, ACTION, CONTEXT."
   :defer t)
 
 (use-package lua-mode
-  :defer t)
+  :mode "\\.lua\\'")
 
 (use-package sass-mode
-  :mode "\\.sss\\'")
+  :mode ("\\.sss\\'" "\\.sass\\'" "\\.scss\\'"))
 
 ;; (use-package flycheck
 ;;   :hook sh-mode
 ;;   :commands (flycheck))
-
-;; (use-package readline-complete)
 
 (use-package powershell-mode
   :mode "\\.ps1\\'"
   :custom
   (powershell-indent tab-width)
   (powershell-continuation-indent tab-width))
+
+(use-package ios-config-mode
+  :mode "\\.cfg\\'")
 
 ;; `eval-in-repl' requires a number of other packages so it's best to load it last
 (use-package eval-in-repl
@@ -1004,5 +1009,6 @@ ID, ACTION, CONTEXT."
    :map
    sh-mode-map
    ("s-<return>" . eir-eval-in-shell)))   
+
 
 (provide 'm-packages)

@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 (use-package hydra  
   :bind
   (("C-c f" . hydra-zoom/body)

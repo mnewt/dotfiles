@@ -20,7 +20,9 @@
 (unless (file-exists-p emacs-persistence-directory)
   (make-directory emacs-persistence-directory t))
 (setq ido-save-directory-list-file (concat emacs-persistence-directory "ido-last")
-      desktop-path (list emacs-persistence-directory "~"))
+      desktop-path (list emacs-persistence-directory))
+
+(desktop-save-mode 1)
 
 ;; saveplace remembers your location in a file when saving files
 (setq save-place-file (expand-file-name "saveplace" emacs-persistence-directory))
@@ -76,7 +78,11 @@
 ;; unfortunately, this causes performance problems, notably with swiper
 ;; (global-visual-line-mode)
 
-(global-hl-line-mode 1)                 ; highlight current line
+;; highlight current line
+(global-hl-line-mode 1)
+
+;; Show line in the original buffer from occur mode
+(setq list-matching-lines-jump-to-current-line t)
 
 ;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
 (setq auto-window-vscroll nil)
@@ -126,11 +132,12 @@
        (when window-system (menu-bar-mode +1)) 
        (add-hook 'mac-key-mode-hook (lambda () 
                                       (interactive) 
-                                      (if mac-key-mode 
-                                          (setq ns-function-modifier 'hyper mac-option-modifier
-                                                'meta mac-command-modifier 'super) 
-                                        (setq mac-option-modifier nil)))) 
-       (setq mac-allow-anti-aliasing t mac-key-advanced-setting t)
+                                      (when mac-key-mode
+                                          (setq mac-function-modifier 'hyper
+                                                mac-option-modifier 'meta
+                                                mac-command-modifier 'super)))) 
+       (setq mac-key-advanced-setting t)
+       (global-set-key (kbd "H-<backspace>") 'delete-char)
        (require 'mac-key-mode) 
        (mac-key-mode +1)
        (set-face-font 'default "Monaco-13") 
@@ -149,6 +156,8 @@
 (setq scroll-margin 1 scroll-conservatively 1 scroll-up-aggressively 0.01 scroll-down-aggressively
       0.01 mouse-wheel-progressive-speed 1)
 (setq-default scroll-up-aggressively 0.01 scroll-down-aggressively 0.01)
+;; mouse wheel works horizontally as well
+(setq mouse-wheel-tilt-scroll t)
 
 ;; Enable `goto-address-mode' globally
 (define-globalized-minor-mode global-goto-address-mode goto-address-mode 
@@ -176,18 +185,13 @@
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; Navigate windows with M-<arrows>
-(windmove-default-keybindings 'meta)
 (setq windmove-wrap-around t)
+(global-set-key (kbd "H-w") 'windmove-up)
+(global-set-key (kbd "H-s") 'windmove-down)
+(global-set-key (kbd "H-a") 'windmove-left)
+(global-set-key (kbd "H-d") 'windmove-right)
 (global-set-key (kbd "M-]") 'windmove-right)
 (global-set-key (kbd "M-[") 'windmove-left)
-
-;; winner-mode provides C-c <left> to get back to previous window layout
-(winner-mode 1)
-(global-set-key (kbd "C-c [") 'winner-undo)
-(global-set-key (kbd "C-M-,") 'winner-undo)
-(global-set-key (kbd "C-s-p") 'winner-undo)
-(global-set-key (kbd "C-c ]") 'winner-redo)
 
 ;; navigating with mark
 (global-set-key (kbd "M-s-,") 'pop-to-mark-command)
@@ -232,13 +236,20 @@
           (if this-win-2nd (other-window 1))))))
 
 (define-key ctl-x-4-map "t" 'toggle-window-split)
+(global-set-key (kbd "<H-up>") 'shrink-window)
+(global-set-key (kbd "<H-down>") 'enlarge-window)
+(global-set-key (kbd "<H-left>") 'shrink-window-horizontally)
+(global-set-key (kbd "<H-right>") 'enlarge-window-horizontally)
 
 ;; tags
 (global-set-key (kbd "s-R") 'find-tag-other-window)
 
 ;; dired - try to use GNU ls
 (setq insert-directory-program (or (executable-find "gls")
-                                   (executable-find "ls")))
+                                   (executable-find "ls"))
+      ;; don't prompt to kill buffers of deleted directories
+      dired-clean-confirm-killing-deleted-buffers nil)
+
 
 ;; meaningful names for buffers with the same name
 (require 'uniquify)
@@ -277,7 +288,10 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;; delete selection on insert or yank
 (delete-selection-mode 1)
 (setq save-interprogram-paste-before-kill t
-      mouse-yank-at-point t)
+      ;; use mouse to kill/yank
+      mouse-yank-at-point t
+      mouse-drag-and-drop-region t
+      mouse-drag-and-drop-region-cut-when-buffers-differ t)
 
 ;; store all backup and autosave files in the tmp dir
 (setq backup-directory-alist
@@ -318,6 +332,9 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;; make a shell script executable automatically on save
 (add-hook 'after-save-hook
           'executable-make-buffer-file-executable-if-script-p)
+
+;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
+(setq executable-prefix-env t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Tramp
@@ -427,6 +444,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 
 ;; Load and configure Packages
 (require 'm-packages)
+(require 'm-pointhistory)
 ;; (require 'm-hydra)
 
 ;; Private settings
@@ -454,3 +472,15 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;;  ;; Your init file should contain only one such instance.
 ;;  ;; If there is more than one, they won't work right.
 ;;  '(default ((t (:inherit nil :stipple nil :background "#21252b" :foreground "#ABB2BF" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 130 :width normal :foundry "nil" :family "Monaco")))))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-agenda-files (quote ("~/Dropbox/Notes/keys.org"))))
+(custom-set-faces)
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ 
