@@ -340,10 +340,14 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;; Tramp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun ssh-sudo (hostname) 
+(defun ssh-sudo (user-and-hostname) 
   "ssh to host, sudo to root, open dired" 
-  (interactive "MHostname: ") 
-  (find-file (concat "/sshx:" hostname "|sudo:" hostname ":/")))
+  (interactive "M[User@]Hostname: ")
+  (let* ((sep (string-match "@" user-and-hostname))
+         (hostname (if sep
+                       (substring user-and-hostname (+ 1 sep))
+                     user-and-hostname)))
+    (find-file (concat "/sshx:" user-and-hostname "|sudo:root@" hostname ":/"))))
 
 ;; (https://www.emacswiki.org/emacs/TrampMode#toc30)
 (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
@@ -357,6 +361,14 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
                                                            (tramp-file-name-localname vec))) 
                            (concat "/sudo:root@localhost:" (buffer-file-name)))) 
     (goto-char position)))
+
+;; Disable file accesses on buffers accessed via tramp
+(defun disable-file-accesses ()
+  (when (file-remote-p default-directory)
+    (setq-local projectile-mode-line "Projectile")
+    (company-mode -1)))
+(add-hook 'find-file-hook 'disable-file-accesses)
+          
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Lisp

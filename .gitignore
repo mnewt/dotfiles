@@ -17,6 +17,7 @@ emacs.d/url
 emacs.d/epkgs
 .emacs.desktop*
 .mc-lists.el
+TAGS
 
 
 # fish

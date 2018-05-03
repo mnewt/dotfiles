@@ -1,3 +1,5 @@
+# -*-Shell-script-*-
+
 # Settings for the `install` script
 # This file tells install what to ignore, link, copy, and create
 # List files (and globs) separated by spaces

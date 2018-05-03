@@ -37,7 +37,7 @@
   (require 'seq-25))
 
 ;; (use-package epkg
-;;   :defer t)
+;;   :defer 1)
 
 (use-package dracula-theme
   :load-path "straight/build/dracula-theme"
@@ -59,14 +59,30 @@
 (use-package powerline
   :init
   (progn
-    (setq
-     powerline-default-separator nil
-     vc-handled-backends nil) 
-    (defface my-inactive1 '((t (:background "#0E111E" :foreground "#666666" :inherit mode-line-inactive)))
+    (setq powerline-default-separator nil)
+    (defface m-inactive0 '((t (:background "#262834" :foreground "#565861" :inherit mode-line-inactive)))
+      "Powerline inactive face 0."
+      :group 'powerline)
+    (defface m-active0 '((t (:background "#565861" :foreground "#E6E7E8" :inherit default)))
+      "Powerline active face 0."
+      :group 'powerline)
+    (defface m-inactive1 '((t (:background "#262834" :foreground "#565861" :inherit mode-line-inactive)))
       "Powerline inactive face 1."
       :group 'powerline)
-    (defface my-active1 '((t (:background "#545663" :foreground "#f9f9fe" :inherit default)))
+    (defface m-active1 '((t (:background "#565861" :foreground "#E6E7E8" :inherit default)))
       "Powerline active face 1."
+      :group 'powerline)
+    (defface m-inactive2 '((t (:background "#262834" :foreground "#565861" :inherit mode-line-inactive)))
+      "Powerline inactive face 2."
+      :group 'powerline)
+    (defface m-active2 '((t (:background "#CECFD2" :foreground "#565861" :inherit default)))
+      "Powerline active face 2."
+      :group 'powerline)
+    (defface m-inactive3 '((t (:background "#565861" :foreground "#9E9FA5" :inherit mode-line-inactive)))
+      "Powerline inactive face 3."
+      :group 'powerline)
+    (defface m-active3 '((t (:background "#A863C9" :foreground "#FFFFFF" :inherit default)))
+      "Powerline active face 3."
       :group 'powerline)
     (set-face-attribute 'mode-line nil
                         :box nil))
@@ -77,22 +93,35 @@
                    (let* ((active (powerline-selected-window-active))
                           (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
                           (mode-line (if active 'mode-line 'mode-line-inactive))
-                          (face0 (if active 'powerline-active0 'powerline-inactive0))
-                          (face1 (if active 'my-active1 'my-inactive1))
-                          (face2 (if active 'powerline-active2 'powerline-inactive2))
+                          (face0 (if active 'm-active0 'm-inactive0))
+                          (face1 (if active 'm-active1 'm-inactive1))
+                          (face2 (if active 'm-active2 'm-inactive2))
+                          (face3 (if active 'm-active3 'm-inactive3))
                           (center (list (powerline-raw "%*" face1 'l)
-                                        (powerline-buffer-id `(mode-line-buffer-id ,face1) 'l)
-                                        (powerline-raw " " face1)))
+                                        ;; (powerline-buffer-id `(mode-line-buffer-id ,face3) 'm)
+                                        (powerline-raw " " face3)
+                                        (powerline-raw (buffer-name) face3 'm)
+                                        (powerline-raw " " face3)
+                                        (powerline-raw "%*" face1 'r)))
                           (rhs (if active
-                                   (list (powerline-raw global-mode-string face1 'r)
-                                         (powerline-raw " " face1)
-                                         (powerline-raw "%l" face1 'r)
-                                         (powerline-raw ":" face1)
-                                         (powerline-raw "%c" face1 'r)
-                                         (powerline-hud face2 face1))))
+                                   (list (powerline-raw global-mode-string face0 'r)
+                                         (powerline-raw " " face0)
+                                         (powerline-raw "%l" face0 'r)
+                                         (powerline-raw ":" face0)
+                                         (powerline-raw "%c" face0 'r)
+                                         (powerline-hud face3 face0))))
                           (lhs (list (powerline-raw " " face1)
-                                     (powerline-major-mode face1 'l)
-                                     ;; (powerline-process face2)
+                                     (powerline-major-mode face2 'l)
+                                     (powerline-raw " " face2)
+                                     (powerline-vc face0 'r)
+                                     (powerline-raw " " face1)
+                                     (powerline-raw (if (eq major-mode 'term-mode)
+                                                        (cond
+                                                         ((term-in-char-mode) " (char-mode)")
+                                                         ((term-in-line-mode) " (line-mode)")
+                                                         (t ""))
+                                                      "")
+                                                    face1)
                                      (powerline-raw " " face1))))
                      (concat (powerline-render lhs)
                              (powerline-fill-center face1 (/ (powerline-width center) 2.0))
@@ -101,22 +130,22 @@
                              (powerline-render rhs)))))))
 
 (use-package exec-path-from-shell
-  :defer t
+  :defer 1
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
 (use-package help-macro+
-  :defer t)
+  :defer 1)
 
 (use-package help+
-  :defer t)
+  :defer 1)
 
 (use-package help-fns+
-  :defer t)
+  :defer 1)
 
 (use-package help-mode+
-  :defer t)
+  :defer 1)
 
 (use-package helpful
   :bind
@@ -130,9 +159,10 @@
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
 (use-package menu-bar+
-  :defer t)
+  :defer 1)
 
 (use-package which-key
+  :defer 1
   :config
   (which-key-mode t)
   :bind
@@ -227,12 +257,9 @@
 
 ;;     (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
 
-(use-package highlight)
-
 (use-package dired+
-  :after highlight
-  ;; :defer t
-  :config
+  :defer 2
+  :init
   (defun dired-to-default-directory ()
     "Open directory containing the current file"
     (interactive)
@@ -244,16 +271,11 @@
     (let* ((file (dired-get-filename nil t)))
       (message "Opening %s..." file)
       (call-process "open" nil 0 nil file)))
-
+  :config
   (setq dired-recursive-deletes 'always
         dired-recursive-copies 'always
         dired-listing-switches "-alh"
         dired-dwim-target t)
-  
-  (require 'dired+)
-
-  :custom
-  (diredp-hide-details-initially-flag t)  
   :bind
   (("C-x C-d" . dired-to-default-directory)
    ("C-x d" . dired)
@@ -261,10 +283,17 @@
    ("C-c o" . dired-open-file)
    ("C-x f" . find-file-literally-at-point)))
 
-;; (use-package direx
-;;   :bind
-;;   (("C-x C-j" . direx:jump-to-directory)
-;;    ("s-\\" . direx:jump-to-directory-other-window)))
+(use-package direx
+  :bind
+  (("C-x C-j" . direx:jump-to-directory)
+   ("s-\\" . direx:jump-to-directory-other-window)))
+
+(straight-register-package
+ '(vkill :repo "https://github.com/emacsattic/vkill.git"))
+
+(use-package vkill
+  :bind
+  (("C-c t" . vkill)))
 
 (use-package proc-net
   :bind
@@ -356,7 +385,7 @@
               (ivy-done)))))
 
 (use-package ivy-hydra
-  :defer t)
+  :defer 1)
 
 (use-package swiper
   :bind
@@ -371,7 +400,6 @@
    ("s-f" . counsel-grep-or-swiper)
    ("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
-   ("s-o" . counsel-find-file)
    ("C-h f" . counsel-describe-function)
    ("C-h v" . counsel-describe-variable)
    ("<f1> l" . counsel-find-library)
@@ -386,7 +414,9 @@
    :map ivy-minibuffer-map
    ("M-y" . ivy-next-line-and-call)
    :map mac-key-mode-map
-   ("s-f" . counsel-grep-or-swiper)))
+   ("s-f" . counsel-grep-or-swiper)
+   ("s-o" . counsel-find-file)))
+
 
 
 (use-package projectile
@@ -435,7 +465,7 @@
 
 (use-package magit
   :init
-  (setq vc-handled-backends nil
+  (setq ;vc-handled-backends nil
         magit-completing-read-function 'ivy-completing-read)
   :bind
   (("C-x g" . magit-status)
@@ -455,30 +485,31 @@
   (("C-x M-g" . gist-list)))
 
 (use-package git-link
-  :defer t)
+  :defer 1)
 
-;; Just cannot get this to work at all
-;; (use-package diff-hl
-;;   :hook
-;;   (magit-post-refresh . diff-hl-magit-post-refresh)
-;;   ((prog-mode markdown-mode) . diff-hl-mode)
-;;   (dired-mode . diff-hl-dired-mode))
+;; just cannot get this to work at all
+(use-package diff-hl
+  :defer 1
+  :hook
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  ((prog-mode markdown-mode) . diff-hl-mode)
+  (dired-mode . diff-hl-dired-mode))
 
-(use-package git-gutter
-  :config
-  (global-git-gutter-mode +1)
-  :bind
-  (("C-x C-g" . git-gutter)
-   ("C-x v =" . git-gutter:popup-hunk)
-   ;; Jump to next/previous hunk
-   ("C-x p" . git-gutter:previous-hunk)
-   ("C-x n" . git-gutter:next-hunk)
-   ;; Stage current hunk
-   ("C-x v s" . git-gutter:stage-hunk)
-   ;; Revert current hunk
-   ("C-x v r" . git-gutter:revert-hunk)
-   ;; Mark current hunk
-   ("C-x v SPC" . git-gutter:mark-hunk)))
+;; (Use-Package git-gutter
+;;   :config
+;;   (global-git-gutter-mode +1)
+;;   :bind
+;;   (("C-x C-g" . git-gutter)
+;;    ("C-x v =" . git-gutter:popup-hunk)
+;;    ;; Jump to next/previous hunk
+;;    ("C-x p" . git-gutter:previous-hunk)
+;;    ("C-x n" . git-gutter:next-hunk)
+;;    ;; Stage current hunk
+;;    ("C-x v s" . git-gutter:stage-hunk)
+;;    ;; Revert current hunk
+;;    ("C-x v r" . git-gutter:revert-hunk)
+;;    ;; Mark current hunk
+;;    ("C-x v SPC" . git-gutter:mark-hunk)))
 
 (use-package editorconfig
   :config
@@ -593,7 +624,7 @@
   (clojurescript-mode . turn-on-eldoc-mode))
 
 (use-package clojure-mode-extra-font-locking
-  :defer t)
+  :defer 1)
 
 (use-package smartparens
   :init
@@ -700,7 +731,7 @@ ID, ACTION, CONTEXT."
     (show-smartparens-global-mode +1)
     
     ;; https://github.com/Fuco1/smartparens/issues/80
-    (defun my-create-newline-and-enter-sexp (&rest _ignored)
+    (defun m-create-newline-and-enter-sexp (&rest _ignored)
       "Open a new brace or bracket expression, with relevant newlines and indent. "
       (newline)
       (indent-according-to-mode)
@@ -709,7 +740,7 @@ ID, ACTION, CONTEXT."
 
     (sp-with-modes
         '(sh-mode js2-mode javascript-mode)
-      (sp-local-pair "{" nil :post-handlers '((my-create-newline-and-enter-sexp "RET"))))
+      (sp-local-pair "{" nil :post-handlers '((m-create-newline-and-enter-sexp "RET"))))
 
     (sp-with-modes
         '(sh-mode)
@@ -732,7 +763,7 @@ ID, ACTION, CONTEXT."
                      :pre-handlers '(sp-sh-pre-handler)
                      :post-handlers '(sp-sh-block-post-handler))))
   :hook
-  ((prog-mode markdown-mode) . turn-on-smartparens-mode))
+  ((prog-mode conf-mode markdown-mode) . turn-on-smartparens-mode))
 
 ;; Trying out paredit with these 3 packages
 ;; (use-package paredit
@@ -816,7 +847,7 @@ ID, ACTION, CONTEXT."
    ("C-c m" . vr/mc-mark)))
 
 (use-package elisp-format
-  :defer t)
+  :defer 1)
 
 (use-package cider
   :config
@@ -832,6 +863,11 @@ ID, ACTION, CONTEXT."
     (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
               (inf-clojure-minor-mode)
               (inf-clojure "lumo -d")))
+  (defun reinstate-comint-simple-send ()
+    (unless inf-clojure-minor-mode
+      (setq-local comint-send-input 'comint-simple-send)))
+  :hook
+  (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
         ("s-<return>" . inf-clojure-eval-last-sexp)
@@ -859,14 +895,14 @@ ID, ACTION, CONTEXT."
   (sass-mode . rainbow-mode))
 
 (use-package dockerfile-mode
-  :defer t)
+  :defer 1)
 
 (use-package docker
   :config
   (docker-global-mode))
 
 (use-package docker-tramp
-  :defer t)
+  :defer 1)
 
 (use-package highlight-escape-sequences
   :config
@@ -885,25 +921,25 @@ ID, ACTION, CONTEXT."
   (bash-completion-setup))
 
 (use-package fish-mode
-  :defer t)
+  :defer 1)
 
 (use-package fish-completion
-  :defer t)
+  :defer 1)
 
 (use-package nginx-mode
   :config
   (setq nginx-indent-level tab-width))
 
 (use-package yaml-mode
-  :defer t)
+  :defer 1)
 
 (use-package toml-mode
-  :defer t)
+  :defer 1)
 
 (use-package web-mode
   :init
   ;; from web-mode FAQ to work with smartparens
-  (defun my-web-mode-hook ()
+  (defun m-web-mode-hook ()
     (setq web-mode-enable-auto-pairing nil))
   (defun sp-web-mode-is-code-context (id action context)
     (and (eq action 'insert)
@@ -926,7 +962,7 @@ ID, ACTION, CONTEXT."
                                  web-mode-ac-sources-alist '(("css" . (ac-source-css-property))
                                                              ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
   :hook
-  (web-mode . my-web-mode-hook))
+  (web-mode . m-web-mode-hook))
 
 (use-package js2-mode
   :mode "\\.js\\'"
@@ -936,10 +972,10 @@ ID, ACTION, CONTEXT."
   (js2-basic-offset tab-width))
 
 (use-package rjsx-mode
-  :defer t)
+  :defer 1)
 
 (use-package indium
-  :defer t)
+  :defer 1)
 
 (use-package nodejs-repl
   :bind
@@ -952,13 +988,13 @@ ID, ACTION, CONTEXT."
    ("C-c C-z" . nodejs-repl-switch-to-repl)))
 
 (use-package restclient
-  :defer t)
+  :defer 1)
 
 (use-package know-your-http-well
-  :defer t)
+  :defer 1)
 
 (use-package company-restclient
-  :defer t)
+  :defer 1)
 
 (use-package robe
   :hook ruby-mode
@@ -967,7 +1003,7 @@ ID, ACTION, CONTEXT."
     '(push 'company-robe company-backends)))
 
 (use-package inf-ruby
-  :defer t)
+  :defer 1)
 
 (use-package lua-mode
   :mode "\\.lua\\'")

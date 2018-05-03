@@ -32,8 +32,12 @@
 - [x] BUG: On interactive login: `set: Tried to change the read-only variable '_'` Has something to do with adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
 - [x] BUG: Error message is displayed from prompt when tmux is not in path
 - [x] Move prompt to its own plugin/repo - teleprompt
-- [ ] BUG: Don't create '*' files in created directories
-- [ ] BUG: Why does it always link .parinfer-file-extentions.txt?
+- [x] BUG: `install`: Don't create '*' files in created directories
+- [x] BUG: Why does it always link .parinfer-file-extentions.txt?
+- [x] BUG: `inf-clojure` sets `comint-send-input` on every shell
+- [x] BUG: dired+ often doesn't work or doesn't work completely (details not hidden and/or highlighting not working)
+- [x] Emacs: macos proced doesn't show all columns
+- [x] Get `diff-hl` to work
 - [ ] Move update/save/load to its own plugin/repo
 - [ ] install / install.settings should use arrays, not lists, for variables
 - [ ] Individual app screenshots

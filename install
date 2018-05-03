@@ -167,7 +167,7 @@ link_children () {
   # `mkdir` each argument then run `make_links` on its children
   for s in $1; do
     target="$dest_dir/.$s"
-    children=$(echo $s/*)
+    children=$s/*
     if [ -d "$target" ]; then
       with_color $NORMAL $BLUE "   NOT REMOVING: "
       echo "$target"
