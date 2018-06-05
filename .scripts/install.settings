@@ -1,0 +1,34 @@
+# -*-Shell-script-*-
+
+# Settings for the `install` script
+# This file tells install what to ignore, link, copy, and create
+# List files (and globs) separated by spaces
+
+# The below options are in order of precedence (1 is highest), so `ignore`
+# overrides `link_children`, which overrides `copy`, which overrides `link`
+# That is why it's acceptable to specify '*' for link, because the other patterns
+# will remove the files from link that they match.
+
+# Run before the `install` operations
+before () {
+  :
+}
+
+# 1. Ignore these files
+ignore=(install* images scripts Icon* *.md test)
+
+# 2. Create directory itself (not contents), then link the children of the directory
+# NOTE: It will not delete an existing directory. If you want to do that, run:
+#       `rm -rf ~/.directory && ./install`
+link_children=(atom emacs.d bin config hammerspoon)
+
+# 3. Copy these files
+copy=()
+
+# 4. Link these files
+link=(*)
+
+# Run after the `install` operations
+after () {
+  :
+}
