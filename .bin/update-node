@@ -1,0 +1,11 @@
+#!/bin/bash
+# Update node.js packages
+
+if installed npm; then
+  echo "Updating npm..."
+  npm install npm -g
+  npm update -g
+
+else
+  echo "npm not found, skipping"
+fi

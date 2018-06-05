@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Remove ANSI Color Escape Sequences. requires `shopt -s extglob`
+
+shopt -s extglob
+
+echo "${1//$(printf "\033\[+([0-9;])m")}"

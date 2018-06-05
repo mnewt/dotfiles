@@ -1,0 +1,9 @@
+#!/bin/bash
+# Update Clojure stuff
+
+if installed lein; then
+  echo "Updating Leiningen..."
+  lein upgrade
+else
+  echo "Leiningen not found, skipping"
+fi

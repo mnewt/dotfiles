@@ -1,0 +1,21 @@
+#!/bin/bash
+# Update fish shell
+
+fisher="$HOME/.config/fish/functions/fisher.fish"
+
+download_if_newer () {
+  # Download a file iff URL's HTTP If-Modified-Since header is more recent than
+  # the local file timestamp
+  url="$1"
+  file="$2"
+  shift 2
+  curl -z "$file" -Lo "$file" "$url" "$@"
+}
+
+if command -v fish >/dev/null 2>&1; then
+  echo "Updating fish shell..."
+  download_if_newer "http://git.io/fisher" "$fisher" --create-dirs
+  fish -lc 'fisher update'
+else
+  echo "fish shell not found, skipping"
+fi

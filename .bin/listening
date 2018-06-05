@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Print the currently listening IP ports
+
+case $(uname) in
+  Linux)
+    ss -lnptu
+    ;;
+  Darwin)
+    lsof -i -n -P | awk 'NR==1 || /LISTEN/'
+    ;;
+  CYGWIN*)
+    netstat -an | awk 'NR==1 || /LISTEN/'
+    ;;
+esac
+

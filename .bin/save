@@ -1,0 +1,26 @@
+#!/bin/bash
+# Master script to save the installed package state into the dotfiles repo
+# Calls other scripts on the path with the form 'save-*'
+# Passes all arguments straight through to those scripts
+
+save_scripts="$HOME/.bin/save-*"
+if [ "$1" ]; then
+  save_root="$1"
+  shift
+else
+  save_root="$HOME/.packages"
+fi
+export save_root
+
+save () {
+  mkdir -p "$save_root"
+  # search for all save-* scripts and run them in succession
+  for f in $save_scripts; do
+    printf "\033[48;5;040m\033[38;5;016m  %s  \033[0m  " "$(basename $f)"
+    eval $f "$save_root" "$@"
+  done
+}
+
+echo "Grant superuser access to all subsequent save scripts:"
+sudo_keepalive
+save "$@"

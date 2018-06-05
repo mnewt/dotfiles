@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# open man page in Preview
+
+man -t "${1}" | open -f -a /Applications/Preview.app/

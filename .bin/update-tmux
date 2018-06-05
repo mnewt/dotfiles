@@ -1,0 +1,13 @@
+#!/bin/bash
+# Update Tmux
+
+if installed tmux; then
+  echo "Updating Tmux..."
+  [ -d ~/.tmux/plugins/tpm ] || \
+   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  ~/.tmux/plugins/tpm/bin/install_plugins
+  ~/.tmux/plugins/tpm/bin/update_plugins all
+  ~/.tmux/plugins/tpm/bin/clean_plugins
+else
+  echo "Tmux not found, skipping"
+fi

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+match="\(restored\)"
+
+mv_file () {
+  numbers="\([[:digit:]]\)"
+  [[ "$1" =~ $numbers ]] && echo not moving: $1 && return
+  [[ "$1" =~ $match ]] && mv "$1" "${1/$match/}"
+}
+
+rm_file () {
+  [[ "$1" =~ $match ]] && rm "$1"
+}
+
+list_files () {
+  # Test whether we are running interactively or from stdin
+  if [ -t 0 ]; then
+    find . -name "*$match*"
+  else
+    while read -r f; do
+        echo "$f"
+    done
+  fi
+}
+
+mapfile -t files < <(list_files)
+
+case $1 in
+  rm)
+    echo Removing files:
+    for f in "${files[@]}"; do echo "$f"; done
+    for f in "${files[@]}"; do rm_file "$f"; done
+    ;;
+  mv)
+    echo Moving files:
+    for f in "${files[@]}"; do echo "$f"; done
+    for f in "${files[@]}"; do mv_file "$f"; done
+    ;;
+  *)
+    echo Restored files:
+    for f in "${files[@]}"; do echo "$f"; done
+    ;;
+esac

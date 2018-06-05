@@ -1,0 +1,14 @@
+#!/bin/bash
+# Update N?Vim
+
+vim=
+installed vim && vim="$(which vim)"
+installed nvim && vim="$(which nvim)"
+
+if [ "$vim"  ]; then
+  echo "Updating N?Vim..."
+  "$vim" +PlugUpgrade +PlugUpdate +PlugInstall +qall
+else
+  echo "N?Vim not found, skipping"
+fi
+

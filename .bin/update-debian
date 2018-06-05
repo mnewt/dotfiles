@@ -1,0 +1,12 @@
+#!/bin/bash
+# Update Debian based distributions
+
+if [ -e '/etc/debian_version' ] || [ -e '/etc/lsb_release' ]; then
+  echo "Updating Debian based distribution..."
+  sudo apt update
+  sudo apt upgrade -y
+  sudo apt-get autoremove -y
+  sudo apt-get autoclean -y
+else
+  echo "Debian based distribution not found, skipping"
+fi

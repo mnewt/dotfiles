@@ -1,0 +1,11 @@
+{
+  "mode": "flat",
+  "segments": [
+    "virtual_env",
+    "root",
+    "ssh",
+    "cwd",
+    "git",
+    "jobs"
+  ]
+}

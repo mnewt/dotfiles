@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+
+usage = "pack - For when you want to manage your package management, modularly and idempotently
+
+  pack [COMMAND | MODULE]
+
+"
+
+class Pack
+  class << self
+    attr_accessor :dir
+  end
+  
+  @dir = ENV["HOME"] + "/.config/pack"
+  
+  def self.descendants
+    ObjectSpace.each_object(Class).select { |klass| klass < self }
+  end
+    
+  def self.installed?(cmd)
+    system("command -v \"#{cmd}\" >/dev/null 2>&1")
+  end
+
+  def self.package_file
+    Pack.dir + "/packages/" + self.name.downcase + ".yaml"
+  end
+
+  def self.packages
+    @packages ||= YAML.load_file(package_file)
+  end
+
+  def self.section(name)
+    packages[name]
+  end
+
+  def self.save
+    # File.write(package_file, packages.to_yaml)
+    p packages.to_yaml
+  end
+end
+
+Dir["#{Pack.dir}/modules/*.rb"].each { |file| require file }
+
+def sync
+  Pack.descendants.select { |m| m.exists? }.each do |m|
+    puts "Synchronizing packages for (#{m})..."
+    # m.sync
+    m.save
+  end
+end
+
+case
+when ARGV.empty?
+  sync
+when Pack.descendants.to_s.include?(ARGV[0].capitalize)
+  # If the argument matches a Pack descendant, call it.
+  # The next arg specifies the method, subsequent args are passed to the method.
+  if ARGV.length == 1
+    Object.const_get(ARGV[0].capitalize).sync
+  else
+    Object.const_get(ARGV[0].capitalize).send(*ARGV.drop(1))
+  end
+when ARGV[0].match(/(-h|--help|help)/)
+  puts usage
+else
+  puts "Unrecognized argument: #{ARGV[0]}"
+  exit 1
+end
