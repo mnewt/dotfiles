@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# path
-for p in "$HOME/.bin" "/usr/local/sbin" "/usr/local/opt/coreutils/libexec/gnubin"; do
-  test -d "$p" && PATH="$p:$PATH"
-done
-
-# locale
-export LANG=en_US.UTF-8
-export LC_CTYPE=en_US.UTF-8
-export LC_MESSAGES=en_US.UTF-8
-export LC_COLLATE=C
-
 # misc
 alias tf='tail -f'
 alias ln='ln -v'
@@ -58,6 +47,19 @@ else
   alias lt='ls -hltr'
 fi
 
+# editor
+# Emacs
+if installed emacs; then
+  emacs="$(which emacs)"
+  emacsclient="$(which emacsclient)"
+
+  alias ed="$emacs --daemon"
+  alias e="$emacsclient --no-wait"
+  alias en="$emacsclient -c --no-wait"
+
+  installed eless && alias man='PAGER=less man -P eless'
+fi
+
 # neovim / vim
 if installed nvim; then
   alias vi='nvim'
@@ -70,7 +72,6 @@ elif installed vim; then
 fi
 
 # PAGER
-# use vimpager if available
 if installed vimpager; then
   export PAGER="$(which vimpager)"
   alias less="$PAGER"
@@ -140,25 +141,6 @@ if installed grc; then
   alias curl='colourify -c conf.curl curl'
 fi
 
-# Emacs
-if installed emacs; then
-  emacs="$(which emacs)"
-  emacsclient="$(which emacsclient)"
-
-  alias ed="$emacs --daemon"
-  alias e="$emacsclient --no-wait"
-  alias en="$emacsclient -c --no-wait"
-fi
-
-# minicom
-export MINICOM='-c on'
-
-# python venv
-export VIRTUAL_ENV_DISABLE_PROMPT=true
-
-# boot-clj
-export BOOT_JVM_OPTIONS='-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -Xverify\:none -XX\:+AggressiveOpts'
-
 case $(uname) in
   Linux) ;;
   'CYGWIN*') ;;
@@ -170,10 +152,5 @@ case $(uname) in
     # Merge PDF files
     # Usage: `mergepdf -o output.pdf input{1,2,3}.pdf`
     alias mergepdf='/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py'
-
-    # Disable Spotlight
-    alias spotoff="sudo mdutil -a -i off"
-    # Enable Spotlight
-    alias spoton="sudo mdutil -a -i on"
     ;;
 esac

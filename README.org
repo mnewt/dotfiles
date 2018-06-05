@@ -1,0 +1,218 @@
+* Some dotfiles
+This setup is mostly shell agnostic, supporting
+[[http://fishshell.com/][fish]],
+[[https://www.gnu.org/software/bash/][bash]] and
+[[http://www.zsh.org/][zsh]]. I spend most of my time in fish, however.
+
+NOTE: The master repository is on
+[[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use
+[[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there.
+Feel free to create issues or pull requests on either (but I do prefer
+[[https://gitlab.com][GitLab]]).
+
+* Tour
+*** Applications & Utilities
+Included are configurations for some programs, such as: -
+[[https://atom.io/][Atom]] - [[https://clojure.org/][Clojure]] -
+[[https://leiningen.org/][Leiningen]] and
+[[http://boot-clj.com/][Boot]] -
+[[https://www.gnu.org/software/emacs/][Emacs]]
+[[file:images/emacs.png]] - [[https://git-scm.com/][Git]] -
+[[http://mah.everybody.org/docs/ssh][ssh-agent]] -
+[[https://tmux.github.io/][tmux]] [[file:images/tmux-status.png]] -
+[[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
+[[file:images/vim.png]]
+
+* Install
+This procedure will establish a [[http://www.saintsjd.com/2011/01/what-is-a-bare-git-repository/][bare]] repository using the technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]].
+
+*** If necessary, back up existing dotfiles
+#+BEGIN_SRC sh
+  mkdir "$HOME/.dotfile-backup"
+  # TODO
+  # rsync -av "$HOME"/.???? "$HOME/.dotfile-backup" --exclude "$HOME/.dotfiles" --exclude "$HOME/.dotfile-backup"
+#+END_SRC
+
+*** If necessary, remove symlinks to the old repository
+These are example commands and the latter is destructive. Be sure you know what you're doing!
+#+BEGIN_SRC sh
+# Find links that you may want to delete
+find "$HOME" -maxdepth 3 -type l -print
+
+# Maybe do some additional filtering. This is what I did on my macOS setup:
+find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -print
+
+# Delete them
+find "$HOME" -maxdepth 3 -type l -delete
+#+END_SRC
+
+*** Clone as a bare repository
+#+BEGIN_SRC sh
+# Clone your dotfiles into a bare repository in a "dot" folder of your $HOME:
+git clone --bare https://gitlab.com/mnewt/dotfiles.git "$HOME/.dotfiles"
+#+END_SRC
+
+*** Remove
+*** Script
+There is an install script that can link and/or copy files between the
+cloned repo directory and your $HOME directory.
+
+Examine the settings file, named =install.settings=:
+
+#+BEGIN_SRC sh
+    # Settings for the `install` script
+    # This file tells install what to ignore, link, copy, and create
+    # List files (and globs) separated by spaces
+
+    # The below options are in order of precedence (1 is highest), so `ignore`
+    # overrides `link_children`, which overrides `copy`, which overrides `link`
+    # That is why it's acceptable to specify '*' for link, because the other patterns
+    # will remove the files from link that they match.
+
+    # Run before the `install` operations
+    before () {
+    :
+    }
+
+    # 1. Ignore these files
+    ignore=(install* images scripts Icon* *.md test)
+
+    # 2. Create directory itself (not contents), then link the children of the directory
+    # NOTE: It will not delete an existing directory. If you want to do that, run:
+    #       `rm -rf ~/.directory && ./install`
+    link_children=(atom bin config hammerspoon)
+
+    # 3. Copy these files
+    copy=(README.md)
+
+    # 4. Link these files
+    link=(*)
+
+    # Run after the `install` operations
+    after () {
+    :
+    }
+#+END_SRC
+
+Run the installer.
+
+#+BEGIN_EXAMPLE
+    ./install
+#+END_EXAMPLE
+
+It creates symlinks for all dotfiles in your home directory. You can
+safely run the installer multiple times to update. It will not overwrite
+existing files without the =-f= parameter.
+
+** Command reference for the =install= script:
+#+BEGIN_SRC
+install version 0.11 - 2018-05-23
+
+Straightforward, zero dependency, portable distributed dotfile manager
+Run from a dotfile repository directory, links all files and directories into the current user's home directory
+
+USAGE: install [OPTIONS] [SOURCE-DIR] [DEST-DIR]
+SOURCE-DIR defaults to the current directory
+DEST-DIR defaults to the current user's home directory
+
+OPTIONS:
+-f (--force)    : force overwrite of files or directories in DEST-DIR
+                  (default is false)
+-t (--test)     : test mode - only display changes, don't make them
+                  (default is false)
+-c (--config)   : specify a configuration file
+                  See the default configuration file (install.settings)
+-h (--help)     : display this help and exit
+-V (--version)  : output version information and exit
+
+SOURCE-DIR        : directory containing dotfiles to be copied and/or linked
+                    (default is current directory)
+                    files should NOT have leading '.'
+                    example: '.bashrc' should be named 'bashrc' in SOURCE-DIR
+DEST-DIR          : target directory where copies and links will be placed
+                    (default is '~')
+#+END_SRC
+
+* Update scripts
+There are set of update scripts in the =bin= directory to keep all the
+different software on a given system up to date.
+
+Some of the things that can be updated:
+
+- Arch Linux
+- Atom Editor
+- Clojure
+- Debian/Ubuntu
+- Emacs
+- Fish Shell
+- Homebrew
+- iTerm
+- macOS
+- Node.js
+- Python
+- Ruby Gems
+- Tmux
+- Vim/Neovim
+
+The master =update= script that runs all of these in succession.
+
+* Application Notes
+** Atom
+   :PROPERTIES:
+   :CUSTOM_ID: atom
+   :END:
+
+Install atom, then run this to install packages
+
+#+BEGIN_EXAMPLE
+    apm install --packages-file ~/.atom/packages.txt
+#+END_EXAMPLE
+
+To save the list of currently installed packages
+
+#+BEGIN_EXAMPLE
+    apm list --bare --installed --dev false > ~/.atom/packages.txt
+#+END_EXAMPLE
+
+** Emacs
+   :PROPERTIES:
+   :CUSTOM_ID: emacs
+   :END:
+
+On macOS, it seems the version of makeinfo is too old and causes
+problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a
+newer version, then install Emacs, edit init.el and packages.el, and run
+=update-emacs= to install packages.
+
+#+BEGIN_EXAMPLE
+    brew install texinfo
+    brew link --force texinfo
+    update-emacs
+#+END_EXAMPLE
+
+** Fish Shell
+   :PROPERTIES:
+   :CUSTOM_ID: fish-shell
+   :END:
+
+To install and switch your shell to =fish= on macOS:
+
+#+BEGIN_EXAMPLE
+    brew install fish
+    chsh -s $(which fish)
+    fish -l
+    fisher "$HOME/.config/fish_config" install mnewt/fix mnewt/teleprompt
+    update-fish
+#+END_EXAMPLE
+
+** Vim
+   :PROPERTIES:
+   :CUSTOM_ID: vim
+   :END:
+
+Install Vim or Neovim, edit .vimrc, then run =update-vim= to install
+packages.
+
+#+BEGIN_EXAMPLE
+    update-vim
+#+END_EXAMPLE

@@ -1,139 +1,17 @@
+;;; m-packages.el --- Summary
+
+;;; Commentary:
+;;; Here is the configuration for most packages.
+
+;;; Code:
+
 ;; -*- lexical-binding: t -*-
 
-;; Bootstrap straight.el
-(let ((bootstrap-file (concat user-emacs-directory "straight/repos/straight.el/bootstrap.el"))
-      (bootstrap-version 3))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
-
-;; https://github.com/raxod502/straight.el/issues/41
-(setq straight-check-for-modifications 'live)
-
-;; Try to get package.el to work better with straight.el
-;; https://github.com/raxod502/straight.el/issues/128
-(defun straight--advice-package-installed-p (original-function &rest args)
-  "Return t if package is installed via `straight' package manager."
-  (or (gethash (symbol-name (car args)) straight--recipe-cache)
-      (apply original-function args)))
-
-(advice-add 'package-installed-p :around 'straight--advice-package-installed-p)
-
-;; Properly install seq package
-;; https://github.com/raxod502/straight.el/issues/170
-(straight-register-package
- '(seq :repo "https://git.savannah.gnu.org/git/emacs/elpa.git" :files ("packages/seq/*.el")))
-
-(use-package seq
-  :config
-  (require 'seq-25))
-
-;; (use-package epkg
-;;   :defer 1)
-
-(use-package dracula-theme
-  :load-path "straight/build/dracula-theme"
-  :config
-  (progn
-    (load-theme 'dracula t)
-    (set-cursor-color "#F60")
-    (set-mouse-color "white")
-    (set-background-color "#333")))
-
-;; (use-package monokai-theme
-;;   :load-path "straight/build/monokai-theme"
+;; (use-package exec-path-from-shell
+;;   :defer 1
 ;;   :config
-;;   (progn
-;;     (load-theme 'monokai t)
-;;     (setq monokai-user-variable-pitch t)
-;;     (set-cursor-color "#A831A5")
-
-(use-package powerline
-  :init
-  (progn
-    (setq powerline-default-separator nil)
-    (defface m-inactive0 '((t (:background "#262834" :foreground "#565861" :inherit mode-line-inactive)))
-      "Powerline inactive face 0."
-      :group 'powerline)
-    (defface m-active0 '((t (:background "#565861" :foreground "#E6E7E8" :inherit default)))
-      "Powerline active face 0."
-      :group 'powerline)
-    (defface m-inactive1 '((t (:background "#262834" :foreground "#565861" :inherit mode-line-inactive)))
-      "Powerline inactive face 1."
-      :group 'powerline)
-    (defface m-active1 '((t (:background "#565861" :foreground "#E6E7E8" :inherit default)))
-      "Powerline active face 1."
-      :group 'powerline)
-    (defface m-inactive2 '((t (:background "#262834" :foreground "#565861" :inherit mode-line-inactive)))
-      "Powerline inactive face 2."
-      :group 'powerline)
-    (defface m-active2 '((t (:background "#CECFD2" :foreground "#565861" :inherit default)))
-      "Powerline active face 2."
-      :group 'powerline)
-    (defface m-inactive3 '((t (:background "#565861" :foreground "#9E9FA5" :inherit mode-line-inactive)))
-      "Powerline inactive face 3."
-      :group 'powerline)
-    (defface m-active3 '((t (:background "#A863C9" :foreground "#FFFFFF" :inherit default)))
-      "Powerline active face 3."
-      :group 'powerline)
-    (set-face-attribute 'mode-line nil
-                        :box nil))
-  :config
-  (setq-default mode-line-format
-                '("%e"
-                  (:eval
-                   (let* ((active (powerline-selected-window-active))
-                          (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
-                          (mode-line (if active 'mode-line 'mode-line-inactive))
-                          (face0 (if active 'm-active0 'm-inactive0))
-                          (face1 (if active 'm-active1 'm-inactive1))
-                          (face2 (if active 'm-active2 'm-inactive2))
-                          (face3 (if active 'm-active3 'm-inactive3))
-                          (center (list (powerline-raw "%*" face1 'l)
-                                        ;; (powerline-buffer-id `(mode-line-buffer-id ,face3) 'm)
-                                        (powerline-raw " " face3)
-                                        (powerline-raw (buffer-name) face3 'm)
-                                        (powerline-raw " " face3)
-                                        (powerline-raw "%*" face1 'r)))
-                          (rhs (if active
-                                   (list (powerline-raw global-mode-string face0 'r)
-                                         (powerline-raw " " face0)
-                                         (powerline-raw "%l" face0 'r)
-                                         (powerline-raw ":" face0)
-                                         (powerline-raw "%c" face0 'r)
-                                         (powerline-hud face3 face0))))
-                          (lhs (list (powerline-raw " " face1)
-                                     (powerline-major-mode face2 'l)
-                                     (powerline-raw " " face2)
-                                     (powerline-vc face0 'r)
-                                     (powerline-raw " " face1)
-                                     (powerline-raw (if (eq major-mode 'term-mode)
-                                                        (cond
-                                                         ((term-in-char-mode) " (char-mode)")
-                                                         ((term-in-line-mode) " (line-mode)")
-                                                         (t ""))
-                                                      "")
-                                                    face1)
-                                     (powerline-raw " " face1))))
-                     (concat (powerline-render lhs)
-                             (powerline-fill-center face1 (/ (powerline-width center) 2.0))
-                             (powerline-render center)
-                             (powerline-fill face1 (powerline-width rhs))
-                             (powerline-render rhs)))))))
-
-(use-package exec-path-from-shell
-  :defer 1
-  :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
+;;   (when (memq window-system '(mac ns x))
+;;     (exec-path-from-shell-initialize)))
 
 (use-package help-macro+
   :defer 1)
@@ -148,6 +26,7 @@
   :defer 1)
 
 (use-package helpful
+  :defer 2
   :bind
   (("C-h f" . helpful-callable)
    ("C-h v" . helpful-variable)
@@ -155,6 +34,7 @@
    ("C-c C-h" . helpful-at-point)))
 
 (use-package info-colors
+  :defer 1
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
@@ -168,13 +48,35 @@
   :bind
   (("M-s-h" . which-key-show-top-level)))
 
+(use-package savehist
+  :config
+  (setq savehist-additional-variables
+        ;; search entries
+        '(search-ring regexp-search-ring)
+        ;; save every minute
+        savehist-autosave-interval 60)
+  (savehist-mode +1))
+
+(use-package recentf
+  :config
+  (setq recentf-max-saved-items 500
+        recentf-max-menu-items 15
+        ;; disable recentf-cleanup on Emacs start, because it can cause
+        ;; problems with remote files
+        recentf-auto-cleanup 'never)
+  (recentf-mode +1))
+
+(use-package server
+  :defer 1
+  :config
+  (unless (server-running-p)
+    (server-start)))
+
 (use-package undo-tree
   :config
-  (global-undo-tree-mode)
   ;; autosave the undo-tree history
-  (setq undo-tree-history-directory-alist
-        `((".*" . ,temporary-file-directory)))
   (setq undo-tree-auto-save-history t)
+  (global-undo-tree-mode)
   :bind
   (("s-z" . undo-tree-undo)
    ("s-Z" . undo-tree-redo)
@@ -201,8 +103,6 @@
   :bind
   (("C-c [" . winner-undo)
    ("s-[" . winner-undo)
-   ("C-M-," . winner-undo)
-   ("C-s-p" . winner-undo)
    ("C-c ]" . winner-redo)
    ("s-]" . winner-redo)))
 
@@ -217,10 +117,10 @@
 
 (use-package buffer-move
   :bind
-  (("M-W" . buf-move-up)
-   ("M-S" . buf-move-down)
-   ("M-A" . buf-move-left)
-   ("M-D" . buf-move-right)))
+  (("C-H-W" . buf-move-up)
+   ("C-H-S" . buf-move-down)
+   ("C-H-A" . buf-move-left)
+   ("C-H-D" . buf-move-right)))
 
 ;; (use-package smooth-scrolling
 ;;   :init
@@ -236,29 +136,12 @@
    ("s-<right>" . mwim-end-of-code-or-line)
    ("s-<left>" . mwim-beginning-of-code-or-line)))
 
-;; Causes smooth scrolling to be too slow
-;; (use-package fill-column-indicator
+;; (use-package diredfl
+;;   :defer 2
 ;;   :config
-;;   (progn
-;;     (define-globalized-minor-mode global-fci-mode fci-mode
-;;       (lambda ()
-;;         (if (and
-;;              (not (string-match "^\*.*\*$" (buffer-name)))
-;;              (not (eq major-mode 'dired-mode)))
-;;             (fci-mode 1))))
-
-;;     (global-fci-mode 1)
-
-;;     (defun on-off-fci-before-company (command)
-;;       (when (string= "show" command)
-;;         (turn-off-fci-mode))
-;;       (when (string= "hide" command)
-;;         (turn-on-fci-mode)))
-
-;;     (advice-add 'company-call-frontends :before #'on-off-fci-before-company)))
+;;   (diredfl-global-mode t))
 
 (use-package dired+
-  :defer 2
   :init
   (defun dired-to-default-directory ()
     "Open directory containing the current file"
@@ -283,10 +166,14 @@
    ("C-c o" . dired-open-file)
    ("C-x f" . find-file-literally-at-point)))
 
+(use-package dired-rsync
+  :bind
+  (:map dired-mode-map
+        ("C-c C-r" . dired-rsync)))
+
 (use-package direx
   :bind
-  (("C-x C-j" . direx:jump-to-directory)
-   ("s-\\" . direx:jump-to-directory-other-window)))
+  (("C-x C-j" . direx:jump-to-directory)))
 
 (straight-register-package
  '(vkill :repo "https://github.com/emacsattic/vkill.git"))
@@ -313,22 +200,21 @@
    ("C->" . mc/mark-next-like-this)
    ("C-<" . mc/mark-previous-like-this)
    ("C-c C-<" . mc/mark-all-like-this)
-   ("M-s-a"  . mc/mark-all-like-this)
-   ("M-s-å"  . mc/mark-all-like-this)))
+   ("C-c C-a"  . mc/mark-all-dwim)))
 
-(use-package mc-extras
-  :bind
-  (:map mc/keymap
-        ("C-. M-C-f" . mc/mark-next-sexps)
-        ("C-. M-C-b" . mc/mark-previous-sexps)
-        ("C-. <" . mc/mark-all-above)
-        ("C-. >" . mc/mark-all-below)
-        ("C-. C-d" . mc/remove-current-cursor)
-        ("C-. C-k" . mc/remove-cursors-at-eol)
-        ("C-. d" . mc/remove-duplicated-cursors)
-        ("C-. C-." . mc/freeze-fake-cursors-dwim)
-        ("C-. ." . mc/move-to-column)
-        ("C-. =" . mc/compare-chars)))
+;; (use-package mc-extras
+;;   :bind
+;;   (:map mc/keymap
+;;         ("C-. M-C-f" . mc/mark-next-sexps)
+;;         ("C-. M-C-b" . mc/mark-previous-sexps)
+;;         ("C-. <" . mc/mark-all-above)
+;;         ("C-. >" . mc/mark-all-below)
+;;         ("C-. C-d" . mc/remove-current-cursor)
+;;         ("C-. C-k" . mc/remove-cursors-at-eol)
+;;         ("C-. d" . mc/remove-duplicated-cursors)
+;;         ("C-. C-." . mc/freeze-fake-cursors-dwim)
+;;         ("C-. ." . mc/move-to-column)
+;;         ("C-. =" . mc/compare-chars)))
 
 (use-package origami
   :bind
@@ -355,12 +241,17 @@
 (use-package company
   :init
   (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (setq company-backends
+        '(company-capf company-gtags company-css company-elisp company-keywords
+                       company-semantic company-yasnippet company-files
+                       company-dabbrev-code company-dabbrev company-ispell))
   :bind
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
         :map company-active-map
-        ("C-n" . company-select-next)
-        ("C-p" . company-select-previous)
+        ;; ("C-n" . company-select-next)
+        ;; ("C-p" . company-select-previous)
         ("C-d" . company-show-doc-buffer)
         ("M-." . company-show-location)))
 
@@ -372,8 +263,8 @@
   :config
   (progn
     (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t
-          enable-recursive-minibuffers t))
+    (setq enable-recursive-minibuffers t))
+  ;; ivy-use-virtual-buffers t))
   :bind
   (("C-c C-r" . ivy-resume)
    ("s-b" . ivy-switch-buffer)
@@ -382,7 +273,8 @@
    ("C-k" . (lambda ()
               (interactive)
               (ivy-set-action 'kill-buffer)
-              (ivy-done)))))
+              (ivy-done)
+              (ivy-resume)))))
 
 (use-package ivy-hydra
   :defer 1)
@@ -409,7 +301,6 @@
    ("C-c j" . counsel-git-grep)
    ("C-x l" . counsel-locate)
    ("M-s-v" . counsel-yank-pop)
-   ("M-s-√" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
    :map ivy-minibuffer-map
    ("M-y" . ivy-next-line-and-call)
@@ -417,10 +308,19 @@
    ("s-f" . counsel-grep-or-swiper)
    ("s-o" . counsel-find-file)))
 
-
-
 (use-package projectile
   :init
+  (defun projectile-load-settings (file)
+    "https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-settings.el
+    Load project elisp settings file if they are found in active project root
+    directory, or if in the case of undefined root directory, file is
+    otherwise path resolvable."
+    (interactive "sEnter elisp filename (in project root): ")
+    (let
+        ((p (concat (projectile-project-root) file)))
+      (when (file-exists-p p)
+        (load p)
+        (message "%s" (concat "Loaded project settings from: " file)) nil)))
   (setq frame-title-format
         '(""
           ;; "%b"
@@ -432,6 +332,8 @@
         projectile-completion-system 'ivy)
   :config
   (projectile-mode)
+  :hook
+  ((projectile-switch-project . (lambda () (projectile-load-settings "settings.el"))))
   :bind
   (("M-s-f" . counsel-projectile-rg)))
 
@@ -461,12 +363,13 @@
   :bind
   (("s-j" . dumb-jump-go-prompt)
    ("s-." . dumb-jump-go)
+   ("s-<mouse-1>". dumb-jump-go)
    ("s-J" . dumb-jump-quick-look)))
 
 (use-package magit
   :init
   (setq ;vc-handled-backends nil
-        magit-completing-read-function 'ivy-completing-read)
+   magit-completing-read-function 'ivy-completing-read)
   :bind
   (("C-x g" . magit-status)
    ("C-x C-g" . magit-dispatch-popup)))
@@ -478,7 +381,8 @@
 (use-package magithub
   :after magit
   :config
-  (magithub-feature-autoinject t))
+  (magithub-feature-autoinject t)
+  (setq magithub-clone-default-directory "~/code"))
 
 (use-package gist
   :bind
@@ -487,7 +391,6 @@
 (use-package git-link
   :defer 1)
 
-;; just cannot get this to work at all
 (use-package diff-hl
   :defer 1
   :hook
@@ -535,24 +438,6 @@
 ;; (use-package yasnippet
 ;;   :config
 ;;   (yas-global-mode 1))
-
-;; (use-package xterm-color
-;;   :config
-;;   (progn
-;;     (setq comint-output-filter-functions
-;;           (remove 'ansi-color-process-output comint-output-filter-functions))
-
-;;     (add-hook 'shell-mode-hook
-;;               (lambda () (add-hook 'comint-preoutput-filter-functions
-;;                                    'xterm-color-filter nil t)))
-
-;;     (require 'eshell)
-;;     (add-hook 'eshell-before-prompt-hook
-;;               (lambda ()
-;;                 (setq xterm-color-preserve-properties t)))
-
-;;     (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
-;;     (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))
 
 (use-package clojure-mode
   :mode (("\\.edn$" . clojure-mode))
@@ -796,10 +681,9 @@ ID, ACTION, CONTEXT."
   (progn
     (setq parinfer-extensions
           '(defaults        ; should be included.
-             pretty-parens  ; different paren styles for different modes.
-             ;; paredit        ; Introduce some paredit commands.
-             smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
-             smart-yank))     ; Yank behavior depend on mode.
+             pretty-parens   ; different paren styles for different modes.
+             smart-tab       ; C-b & C-f jump positions and smart shift with tab & S-tab.
+             smart-yank))    ; Yank behavior depend on mode.
     (add-hook 'clojure-mode-hook #'parinfer-mode)
     (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
     (add-hook 'common-lisp-mode-hook #'parinfer-mode)
@@ -814,7 +698,10 @@ ID, ACTION, CONTEXT."
         ("C-i" . parinfer--reindent-sexp)
         ("C-M-i" . parinfer-auto-fix)
         ("C-," . parinfer-toggle-mode)
+        ;; Don't interfere with smartparens quote handling
         ("\"" . nil)
+        ;; Override mac-key-mode
+        ("s-v" . parinfer-smart-yank:yank)
         :map parinfer-region-mode-map
         ("C-i" . indent-for-tab-command)
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -836,6 +723,7 @@ ID, ACTION, CONTEXT."
   (("C-c C-d" . dash-at-point)))
 
 (use-package pcre2el
+  :defer 1
   :config
   (rxt-global-mode t)
   (pcre-mode t))
@@ -847,7 +735,7 @@ ID, ACTION, CONTEXT."
    ("C-c m" . vr/mc-mark)))
 
 (use-package elisp-format
-  :defer 1)
+  :defer 2)
 
 (use-package cider
   :config
@@ -867,6 +755,7 @@ ID, ACTION, CONTEXT."
     (unless inf-clojure-minor-mode
       (setq-local comint-send-input 'comint-simple-send)))
   :hook
+                                        ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
   (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
@@ -874,6 +763,7 @@ ID, ACTION, CONTEXT."
         ("C-c C-k" . inf-clojure-eval-buffer)))
 
 (use-package geiser
+  :defer 2
   :config
   (progn
     ;; Use CHICKEN Scheme
@@ -892,51 +782,356 @@ ID, ACTION, CONTEXT."
 
 (use-package rainbow-mode
   :hook
-  (sass-mode . rainbow-mode))
-
-(use-package dockerfile-mode
-  :defer 1)
-
-(use-package docker
-  :config
-  (docker-global-mode))
-
-(use-package docker-tramp
-  :defer 1)
-
+  ((sass-mode emacs-lisp-mode) . rainbow-mode))
 (use-package highlight-escape-sequences
+  :defer 1
   :config
   (turn-on-hes-mode))
 
 (use-package hl-todo
+  :defer 2
   :config
   (global-hl-todo-mode))
 
 (use-package markdown-mode
+  :mode "\\.md\\|markdown\\'"
   :init
   (setq markdown-command "multimarkdown"))
 
+(use-package tramp
+  :config
+  (defun ssh-sudo (path)
+    "ssh to host, sudo to root, open dired"
+    (interactive "M [User@] Hostname: ")
+    (let* ((at (string-match "@" path))
+           (colon (string-match ":" path))
+           (user (if at
+                     (concat (substring path 0 at) "@")
+                   ""))
+           (host (if at
+                     (substring path (+ 1 at))
+                   path))
+           (dir (if colon
+                    (substring path (+ 1 colon))
+                  ":/")))
+      (find-file (concat "/sshx:" user host "|sudo:root@" host dir))))
+
+  ;; (https://www.emacswiki.org/emacs/TrampMode#toc30)
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+  (defun sudo-edit-current-file ()
+    (interactive)
+    (let ((position (point)))
+      (find-alternate-file (if (file-remote-p (buffer-file-name))
+                               (let ((vec (tramp-dissect-file-name (buffer-file-name))))
+                                 (tramp-make-tramp-file-name "sudo" (tramp-file-name-user vec)
+                                                             (tramp-file-name-host vec)
+                                                             (tramp-file-name-localname vec)))
+                             (concat "/sudo:root@localhost:" (buffer-file-name))))
+      (goto-char position)))
+
+  (defun sudo-toggle--add-sudo (f)
+    "Add sudo to file path string"
+    (if (file-remote-p f)
+        (with-parsed-tramp-file-name (expand-file-name f) nil
+          (concat "/" method ":"
+                  (when user (concat user "@"))
+                  host "|sudo:root@" host ":" localname))
+      (concat "/sudo:root@localhost:" (expand-file-name f))))
+
+  (defun sudo-toggle--remove-sudo (f)
+    "Remove sudo from file path string"
+    (cond
+     ((string-match-p "/sudo:root@localhost:" f)
+      (replace-regexp-in-string (getenv "HOME") "~" (substring f 21)))
+
+     ((string-match-p "|sudo:root@" f)
+      (replace-regexp-in-string "|sudo:root@[^:]*" "" f))))
+
+  (defun sudo-toggle ()
+    "Reopen the current file, directory, or shell as root.  For
+files and dired buffers, the non-sudo buffer is replaced with a
+sudo buffer.  For shells, a sudo shell is opened but the non-sudo
+shell is left intact."
+    (interactive)
+    (let* ((position (point))
+           (f (expand-file-name (or buffer-file-name default-directory)))
+           (newf (if (string-match-p "sudo:" f)
+                     (sudo-toggle--remove-sudo f)
+                   (sudo-toggle--add-sudo f)))
+           ;; so that you don't get method overrides
+           (tramp-default-proxies-alist nil))
+      (cond ((or buffer-file-name (derived-mode-p 'dired-mode))
+             (find-alternate-file newf)
+             (goto-char position))
+            ((derived-mode-p 'shell-mode)
+             (if (string-match-p "*shell/sudo:root@" (buffer-name))
+                 (kill-buffer-and-window)
+               (with-temp-buffer
+                 (cd newf)
+                 (shell (format "*shell/sudo:root@%s*"
+                                (with-parsed-tramp-file-name newf nil host))))))
+            ((derived-mode-p 'eshell-mode)
+             (eshell-return-to-prompt)
+             (insert (concat "cd " newf))
+             (eshell-send-input))
+            (t (message "Can't sudo this buffer")))))
+  
+  ;; Disable file accesses when visiting buffers accessed via tramp for performance reasons
+  (defun disable-file-accesses ()
+    (when (file-remote-p default-directory)
+      (setq-local projectile-mode-line "Projectile")
+      (setq-local company-backends (remove 'company-files company-backends))))
+
+  :hook
+  (find-file . disable-file-accesses))
+
+(use-package xterm-color
+  :hook
+  ((shell-mode . (lambda ()
+                   (add-hook 'comint-preoutput-filter-functions
+                             'xterm-color-filter nil t)))))
+
+(use-package eterm-256color
+  :hook
+  (term-mode . eterm-256color-mode))
+
+(use-package eshell
+  :config
+  (setq eshell-buffer-shorthand t
+        eshell-scroll-to-bottom-on-input 'all
+        eshell-error-if-no-glob t
+        eshell-hist-ignoredups t
+        eshell-save-history-on-exit t
+        eshell-prefer-lisp-functions t
+        eshell-destroy-buffer-when-process-dies t
+        eshell-prompt-function 'm-eshell-prompt-function
+        eshell-prompt-regexp "^() "
+        eshell-highlight-prompt nil)
+
+  (setenv "CLICOLOR" "1")
+  (setenv "LSCOLORS" "ExFxCxDxBxegedabagacad")
+  (setenv "LS_COLORS" "di=36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:")
+  (setenv "PAGER" "cat")
+  (setenv "MANPAGER" "cat")
+  (setenv "BOOT_JVM_OPTIONS" "-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -Xverify\:none -XX\:+AggressiveOpts")
+
+  (defun eshell-here ()
+    "Opens up a new shell in the directory associated with the
+current buffer's file. The eshell is renamed to match that directory."
+    (interactive)
+    (let* ((parent (if (buffer-file-name)
+                       (file-name-directory (buffer-file-name))
+                     default-directory))
+           ;; `eshell' uses this variable as the new buffer name
+           (eshell-buffer-name (concat "*eshell: " (car (last (split-string parent "/" t))) "*")))
+      (unless (derived-mode-p 'eshell-mode)
+        (switch-to-buffer-other-window "*eshell-here-temp*")
+        (eshell)
+        (kill-buffer "*eshell-here-temp*")
+        (insert (concat "ls"))
+        (eshell-send-input))))
+
+  (defun eshell-maybe-bol ()
+    (interactive)
+    (let ((p (point)))
+      (eshell-bol)
+      (if (= p (point))
+          (beginning-of-line))))
+
+  (defun eshell-quit-or-delete-char (arg)
+    (interactive "p")
+    (if (and (eolp) (looking-back eshell-prompt-regexp))
+        (progn
+          (eshell-life-is-too-much)
+          (ignore-errors
+            (delete-window)))
+      (delete-forward-char arg)))
+
+  (defun eshell-send-previous-input (&optional arg)
+    "Re-run the previous command (or with prefix args the nth command) in last used eshell buffer"
+    (interactive "*p")
+    (with-current-buffer
+        (-first (lambda (b) (eq 'eshell-mode (with-current-buffer b major-mode)))
+                (buffer-list))
+      (with-selected-window (get-buffer-window)
+        (end-of-buffer)
+        (recenter 4))
+      (eshell-previous-input arg)
+      (eshell-send-input)))
+
+  (defun eshell-send-current-line ()
+    "Insert text of current line in eshell and execute."
+    (interactive)
+    (require 'eshell)
+    (let ((command (buffer-substring
+                    (save-excursion
+                      (beginning-of-line)
+                      (point))
+                    (save-excursion
+                      (end-of-line)
+                      (point)))))
+      (let ((buf (current-buffer)))
+        (unless (get-buffer eshell-buffer-name)
+          (eshell))
+        (display-buffer eshell-buffer-name t)
+        (switch-to-buffer-other-window eshell-buffer-name)
+        (end-of-buffer)
+        (eshell-kill-input)
+        (insert command)
+        (eshell-send-input)
+        (end-of-buffer)
+        (switch-to-buffer-other-window buf))))
+
+  (defun source-bash (args)
+    "Execute `cmd' with bash and set any exported environment variables"
+    (let ((f (concat (getenv "TMPDIR") "emacs-source-sh.el")))
+      (shell-command (concat user-emacs-directory "source-bash " args))
+      ;; (insert-file-contents f)
+      (load-file f)))
+
+  (defun eshell/exit-code (cmd &rest args)
+    "Run PROGRAM with ARGS and return the exit code"
+    (with-temp-buffer (apply 'call-process cmd nil (current-buffer) nil args)))
+
+  (defun m-eshell-prompt-function ()
+    (concat
+     (when (not (eshell-exit-success-p))
+       (propertize (concat " "(number-to-string eshell-last-command-status) " ") 'face `(:background "red")))
+     (propertize (concat " " (eshell/pwd) " ") 'face `(:background "cyan" :foreground "black"))
+     (propertize "\n() " 'face `(:foreground "bold white"))))
+
+  (defun eshell/clear ()
+    "Clear the eshell buffer."
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (eshell-send-input)))  
+  (defun eshell/s (hostname)
+    "Change directory to host via tramp"
+    (eshell/cd (concat "/sshx:" hostname ":")))
+
+  (defun eshell/info (&optional subject)
+    "Invoke `info', optionally opening the Info system to SUBJECT."
+    (let ((buf (current-buffer)))
+      (Info-directory)
+      (if (not (null subject))
+          (let ((node-exists (ignore-errors (Info-menu subject))))
+            (if (not node-exists)
+                (format "No menu item `%s' in node `(dir)Top'." subject))))))
+  
+  (defun eshell/init ()
+    ;; (eshell-command "source-bash" ". ~/.env")
+    (setenv "TERM" "eterm-color")
+    
+    (global-key-binding (kbd "M-p") 'eshell-send-previous-input)
+    ;; (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line)
+    (define-key eshell-mode-map (kbd "C-a") 'eshell-maybe-bol)
+    (define-key eshell-mode-map (kbd "C-d") 'eshell-quit-or-delete-char)
+
+    (add-to-list 'eshell-visual-commands "ncdu")
+    (add-to-list 'eshell-visual-commands "nvim")
+    (add-to-list 'eshell-visual-commands "ssh")
+    (add-to-list 'eshell-visual-commands "tail")
+    (add-to-list 'eshell-visual-commands "top")
+    (add-to-list 'eshell-visual-commands "vim")
+
+    (eshell/alias "dot" "git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME $*")
+    (eshell/alias "df" "df -h")
+    (eshell/alias "whats-my-ip" "curl -s https://diagnostic.opendns.com/myip")
+    (eshell/alias "dis" "drill +nocmd +noall +answer")
+    (eshell/alias "show-hidden-files" "defaults write com.apple.finder AppleShowAllFiles -bool true; and killall Finder")
+    (eshell/alias "hide-hidden-files" "defaults write com.apple.finder AppleShowAllFiles -bool false; and killall Finder")
+    (eshell/alias "mergepdf" "/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py"))
+
+  ;; TODO: These break if local has grc but tramp remote doesn't
+  ;; (if (= 0 (eshell/exit-code "which" "grc"))
+  ;;     (eshell/alias "colourify" "$(which grc) -es --colour=auto")
+  ;;   (eshell/alias "configure" "colourify ./configure")
+  ;;   (eshell/alias "diff" "colourify diff")
+  ;;   (eshell/alias "make" "colourify make")
+  ;;   (eshell/alias "gcc" "colourify gcc")
+  ;;   (eshell/alias "g++" "colourify g++")
+  ;;   (eshell/alias "as" "colourify as")
+  ;;   (eshell/alias "gas" "colourify gas")
+  ;;   (eshell/alias "ld" "colourify ld")
+  ;;   (eshell/alias "netstat" "colourify netstat")
+  ;;   (eshell/alias "ping" "colourify ping")
+  ;;   (eshell/alias "traceroute" "colourify traceroute")
+  ;;   (eshell/alias "tracepath" "colourify -c conf.traceroute tracepath")
+  ;;   (eshell/alias "arp" "colourify -c conf.traceroute arp")
+  ;;   (eshell/alias "tail" "colourify -c conf.log tail")
+  ;;   (eshell/alias "ps" "colourify -c conf.ps ps")
+  ;;   (eshell/alias "ifconfig" "colourify -c conf.traceroute ifconfig")
+  ;;   (eshell/alias "nmap" "colourify -c conf.nmap nmap")
+  ;;   (eshell/alias "lsof" "colourify -c conf.traceroute lsof")
+  ;;   (eshell/alias "dig" "colourify -c conf.traceroute dig")
+  ;;   (eshell/alias "host" "colourify -c conf.traceroute host")
+  ;;   (eshell/alias "drill" "colourify -c conf.traceroute drill")
+  ;;   (eshell/alias "curl" "colourify -c conf.curl curl")))
+  :bind
+  (("C-!" . eshell-here)
+   ("s-e" . eshell-here))
+  :hook
+  ((eshell-mode . eshell/init)
+   (eshell-before-prompt . (lambda ()
+                             (setq xterm-color-preserve-properties t)))
+   (eshell-mode . (lambda ()
+                    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+                    (setq eshell-output-filter-functions
+                          (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))))
+
+(use-package esh-autosuggest
+  :hook ((eshell-mode . esh-autosuggest-mode))
+  :bind (:map esh-autosuggest-active-map
+              ("C-e" . company-complete-selection)))
+
+(use-package htmlize
+  :bind
+  (("C-c h b" . htmlize-buffer)
+   ("C-c h f" . htmlize-file)
+   ("C-c h m" . htmlize-many-files)
+   :map dired-mode-map
+   ("C-c h m" . htmlize-many-files-dired)))
+
+(use-package dockerfile-mode
+  :mode "Dockerfile\\'")
+
+(use-package docker
+  :defer 2
+  :config
+  (docker-global-mode))
+
+(use-package docker-tramp
+  :defer 2)
+
 (use-package bash-completion
+  :defer 2
   :config
   (bash-completion-setup))
 
 (use-package fish-mode
-  :defer 1)
+  :mode "\\.fish\\'")
 
 (use-package fish-completion
-  :defer 1)
+  :defer 2
+  :custom (fish-completion-fallback-on-bash-p t)
+  :config
+  (when (and (executable-find "fish")
+             (require 'fish-completion nil t)))
+  (global-fish-completion-mode))
 
 (use-package nginx-mode
+  :defer 2
   :config
   (setq nginx-indent-level tab-width))
 
 (use-package yaml-mode
-  :defer 1)
+  :mode "\\.ya\?ml\\'")
 
 (use-package toml-mode
-  :defer 1)
+  :mode "\\.toml\\'")
 
 (use-package web-mode
+  :mode "\\.html\?\\'"
   :init
   ;; from web-mode FAQ to work with smartparens
   (defun m-web-mode-hook ()
@@ -972,48 +1167,50 @@ ID, ACTION, CONTEXT."
   (js2-basic-offset tab-width))
 
 (use-package rjsx-mode
-  :defer 1)
+  :mode "\\.jsx\\'")
 
-(use-package indium
-  :defer 1)
+;; (use-package indium
+;;   :defer 1)
 
-(use-package nodejs-repl
-  :bind
-  (:map
-   js2-mode-map
-   ("C-x C-e" . nodejs-repl-send-last-expression)
-   ("C-c C-j" . nodejs-repl-send-line)
-   ("C-c C-r" . nodejs-repl-send-region)
-   ("C-c C-l" . nodejs-repl-load-file)
-   ("C-c C-z" . nodejs-repl-switch-to-repl)))
-
-(use-package restclient
-  :defer 1)
+;; (use-package nodejs-repl
+;;   :bind
+;;   (:map
+;;    js2-mode-map
+;;    ("C-x C-e" . nodejs-repl-send-last-expression)
+;;    ("C-c C-j" . nodejs-repl-send-line)
+;;    ("C-c C-r" . nodejs-repl-send-region)
+;;    ("C-c C-l" . nodejs-repl-load-file)
+;;    ("C-c C-z" . nodejs-repl-switch-to-repl)))
 
 (use-package know-your-http-well
-  :defer 1)
+  :defer 2)
+
+(use-package restclient
+  :defer 2)
 
 (use-package company-restclient
-  :defer 1)
-
-(use-package robe
-  :hook ruby-mode
+  :defer 2
   :config
-  (eval-after-load 'company
-    '(push 'company-robe company-backends)))
+  (add-to-list 'company-backends 'company-restclient))
 
-(use-package inf-ruby
-  :defer 1)
+;; (use-package robe
+;;   :hook ruby-mode
+;;   :config
+;;   (eval-after-load 'company
+;;     '(push 'company-robe company-backends)))
+
+;; (use-package inf-ruby
+;;   :defer 1)
 
 (use-package lua-mode
   :mode "\\.lua\\'")
 
 (use-package sass-mode
-  :mode ("\\.sss\\'" "\\.sass\\'" "\\.scss\\'"))
+  :mode "\\.sa?c?ss\\'")
 
-;; (use-package flycheck
-;;   :hook sh-mode
-;;   :commands (flycheck))
+(use-package flycheck
+  :bind
+  (("C-c ! !" . flycheck-mode)))
 
 (use-package powershell-mode
   :mode "\\.ps1\\'"
@@ -1032,7 +1229,7 @@ ID, ACTION, CONTEXT."
    ("C-<return>" . eir-eval-in-ielm)
    :map
    lisp-interaction-mode-map
-   ("C-<return>" . eir-eval-in-ielm)   
+   ("C-<return>" . eir-eval-in-ielm)
    :map
    Info-mode-map
    ("s-<return>" . eir-eval-in-ielm)
@@ -1044,7 +1241,8 @@ ID, ACTION, CONTEXT."
    ("s-<return>" . eir-eval-in-ruby)
    :map
    sh-mode-map
-   ("s-<return>" . eir-eval-in-shell)))   
+   ("s-<return>" . eir-eval-in-shell)))
 
 
 (provide 'm-packages)
+;;; m-packages.el ends here

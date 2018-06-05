@@ -1,0 +1,34 @@
+alias mergepdf /System/Library/Automator/CombinePDFPages.action/Contents/Resources/join.py
+alias hide-hidden-files defaults write com.apple.finder AppleShowAllFiles -bool false; and killall Finder
+alias show-hidden-files defaults write com.apple.finder AppleShowAllFiles -bool true; and killall Finder
+alias dis drill +nocmd +noall +answer
+alias whats-my-ip curl -s https://diagnostic.opendns.com/myip
+alias df df -h
+alias colourify $(which grc) -es --colour=auto
+alias lt ls -Ahltr
+alias la ls -Ahl
+alias ll ls -hl
+alias tf tail -f $*
+alias spoton sudo mdutil -a -i on $*
+alias spotoff sudo mdutil -a -i off $*
+alias mkdir mkdir -p $*
+alias gs git status $*
+alias grpl git reset HEAD --hard; git pull $*
+alias grep grep --color=auto $*
+alias gpl git pull $*
+alias gp git push $*
+alias glog git log --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit $*
+alias gcm git commit -m $*
+alias gc git commit $*
+alias ga git add $*
+alias g git $*
+alias bash-aliases bash -c alias | sed -E "s/^alias ([^=]+)='(.*)'$/alias \1 \2 \$*/g; s/'\\\''/'/g;"
+alias .... ../../.. $*
+alias ... ../.. $*
+alias d dired $1
+alias f find-file $1
+alias l ls $*
+alias lsd ls -d *
+alias e find-file $1
+alias clear recenter 0
+alias ee find-file-other-window $1

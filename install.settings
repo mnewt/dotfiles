@@ -14,19 +14,19 @@ before () {
   :
 }
 
-# 1. Ignore these files (modifies include)
-ignore='install* images scripts Icon* *.md test'
+# 1. Ignore these files
+ignore=(install* images scripts Icon* *.md test)
 
 # 2. Create directory itself (not contents), then link the children of the directory
 # NOTE: It will not delete an existing directory. If you want to do that, run:
 #       `rm -rf ~/.directory && ./install`
-link_children='atom bin config hammerspoon'
+link_children=(atom emacs.d bin config hammerspoon)
 
 # 3. Copy these files
-copy=''
+copy=()
 
 # 4. Link these files
-link='*'
+link=(*)
 
 # Run after the `install` operations
 after () {

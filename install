@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+shopt -s nullglob
 
 scriptname="$(basename $0)"
-scriptbuildnum="0.10"
-scriptbuilddate="2017-05-17"
+scriptbuildnum="0.11"
+scriptbuilddate="2018-05-23"
 
 ### FUNCTIONS ###
 
@@ -10,7 +12,7 @@ display_help_text () {
   cat <<EOF
 $scriptname version $scriptbuildnum - $scriptbuilddate
 
-Straightforward, zero dependency, portable distributed dotfile manager
+Straightforward, zero dependency, portable  dotfile manager
 Run from a dotfile repository directory, links all files and directories into the current user's home directory
 
 USAGE: $scriptname [OPTIONS] [SOURCE-DIR] [DEST-DIR]
@@ -18,20 +20,20 @@ USAGE: $scriptname [OPTIONS] [SOURCE-DIR] [DEST-DIR]
     DEST-DIR defaults to the current user's home directory
 
 OPTIONS:
-  -f (--force)    : force overwrite of files or directories in DEST-DIR
+  -f (--force)    : Force overwrite of files or directories in DEST-DIR
                     (default is false)
-  -t (--test)     : test mode - only display changes, don't make them
+  -t (--test)     : Test mode - only display changes, don't make them
                     (default is false)
-  -c (--config)   : specify a configuration file
-                    See the default configuration file (`install.settings`)
-  -h (--help)     : display this help and exit
-  -V (--version)  : output version information and exit
+  -c (--config)   : Specify a configuration file
+                    (see the default configuration file (install.settings))
+  -h (--help)     : Display this help and exit
+  -V (--version)  : Output version information and exit
 
-SOURCE-DIR        : directory containing dotfiles to be copied and/or linked
+SOURCE-DIR        : Directory containing dotfiles to be copied and/or linked
                     (default is current directory)
-                      files should NOT have leading '.'
+                      Files should NOT have leading '.'
                       example: '.bashrc' should be named 'bashrc' in SOURCE-DIR
-DEST-DIR          : target directory where copies and links will be placed
+DEST-DIR          : Target directory where copies and links will be placed
                     (default is '~')
 
 EOF
@@ -46,17 +48,21 @@ MAGENTA=005
 CYAN=006
 WHITE=007
 
+# Canonicalize the path (does not necessarily expand symlinks)
+full_path () {
+  echo "$(cd $1 && pwd)"
+}
+
 # Print a string with ANSI X3.64 colors
 # Color formats:
 # * 8 color (30-37 for foreground and 40-37 for background), e.g. '31'
 # * 256 color (000-255 -- must use 3 digits with leading zeros), e.g. '001'
 # * 24 bit color, e.g. RGB: 255;255;255, or hex: FFFFFF
 # * Anything else is processed as a raw ANSI escape sequence and passed directly to \e[<arg>m
+# $1: background color
+# $2: foreground color
+# remaining args: string to print
 with_color () {
-  # $1: background color
-  # $2: foreground color
-  # remaining args: string to print
-
   local bg="$1"
   local fg="$2"
   shift 2
@@ -75,33 +81,52 @@ with_color () {
   printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
 }
 
+# Return true iff $1 is an exact match for any subsequent argument
 list_contains() {
-  for word in $1; do
-    [ "$word" = "$2" ] && return 0
+  match="$1"
+  shift
+  for j in "$@"; do
+    [ "$j" = "$match" ] && return 0
   done
   return 1
 }
 
-remove_dupes() {
-  unset new_list
-  for i in $1; do
-    list_contains "$2" "$i" || new_list="$new_list $i"
+# Remove items from array $1 that are matches for items in array $2.
+# Both $1 and $2 are names of global variables.
+# The variable referenced by $1 is modified in place.
+remove_matches() {
+  original_ref=$1[@]
+  original=("${!original_ref}")
+  matches_ref=$2[@]
+  matches=("${!matches_ref}")
+  new=()
+  for i in "${original[@]}"; do
+    list_contains "$i" "${matches[@]}" || new+=("$i")
   done
-  echo "$new_list"
+  eval $1=\("\${new[@]}"\)
 }
 
+# If a file or link exists at $1, remove it.
+# If it's a directory, don't remove it.
 remove_file() {
-  if [ "$testing" = true ]; then
-    with_color $NORMAL $YELLOW "        TESTING: "; echo "rm -rf $1"
-  elif [ "$force" = true ]; then
-    with_color $NORMAL $RED "       REMOVING: "; echo "$1"
-    rm -rf "$1"
-  else
-    with_color $NORMAL $BLUE "NOT OVERWRITING: "; echo "$1"
+  if [ -L "$1" ] || [ -f "$" ]; then
+    if [ "$testing" = true ]; then
+      with_color $NORMAL $YELLOW "        TESTING: "; echo "rm -f $1"
+    elif [ "$force" = true ]; then
+      with_color $NORMAL $RED "       REMOVING: "; echo "$1"
+      rm -f "$1"
+    else
+      with_color $NORMAL $BLUE "NOT OVERWRITING: "; echo "$1"
+      return 1
+    fi
+  elif [ -d "$1" ]; then
+    with_color $NORMAL $BLUE "NOT REMOVING DIR "
+    echo "$target"
     return 1
   fi
 }
 
+# Create a soft link from $1 to $2
 link_file() {
   if [ "$testing" = true ]; then
     with_color $NORMAL $YELLOW "        TESTING: "; echo "ln -s $1 $2"
@@ -111,6 +136,7 @@ link_file() {
   fi
 }
 
+# Copy a file from $1 to $2
 copy_file() {
   if [ "$testing" = true ]; then
     with_color $NORMAL $YELLOW "        TESTING: "; echo "cp -R $1 $2"
@@ -120,6 +146,7 @@ copy_file() {
   fi
 }
 
+# Create a directory at $1 if it doesn't already exist
 make_dir() {
   if [ "$testing" = true ]; then
     with_color $NORMAL $YELLOW "        TESTING: "; echo "mkdir -p $1"
@@ -135,53 +162,44 @@ make_dir() {
 
 ### PRIMARY FUNCTIONS ###
 
+# Link each argument according to the global configuration
+# $1: The literal prefix. Can include directory name and file prefix, such as '$HOME/.'
+# each remaining element is the suffix, so it would end up '$HOME/.filename'
 make_links () {
-  # Link each argument according to the global configuration
-  for s in $1; do
-    target="$dest_dir/.$s"
+  prefix="$1"
+  shift
+  for s in "$@"; do
+    target="$prefix$s"
     src="$source_dir/$s"
-    # if file (or a link) exists at destination
-    if [ -e "$target" ] || [ -L "$target" ]; then
-      remove_file "$target" && link_file "$src" "$target"
-    else
-      link_file "$src" "$target"
-    fi
+    remove_file "$target" && link_file "$src" "$target"
   done
 }
 
+# Copy each argument according to the global configuration
+# $1: The literal prefix. Can include directory name and file prefix, such as '$HOME/.'
+# each remaining element is the suffix, so it would end up '$HOME/.filename'
 make_copies () {
-  # Copy each argument according to the global configuration
-  for s in $1; do
-    target="$dest_dir/.$s"
+  prefix="$1"
+  shift
+  for s in "$@"; do
+    target="$prefix$s"
     src="$source_dir/$s"
-    # if file (or a link) exists at destination
-    if [ -e "$target" ] || [ -L "$target" ]; then
-      remove_file "$target" && copy_file "$src" "$target"
-    else
-      copy_file "$src" "$target"
-    fi
+    remove_file "$target" && copy_file "$src" "$target"
   done
 }
 
+# `mkdir` each argument then run `make_links` on its children
+# $1: The literal prefix. Can include directory name and file prefix, such as '$HOME/.'
+# each remaining element is the suffix, so it would end up '$HOME/.filename'
 link_children () {
-  # `mkdir` each argument then run `make_links` on its children
-  for s in $1; do
-    target="$dest_dir/.$s"
-    children=$s/*
-    if [ -d "$target" ]; then
-      with_color $NORMAL $BLUE "   NOT REMOVING: "
-      echo "$target"
-    fi
-    if [ -e "$target" ] || [ -L "$target" ]; then
-      make_dir "$target" && make_links "$children"
-    else
-      make_dir "$target" && make_links "$children"
-    fi
+  prefix="$1"
+  shift
+  for s in "$@"; do
+    target="$prefix$s"
+    children=($(cd $source_dir && echo $s/*))
+    remove_file "$target" && make_dir "$target"
+    make_links "$prefix" "${children[@]}"
   done
-}
-
-full_path () {
-  echo "$(cd $1 && pwd)"
 }
 
 ### PRE-EXECUTION TASKS ###
@@ -248,30 +266,23 @@ echo
 with_color $NORMAL $GREEN "        RUNNING: "; echo "before function"
 before
 
-### MAKE LISTS OF SOURCES ###
+### PREPARE LISTS OF SOURCES ###
 
-# Expand globs
-link_sources=$(cd $source_dir && echo $link)
-ignore_sources=$(cd $source_dir && echo $ignore)
-copy_sources=$(cd $source_dir && echo $copy)
-link_children_sources=$(cd $source_dir && echo $link_children)
+cd "$source_dir"
 
-# Remove duplicate and ignored files from file-lists
-# For precedence rules, see `install.settings`
-link_sources=$(remove_dupes "$link_sources" "$ignore_sources")
-link_sources=$(remove_dupes "$link_sources" "$copy_sources")
-link_sources=$(remove_dupes "$link_sources" "$link_children_sources")
-copy_sources=$(remove_dupes "$copy_sources" "$ignore_sources")
-link_children_sources=$(remove_dupes "$link_children_sources" "$ignore_sources")
-
+# Remove duplicate and ignored files from file-lists.
+# For precedence rules, see `install.settings`.
+remove_matches link ignore
+remove_matches link copy
+remove_matches link link_children
+remove_matches copy ignore
+remove_matches link_children ignore
 
 ### EXECUTE - MAKE LINKS, COPIES, AND DIRS ##
 
-make_links "$link_sources"
-make_copies "$copy_sources"
-# set -x
-link_children "$link_children_sources"
-set +x
+make_links "$dest_dir/." "${link[@]}"
+make_copies "$dest_dir/." "${copy[@]}"
+link_children "$dest_dir/." "${link_children[@]}"
 
 with_color $NORMAL $GREEN "        RUNNING: "; echo 'after function'
 after

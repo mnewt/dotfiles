@@ -24,22 +24,30 @@
 - [x] Remove noise from atom status bar
 - [x] Get rid of `basic.vim`? No, it has some nice settings.
 - [x] wth_color escape sequences sometimes dont' work over ssh/tmux
-- [ ] Make prompt faster
-  - [x] Figure out why https://github.com/edkolev/promptline.vim is so much faster, and incorporate changes
-  - [x] Port above changes to fish
-  - [ ] Have upsearch only run once, searching for all relevant items. This is way more work but should also be way faster
+hould also be way faster
 - [x] BUG: update-python on arch overwrites packages that are managed by pacman, causing pacman updates to fail
 - [x] BUG: On interactive login: `set: Tried to change the read-only variable '_'` Has something to do with adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
 - [x] BUG: Error message is displayed from prompt when tmux is not in path
 - [x] Move prompt to its own plugin/repo - teleprompt
-- [x] BUG: `install`: Don't create '*' files in created directories
+- [x] BUG: `install`: Don't create files with literal name of '*' in created directories (`link-children`) - only happens when specifying source path on command line?
 - [x] BUG: Why does it always link .parinfer-file-extentions.txt?
 - [x] BUG: `inf-clojure` sets `comint-send-input` on every shell
 - [x] BUG: dired+ often doesn't work or doesn't work completely (details not hidden and/or highlighting not working)
 - [x] Emacs: macos proced doesn't show all columns
 - [x] Get `diff-hl` to work
+- [x] Get `gist` to work
+- [x] tramp: add hostname to mode-line when connected via tramp
+- [x] Re-enable company-mode in tramp and optimize
+- [x] Move any requires in `init.el` to use-package
+- [x] Add `eless` to aliases
+- [x] Move `path.fish` to `env`
+- [x] install / install.settings should use arrays, not lists, for variables
+- [ ] BUG: `ignore` in `install.settings` is getting ignored
+- [ ] Move to bare git repo (https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/)
+- [ ] Talk about eshell in README
+- [ ] Move README to org format
+- [ ] Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's `clipboard-yank-and-indent` needs to work with parinfer's `parinfer-smart-yank:yank`. Maybe advise the latter?)
 - [ ] Move update/save/load to its own plugin/repo
-- [ ] install / install.settings should use arrays, not lists, for variables
 - [ ] Individual app screenshots
 - [ ] demo gif
 - [ ] write blog post tour

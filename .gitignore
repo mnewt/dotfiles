@@ -1,3 +1,6 @@
+# ignore the bare repo location so that it doesn't recursively include itself
+.dotfiles
+
 # fish cache files
 fishd.*
 fish_history*
@@ -18,6 +21,8 @@ emacs.d/epkgs
 .emacs.desktop*
 .mc-lists.el
 TAGS
+emacs.d/eshell/history
+emacs.d/eshell/lastdir
 
 
 # fish
