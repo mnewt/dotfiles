@@ -1,4 +1,0 @@
-#! /usr/bin/env bash
-
-brew reinstall emacs-mac --with-modern-icon --with-natural-title-bar
-

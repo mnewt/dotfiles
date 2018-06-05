@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-find `pwd` -type d -regex ".*\(node_modules\|temp\|tmp\|bower_components\|cache\)$" -prune -exec dropbox.py exclude add {} \;

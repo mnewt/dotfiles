@@ -1,39 +1,39 @@
 {
   "dependencies": {
-    "dash-docset-generator": {
-      "version": "1.0.0",
-      "from": "dash-docset-generator@latest",
-      "resolved": "https://registry.npmjs.org/dash-docset-generator/-/dash-docset-generator-1.0.0.tgz"
+    "browser-sync": {
+      "version": "2.24.4",
+      "from": "browser-sync",
+      "resolved": "https://registry.npmjs.org/browser-sync/-/browser-sync-2.24.4.tgz"
     },
-    "hackmyresume": {
+    "calvin-cljs": {
+      "version": "0.3.0",
+      "from": "calvin-cljs",
+      "resolved": "https://registry.npmjs.org/calvin-cljs/-/calvin-cljs-0.3.0.tgz"
+    },
+    "closh": {
+      "version": "0.1.3",
+      "from": "closh",
+      "resolved": "https://registry.npmjs.org/closh/-/closh-0.1.3.tgz"
+    },
+    "jslint": {
+      "version": "0.11.0",
+      "from": "jslint",
+      "resolved": "https://registry.npmjs.org/jslint/-/jslint-0.11.0.tgz"
+    },
+    "lumo-cljs": {
       "version": "1.8.0",
-      "from": "hackmyresume@latest",
-      "resolved": "https://registry.npmjs.org/hackmyresume/-/hackmyresume-1.8.0.tgz"
+      "from": "lumo-cljs@1.8.0",
+      "resolved": "https://registry.npmjs.org/lumo-cljs/-/lumo-cljs-1.8.0.tgz"
     },
-    "nativefier": {
-      "version": "7.4.1",
-      "from": "nativefier@7.4.1",
-      "resolved": "https://registry.npmjs.org/nativefier/-/nativefier-7.4.1.tgz"
+    "nodemon": {
+      "version": "1.17.5",
+      "from": "nodemon@1.17.5",
+      "resolved": "https://registry.npmjs.org/nodemon/-/nodemon-1.17.5.tgz"
     },
     "npm": {
-      "version": "5.5.1",
+      "version": "6.1.0",
       "from": "npm",
-      "resolved": "https://registry.npmjs.org/npm/-/npm-5.5.1.tgz"
-    },
-    "uncss": {
-      "version": "0.14.1",
-      "from": "uncss@latest",
-      "resolved": "https://registry.npmjs.org/uncss/-/uncss-0.14.1.tgz"
-    },
-    "webpack": {
-      "version": "2.7.0",
-      "from": "webpack@2.7.0",
-      "resolved": "https://registry.npmjs.org/webpack/-/webpack-2.7.0.tgz"
-    },
-    "webpack-bundle-size-analyzer": {
-      "version": "2.7.0",
-      "from": "webpack-bundle-size-analyzer@2.7.0",
-      "resolved": "https://registry.npmjs.org/webpack-bundle-size-analyzer/-/webpack-bundle-size-analyzer-2.7.0.tgz"
+      "resolved": "https://registry.npmjs.org/npm/-/npm-6.1.0.tgz"
     }
   }
 }

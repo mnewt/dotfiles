@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 ;;; pointhistory.el --- Remember point positions
 
 ;; Copyright (C) 2014  U-ITIHQ\Tobias.Zawada
@@ -34,6 +36,7 @@
 
 
 (require 'ring)
+(require 'cl)
 
 ;; Run only once!
 (defvar pointhistory-ringlength 100)

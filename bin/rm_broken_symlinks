@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-find -L "$1" -maxdepth 1 -type l | tee /dev/stderr | xargs rm

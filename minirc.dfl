@@ -1,9 +1,0 @@
-# Machine-generated file - use setup menu in minicom to change parameters.
-pu lock             /usr/local/Cellar/minicom/2.7/var
-pu baudrate         9600
-pu escape-key       Escape (Meta)
-pu mfcolor          WHITE
-pu mbcolor          CYAN
-pu sfcolor          BLACK
-pu sbcolor          MAGENTA
-pu linewrap         Yes

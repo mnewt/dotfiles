@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# pw (https://gist.github.com/mnewt/8d2eef4150d93a90d273)
-
-pw "$@" | tee /dev/tty | pbcopy

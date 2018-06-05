@@ -1,1 +1,16 @@
+certifi
+chardet
+flake8
+idna
+mccabe
+pew
+pip
+pipenv
+powerline-shell
+pycodestyle
+pyflakes
+requests
 setuptools
+urllib3
+virtualenv
+virtualenv-clone

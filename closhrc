@@ -1,4 +1,0 @@
-(require-macros '[closh.core :refer [sh-str]])
-
-(defn closh-prompt []
-  (sh-str fish -c fish_prompt))

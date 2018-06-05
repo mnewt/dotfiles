@@ -1,4 +1,0 @@
-#!/bin/sh
-h2_jar="$(find /usr/local/Cellar/h2 -name 'h2-*.jar')"
-java -cp "$h2_jar" org.h2.tools.Shell
-

@@ -27,6 +27,11 @@ source_if () {
   [ -e "$1" ] && . "$1"
 }
 
+# installed () {
+#   command -v "$1" >/dev/null 2>&1
+# }
+
+source_if "$HOME/.env"
 source_if "$HOME/.aliases"
 source_if "$HOME/.private.sh"
 source_if "$HOME/.bin/__prompt"

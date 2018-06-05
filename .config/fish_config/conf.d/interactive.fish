@@ -2,6 +2,7 @@
 
 if status --is-interactive
   # source aliases and environment variables common to {ba,fi,z}sh
+  fix_if "$HOME/.env"
   fix_if "$HOME/.aliases"
   fix_if "$HOME/.bin/start-ssh-agent"
 
@@ -13,6 +14,5 @@ if status --is-interactive
   # fzf
   set -gx FZF_LEGACY_KEYBINDINGS 0
 
-  fix_if "$HOME/.private.sh"
   source_if "$HOME/.private.fish"
 end

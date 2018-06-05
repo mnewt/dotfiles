@@ -1,4 +1,0 @@
-#!/bin/bash
-# check if a program is on the path
-
-command -v "$1" >/dev/null 2>&1
