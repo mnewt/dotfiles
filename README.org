@@ -1,137 +1,92 @@
 * Some dotfiles
-This setup is mostly shell agnostic, supporting
-[[http://fishshell.com/][fish]],
-[[https://www.gnu.org/software/bash/][bash]] and
-[[http://www.zsh.org/][zsh]]. I spend most of my time in fish, however.
+This setup is mostly shell agnostic, supporting [[https://www.gnu.org/software/emacs/manual/html_mono/eshell.html][eshell]], [[http://fishshell.com/][fish]], [[https://www.gnu.org/software/bash/][bash]], and [[http://www.zsh.org/][zsh]].
 
-NOTE: The master repository is on
-[[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use
-[[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there.
-Feel free to create issues or pull requests on either (but I do prefer
-[[https://gitlab.com][GitLab]]).
+In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to emacs, I am using eshell and rarely use a terminal outside of emacs.
+
+NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use [[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there. Feel free to create issues or pull requests on either (but I do prefer [[https://gitlab.com][GitLab]]).
 
 * Tour
-*** Applications & Utilities
-Included are configurations for some programs, such as: -
-[[https://atom.io/][Atom]] - [[https://clojure.org/][Clojure]] -
-[[https://leiningen.org/][Leiningen]] and
-[[http://boot-clj.com/][Boot]] -
-[[https://www.gnu.org/software/emacs/][Emacs]]
-[[file:images/emacs.png]] - [[https://git-scm.com/][Git]] -
-[[http://mah.everybody.org/docs/ssh][ssh-agent]] -
-[[https://tmux.github.io/][tmux]] [[file:images/tmux-status.png]] -
-[[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
-[[file:images/vim.png]]
+** Applications & Utilities
+Included are configurations for some programs, such as:
+*** [[https://atom.io/][Atom]]
+*** [[https://www.gnu.org/software/emacs/][Emacs]]
+*** [[https://github.com/tmux/tmux][Tmux]]
+*** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 
 * Install
-This procedure will establish a [[http://www.saintsjd.com/2011/01/what-is-a-bare-git-repository/][bare]] repository using the technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]].
+This procedure will establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at $HOME. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under $HOME). Then we explicitly add just the files we want.
 
-*** If necessary, back up existing dotfiles
+This is similar to the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that your dotfiles are in their proper locations and you explicitly choose which files to track and everything else is ignored. No symlinks, no duplication, no scripts. Further, you can have multiple repos tracking different sets of files, all with their workdirs pointing to $HOME.
+
+** Scenarios
+If you want to set up a repo, you'll want to consider how to transition from whatever is in place at the moment. Here are some basic plans for the main scenarios.
+
+*** Starting from scratch
+If you want to start a brand new repo, you'll do something like this to initialize and start working with it.
 #+BEGIN_SRC sh
-  mkdir "$HOME/.dotfile-backup"
-  # TODO
-  # rsync -av "$HOME"/.???? "$HOME/.dotfile-backup" --exclude "$HOME/.dotfiles" --exclude "$HOME/.dotfile-backup"
+  git init --separate-git-dir $HOME/.config/repos/dotfiles $HOME
+#+END_SRC
+
+*** Clone an existing repo
+Clone your dotfiles, keeping the gitdir separate from the workdir
+#+BEGIN_SRC sh
+  git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git $HOME
+#+END_SRC
+
+*** Don't show untracked files
+Don't show untracked files since there will always be lots of stuff in $HOME that you don't want in your repo.
+#+BEGIN_SRC sh
+  env GITDIR=$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
+#+END_SRC
+
+*** Link to a repo from the $HOME workdir
+The ~git-home-link~ function creates writes a .git file in $HOME pointing to one of the repos. By using this function, you can "activate" one of the repos such that you can use normal git comamnds in $HOME without specifying ~GITDIR~.
+
+Put this function in your ~.bashrc~.
+#+BEGIN_SRC sh
+  git-home-link () {
+    # Link repo specified by $1 to $HOME using a .git file link
+    if [ -n "$1" ] && [ -e "$HOME/.config/repos/$1" ]; then
+      echo "gitdir: .config/repos/$1" >"$HOME/.git"
+    else
+      echo "repo \"$1\" not found in $HOME/.config/repos/"
+      echo "ls $HOME/.config/repos/:"
+      ls $HOME/.config/repos/
+    fi
+  }
+#+END_SRC
+
+*** Back up conflicting dotfiles
+If you want to checkout an existing repo into $HOME, you are probably going to have some conflicting files. Back them up before checking out.
+#+BEGIN_SRC sh
+# TODO
 #+END_SRC
 
 *** If necessary, remove symlinks to the old repository
-These are example commands and the latter is destructive. Be sure you know what you're doing!
+If were symlinking dotfiles into place before moving to a bare repo, those links must be removed. These are the commands I used to migrate. Your mileage may vary. These are example commands and the last one is destructive. Be sure to know what you're doing!
 #+BEGIN_SRC sh
-# Find links that you may want to delete
-find "$HOME" -maxdepth 3 -type l -print
-
-# Maybe do some additional filtering. This is what I did on my macOS setup:
-find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -print
-
-# Delete them
-find "$HOME" -maxdepth 3 -type l -delete
+  # Find links that you may want to delete
+  find "$HOME" -maxdepth 1 -type l -print
+  # Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
+  find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -print
+  # Delete them
+  find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -delete
 #+END_SRC
 
-*** Clone as a bare repository
-#+BEGIN_SRC sh
-# Clone your dotfiles into a bare repository in a "dot" folder of your $HOME:
-git clone --bare https://gitlab.com/mnewt/dotfiles.git "$HOME/.dotfiles"
-#+END_SRC
-
-*** Remove
-*** Script
-There is an install script that can link and/or copy files between the
-cloned repo directory and your $HOME directory.
-
-Examine the settings file, named =install.settings=:
+*** Start working with your new setup
 
 #+BEGIN_SRC sh
-    # Settings for the `install` script
-    # This file tells install what to ignore, link, copy, and create
-    # List files (and globs) separated by spaces
-
-    # The below options are in order of precedence (1 is highest), so `ignore`
-    # overrides `link_children`, which overrides `copy`, which overrides `link`
-    # That is why it's acceptable to specify '*' for link, because the other patterns
-    # will remove the files from link that they match.
-
-    # Run before the `install` operations
-    before () {
-    :
-    }
-
-    # 1. Ignore these files
-    ignore=(install* images scripts Icon* *.md test)
-
-    # 2. Create directory itself (not contents), then link the children of the directory
-    # NOTE: It will not delete an existing directory. If you want to do that, run:
-    #       `rm -rf ~/.directory && ./install`
-    link_children=(atom bin config hammerspoon)
-
-    # 3. Copy these files
-    copy=(README.md)
-
-    # 4. Link these files
-    link=(*)
-
-    # Run after the `install` operations
-    after () {
-    :
-    }
+  git-home-link dotfiles
+  git add .bashrc
+  git commit -m "add .bashrc to new dotfiles repo"
+  git push -u origin master
+  # Remove the link file when we are done so we don't accidentally commit
+  # something in a project subdir to our dotfiles repo
+  rm $HOME/.git
 #+END_SRC
 
-Run the installer.
-
-#+BEGIN_EXAMPLE
-    ./install
-#+END_EXAMPLE
-
-It creates symlinks for all dotfiles in your home directory. You can
-safely run the installer multiple times to update. It will not overwrite
-existing files without the =-f= parameter.
-
-** Command reference for the =install= script:
-#+BEGIN_SRC
-install version 0.11 - 2018-05-23
-
-Straightforward, zero dependency, portable distributed dotfile manager
-Run from a dotfile repository directory, links all files and directories into the current user's home directory
-
-USAGE: install [OPTIONS] [SOURCE-DIR] [DEST-DIR]
-SOURCE-DIR defaults to the current directory
-DEST-DIR defaults to the current user's home directory
-
-OPTIONS:
--f (--force)    : force overwrite of files or directories in DEST-DIR
-                  (default is false)
--t (--test)     : test mode - only display changes, don't make them
-                  (default is false)
--c (--config)   : specify a configuration file
-                  See the default configuration file (install.settings)
--h (--help)     : display this help and exit
--V (--version)  : output version information and exit
-
-SOURCE-DIR        : directory containing dotfiles to be copied and/or linked
-                    (default is current directory)
-                    files should NOT have leading '.'
-                    example: '.bashrc' should be named 'bashrc' in SOURCE-DIR
-DEST-DIR          : target directory where copies and links will be placed
-                    (default is '~')
-#+END_SRC
+*** Working in Emacs
+There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ that make it easy to work with this setup in Magit or Projectile.  
 
 * Update scripts
 There are set of update scripts in the =bin= directory to keep all the
@@ -142,77 +97,55 @@ Some of the things that can be updated:
 - Arch Linux
 - Atom Editor
 - Clojure
-- Debian/Ubuntu
+- Debian/Ubuntu (apt-get)
 - Emacs
-- Fish Shell
-- Homebrew
-- iTerm
-- macOS
-- Node.js
-- Python
+- Fish Shell (fisherman)
+- iTerm2
+- macOS App Store
+- macOS Homebrew
+- Node.js Packages
+- Python Packages
 - Ruby Gems
 - Tmux
 - Vim/Neovim
 
-The master =update= script that runs all of these in succession.
+The master =update= script runs all of these in succession.
 
 * Application Notes
+
 ** Atom
-   :PROPERTIES:
-   :CUSTOM_ID: atom
-   :END:
-
 Install atom, then run this to install packages
-
 #+BEGIN_EXAMPLE
-    apm install --packages-file ~/.atom/packages.txt
+  apm install --packages-file ~/.atom/packages.txt
 #+END_EXAMPLE
 
 To save the list of currently installed packages
-
 #+BEGIN_EXAMPLE
-    apm list --bare --installed --dev false > ~/.atom/packages.txt
+  apm list --bare --installed --dev false > ~/.atom/packages.txt
 #+END_EXAMPLE
 
 ** Emacs
-   :PROPERTIES:
-   :CUSTOM_ID: emacs
-   :END:
-
-On macOS, it seems the version of makeinfo is too old and causes
-problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a
-newer version, then install Emacs, edit init.el and packages.el, and run
-=update-emacs= to install packages.
-
+On macOS, it seems the version of makeinfo is too old and causes problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a newer version, then install Emacs, edit init.el and m-packages.el, launch emacs, and have fun.
 #+BEGIN_EXAMPLE
-    brew install texinfo
-    brew link --force texinfo
-    update-emacs
+  brew install git ripgrep texinfo
+  brew link --force texinfo
+  update-emacs
 #+END_EXAMPLE
 
-** Fish Shell
-   :PROPERTIES:
-   :CUSTOM_ID: fish-shell
-   :END:
-
+** Fish
 To install and switch your shell to =fish= on macOS:
 
 #+BEGIN_EXAMPLE
-    brew install fish
-    chsh -s $(which fish)
-    fish -l
-    fisher "$HOME/.config/fish_config" install mnewt/fix mnewt/teleprompt
-    update-fish
+  brew install fish
+  chsh -s $(which fish)
+  fish -l
+  curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
+  fisher "$HOME/.config/fish_config" mnewt/fix
 #+END_EXAMPLE
 
 ** Vim
-   :PROPERTIES:
-   :CUSTOM_ID: vim
-   :END:
-
 Install Vim or Neovim, edit .vimrc, then run =update-vim= to install
 packages.
-
 #+BEGIN_EXAMPLE
-    update-vim
+  update-vim
 #+END_EXAMPLE

@@ -1,4 +1,4 @@
 #! /usr/bin/env bash
 
-brew reinstall emacs-mac --with-modern-icon --with-natural-title-bar
-
+brew install emacs-mac --with-imagemagick --with-modern-icon --with-natural-title-bar --with-libxml2
+defaults write org.gnu.Emacs AppleFontSmoothing -int 4

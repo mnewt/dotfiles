@@ -1,17 +1,9 @@
-;;; m-packages.el --- Summary
+;;; m-packages.el --- Summary --- -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;;; Here is the configuration for most packages.
 
 ;;; Code:
-
-;; -*- lexical-binding: t -*-
-
-;; (use-package exec-path-from-shell
-;;   :defer 1
-;;   :config
-;;   (when (memq window-system '(mac ns x))
-;;     (exec-path-from-shell-initialize)))
 
 (use-package help-macro+
   :defer 1)
@@ -32,6 +24,13 @@
    ("C-h v" . helpful-variable)
    ("C-h k" . helpful-key)
    ("C-c C-h" . helpful-at-point)))
+
+(use-package tldr
+  :init
+  (global-unset-key (kbd "C-h t"))
+  :bind
+  (("C-h t t" . tldr)
+   ("C-h t u" . tldr-update-docs)))
 
 (use-package info-colors
   :defer 1
@@ -122,12 +121,6 @@
    ("C-H-A" . buf-move-left)
    ("C-H-D" . buf-move-right)))
 
-;; (use-package smooth-scrolling
-;;   :init
-;;   (setq smooth-scroll-margin 5)
-;;   :config
-;;   (smooth-scrolling-mode 1))
-
 (use-package mwim
   :bind
   (("C-a" . mwim-beginning-of-code-or-line)
@@ -135,11 +128,6 @@
    :map mac-key-mode-map
    ("s-<right>" . mwim-end-of-code-or-line)
    ("s-<left>" . mwim-beginning-of-code-or-line)))
-
-;; (use-package diredfl
-;;   :defer 2
-;;   :config
-;;   (diredfl-global-mode t))
 
 (use-package dired+
   :init
@@ -261,10 +249,9 @@
 
 (use-package ivy
   :config
-  (progn
-    (ivy-mode 1)
-    (setq enable-recursive-minibuffers t))
-  ;; ivy-use-virtual-buffers t))
+  (ivy-mode 1)
+  (setq enable-recursive-minibuffers t)
+        ;; ivy-use-virtual-buffers t))
   :bind
   (("C-c C-r" . ivy-resume)
    ("s-b" . ivy-switch-buffer)
@@ -280,13 +267,35 @@
   :defer 1)
 
 (use-package swiper
+  :init
+  (defun replace-regexp-entire-buffer (pattern replacement)
+    "Perform regular-expression replacement throughout buffer."
+    (interactive
+     (let ((args (query-replace-read-args "Replace in entire buffer" t)))
+       (setcdr (cdr args) nil)    ; remove third value returned from query---args
+       args))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward pattern nil t)
+        (replace-match replacement))))
+
+  (defun ivy--replace-regexp-entire-buffer (replacement)
+    (interactive (list (read-from-minibuffer (concat "Replace all occurrences of `" ivy--old-re "\' in entire buffer: "))))
+    (with-current-buffer (window-buffer (minibuffer-selected-window))
+      (replace-regexp-entire-buffer ivy--old-text replacement))
+    (ivy-done))
+    ;; This isn't the last message displayed so there isn't really a point in displaying it at all
+    ;; (message (concat "Replaced `" ivy--old-text "\' with `" replacement"\' across entire buffer.")))
+
   :bind
-  (("C-s" . swiper)))
+  (("C-s" . swiper)
+   ("s-5" . replace-regexp-entire-buffer)
+   :map ivy-minibuffer-map
+   ("s-5" . ivy--replace-regexp-entire-buffer)))
 
 (use-package counsel
-  :init
-  (setq counsel-grep-base-command
-        "rg -i -M 120 --no-heading --line-number --color never '%s' %s")
+  :custom
+  (counsel-grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s")
   :bind
   (("s-F" . counsel-rg)
    ("s-f" . counsel-grep-or-swiper)
@@ -294,12 +303,11 @@
    ("C-x C-f" . counsel-find-file)
    ("C-h f" . counsel-describe-function)
    ("C-h v" . counsel-describe-variable)
-   ("<f1> l" . counsel-find-library)
-   ("<f2> i" . counsel-info-lookup-symbol)
-   ("<f2> u" . counsel-unicode-char)
+   ("C-h <tab>" . counsel-info-lookup-symbol)
+   ("C-c u" . counsel-unicode-char)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
-   ("C-x l" . counsel-locate)
+   ("C-c l" . counsel-locate)
    ("M-s-v" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
    :map ivy-minibuffer-map
@@ -368,8 +376,57 @@
 
 (use-package magit
   :init
-  (setq ;vc-handled-backends nil
-   magit-completing-read-function 'ivy-completing-read)
+  ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
+  (defun git-worktree-link (gitdir worktree)
+    (require 'magit)
+    (interactive (list (read-directory-name "Gitdir: ")
+                     (read-directory-name "Worktree: ")))
+    (with-temp-file (expand-file-name ".git" worktree)
+      (insert "gitdir: " (file-relative-name gitdir worktree) "\n"))
+    (magit-call-git "config" "-f" (expand-file-name "config" gitdir)
+                    "core.worktree" (file-relative-name worktree gitdir))
+    ;; Configure projectile to only look at tracked files
+    (if (boundp 'projectile-git-command)
+      (setq projectile-git-command "git ls-files -zc --exclude-standard"))
+    (message "Linked worktree: %s from gitdir: %s" worktree gitdir))
+
+  (defun git-worktree-unlink (gitdir worktree)
+    (interactive (list (read-directory-name "Gitdir: ")
+                       (read-directory-name "Worktree: ")))
+    ;; Configure projectile back to default
+    (if (boundp 'projectile-git-command)
+      (setq projectile-git-command "git ls-files -zco --exclude-standard"))
+    ;; This does `git config --unset core.worktree'.  We don't actually
+    ;; have to do this and not doing it would have some advantages, but
+    ;; might be confusing.
+    ;; (magit-set nil "core.worktree")
+    ;; This causes an error if this actually is a directory, which is
+    ;; a good thing, it saves us from having to do this explicitly :-)
+    (delete-file (expand-file-name ".git" worktree)))
+
+  (setq git-home-repo-dir "~/.config/repos")
+
+  (defun git-home-link (repo)
+    (interactive (list (completing-read "Link git home repository: "
+                                        (directory-files "~/.config/repos" nil "^[^.]")
+                                        nil t)))
+    (setq repo (expand-file-name repo git-home-repo-dir))
+    ;; "Fix" repositories that were created with --bare.
+    ;; (let ((default-directory (file-name-as-directory repo)))
+    ;;   (magit-set "false" "core.bare"))
+    ;; Regular link.
+    (git-worktree-link repo (getenv "HOME")))
+
+  (defun git-home-unlink ()
+    (interactive)
+    (git-worktree-unlink (with-temp-buffer
+                           (insert-file-contents (expand-file-name ".git" (getenv "HOME")))
+                           (re-search-forward "gitdir: \\(.+\\)")
+                           (expand-file-name (match-string 1)))
+                         (getenv "HOME")))
+
+  :custom
+  (magit-completing-read-function 'ivy-completing-read)
   :bind
   (("C-x g" . magit-status)
    ("C-x C-g" . magit-dispatch-popup)))
@@ -648,7 +705,7 @@ ID, ACTION, CONTEXT."
                      :pre-handlers '(sp-sh-pre-handler)
                      :post-handlers '(sp-sh-block-post-handler))))
   :hook
-  ((prog-mode conf-mode markdown-mode) . turn-on-smartparens-mode))
+  ((prog-mode conf-mode markdown-mode eshell-mode text-mode) . turn-on-smartparens-mode))
 
 ;; Trying out paredit with these 3 packages
 ;; (use-package paredit
@@ -678,19 +735,33 @@ ID, ACTION, CONTEXT."
 
 (use-package parinfer
   :init
-  (progn
-    (setq parinfer-extensions
-          '(defaults        ; should be included.
-             pretty-parens   ; different paren styles for different modes.
-             smart-tab       ; C-b & C-f jump positions and smart shift with tab & S-tab.
-             smart-yank))    ; Yank behavior depend on mode.
-    (add-hook 'clojure-mode-hook #'parinfer-mode)
-    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'scheme-mode-hook #'parinfer-mode)
-    (add-hook 'lisp-mode-hook #'parinfer-mode))
+  (defun m-parinfer-yank-advice (f &rest args)
+    "Make parinfer yanking work OK even when smartparens is enabled"
+    (let ((current-mode parinfer--mode))
+      ;; Insert something to make sure indent-mode puts parens after point 
+      (insert ".")
+      (parinfer--invoke-parinfer-instantly (point))
+      (parinfer--switch-to-paren-mode)
+      (parinfer-backward-delete-char)
+      (apply f args)
+      (if (eq 'indent current-mode)
+          (parinfer--switch-to-indent-mode))))
+  
+  :custom
+  (parinfer-extensions 
+   '(defaults        ; should be included.
+      pretty-parens   ; different paren styles for different modes.
+      smart-tab       ; C-b & C-f jump positions and smart shift with tab & S-tab.
+      smart-yank))    ; Yank behavior depend on mode.
+  
   :config
   (parinfer-strategy-add 'default 'newline-and-indent)
+
+  (advice-add 'parinfer-smart-yank:yank :around #'m-parinfer-yank-advice)
+  
+  :hook
+  ((clojure-mode common-lisp-mode emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode) . parinfer-mode)
+  
   :bind
   (:map parinfer-mode-map
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -722,6 +793,11 @@ ID, ACTION, CONTEXT."
   :bind
   (("C-c C-d" . dash-at-point)))
 
+;; (use-package counsel-dash
+;;   :custom
+;;   (counsel-dash-docsets-path "~/Dash/DocSets")
+;;   (counsel-dash-common-docsets '("bash")))
+
 (use-package pcre2el
   :defer 1
   :config
@@ -736,6 +812,42 @@ ID, ACTION, CONTEXT."
 
 (use-package elisp-format
   :defer 2)
+
+;; https://github.com/raxod502/straight.el#installing-org-with-straightel
+(require 'subr-x)
+(straight-use-package 'git)
+
+(defun org-git-version ()
+  "The Git version of org-mode.
+Inserted by installing org-mode or when a release is made."
+  (require 'git)
+  (let ((git-repo (expand-file-name
+                   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (git-run "describe"
+              "--match=release\*"
+              "--abbrev=6"
+              "HEAD"))))
+
+(defun org-release ()
+  "The release version of org-mode.
+Inserted by installing org-mode or when a release is made."
+  (require 'git)
+  (let ((git-repo (expand-file-name
+                   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (string-remove-prefix
+      "release_"
+      (git-run "describe"
+               "--match=release\*"
+               "--abbrev=0"
+               "HEAD")))))
+
+(provide 'org-version)
+
+(straight-use-package 'org)
+
+(add-hook 'text-mode-hook #'turn-on-visual-line-mode)
 
 (use-package cider
   :config
@@ -798,6 +910,11 @@ ID, ACTION, CONTEXT."
   :init
   (setq markdown-command "multimarkdown"))
 
+(use-package pinentry
+  :config
+  (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
+  (pinentry-start))
+
 (use-package tramp
   :config
   (defun ssh-sudo (path)
@@ -815,19 +932,6 @@ ID, ACTION, CONTEXT."
                     (substring path (+ 1 colon))
                   ":/")))
       (find-file (concat "/sshx:" user host "|sudo:root@" host dir))))
-
-  ;; (https://www.emacswiki.org/emacs/TrampMode#toc30)
-  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
-  (defun sudo-edit-current-file ()
-    (interactive)
-    (let ((position (point)))
-      (find-alternate-file (if (file-remote-p (buffer-file-name))
-                               (let ((vec (tramp-dissect-file-name (buffer-file-name))))
-                                 (tramp-make-tramp-file-name "sudo" (tramp-file-name-user vec)
-                                                             (tramp-file-name-host vec)
-                                                             (tramp-file-name-localname vec)))
-                             (concat "/sudo:root@localhost:" (buffer-file-name))))
-      (goto-char position)))
 
   (defun sudo-toggle--add-sudo (f)
     "Add sudo to file path string"
@@ -896,18 +1000,7 @@ shell is left intact."
   (term-mode . eterm-256color-mode))
 
 (use-package eshell
-  :config
-  (setq eshell-buffer-shorthand t
-        eshell-scroll-to-bottom-on-input 'all
-        eshell-error-if-no-glob t
-        eshell-hist-ignoredups t
-        eshell-save-history-on-exit t
-        eshell-prefer-lisp-functions t
-        eshell-destroy-buffer-when-process-dies t
-        eshell-prompt-function 'm-eshell-prompt-function
-        eshell-prompt-regexp "^() "
-        eshell-highlight-prompt nil)
-
+  :init
   (setenv "CLICOLOR" "1")
   (setenv "LSCOLORS" "ExFxCxDxBxegedabagacad")
   (setenv "LS_COLORS" "di=36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34:su=0:sg=0:tw=0:ow=0:")
@@ -917,7 +1010,7 @@ shell is left intact."
 
   (defun eshell-here ()
     "Opens up a new shell in the directory associated with the
-current buffer's file. The eshell is renamed to match that directory."
+    current buffer's file. The eshell is renamed to match that directory."
     (interactive)
     (let* ((parent (if (buffer-file-name)
                        (file-name-directory (buffer-file-name))
@@ -982,12 +1075,30 @@ current buffer's file. The eshell is renamed to match that directory."
         (end-of-buffer)
         (switch-to-buffer-other-window buf))))
 
-  (defun source-bash (args)
-    "Execute `cmd' with bash and set any exported environment variables"
-    (let ((f (concat (getenv "TMPDIR") "emacs-source-sh.el")))
-      (shell-command (concat user-emacs-directory "source-bash " args))
-      ;; (insert-file-contents f)
-      (load-file f)))
+  (defun source (filename)
+    "Update environment variables from a shell source file."
+    (interactive "fSource file: ")
+
+    (message "Sourcing environment from `%s'..." filename)
+    (with-temp-buffer
+
+      (shell-command (format "diff -u <(true; export) <(source %s; export)" filename) '(4))
+
+      (let ((envvar-re "declare -x \\([^=]+\\)=\\(.*\\)$"))
+        ;; Remove environment variables
+        (while (search-forward-regexp (concat "^-" envvar-re) nil t)
+          (let ((var (match-string 1)))
+            (message "%s" (prin1-to-string `(setenv ,var nil)))
+            (setenv var nil)))
+
+        ;; Update environment variables
+        (goto-char (point-min))
+        (while (search-forward-regexp (concat "^+" envvar-re) nil t)
+          (let ((var (match-string 1))
+                (value (read (match-string 2))))
+            (message "%s" (prin1-to-string `(setenv ,var ,value)))
+            (setenv var value)))))
+    (message "Sourcing environment from `%s'... done." filename))
 
   (defun eshell/exit-code (cmd &rest args)
     "Run PROGRAM with ARGS and return the exit code"
@@ -996,15 +1107,13 @@ current buffer's file. The eshell is renamed to match that directory."
   (defun m-eshell-prompt-function ()
     (concat
      (when (not (eshell-exit-success-p))
-       (propertize (concat " "(number-to-string eshell-last-command-status) " ") 'face `(:background "red")))
-     (propertize (concat " " (eshell/pwd) " ") 'face `(:background "cyan" :foreground "black"))
-     (propertize "\n() " 'face `(:foreground "bold white"))))
+       (propertize (concat " " (number-to-string eshell-last-command-status) " ")
+                   'face `(:background "red")))
+     (propertize (concat " " (replace-regexp-in-string (getenv "HOME") "~" (eshell/pwd)) " ")
+                 'face `(:background "cyan" :foreground "black"))
+     (propertize "\n() "
+                 'face `(:foreground "white" :weight bold))))
 
-  (defun eshell/clear ()
-    "Clear the eshell buffer."
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (eshell-send-input)))  
   (defun eshell/s (hostname)
     "Change directory to host via tramp"
     (eshell/cd (concat "/sshx:" hostname ":")))
@@ -1017,31 +1126,37 @@ current buffer's file. The eshell is renamed to match that directory."
           (let ((node-exists (ignore-errors (Info-menu subject))))
             (if (not node-exists)
                 (format "No menu item `%s' in node `(dir)Top'." subject))))))
-  
+
   (defun eshell/init ()
-    ;; (eshell-command "source-bash" ". ~/.env")
+    (source "~/.env")
+    (setq eshell-path-env (getenv "PATH"))
     (setenv "TERM" "eterm-color")
-    
+    (setenv "EDITOR" "emacsclient")
+
     (global-key-binding (kbd "M-p") 'eshell-send-previous-input)
-    ;; (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line)
+    ;; (add-hook sh-mode-hook
+    ;;           (lambda () (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line)))
     (define-key eshell-mode-map (kbd "C-a") 'eshell-maybe-bol)
     (define-key eshell-mode-map (kbd "C-d") 'eshell-quit-or-delete-char)
-
+    (define-key eshell-mode-map (kbd "<tab>") 'completion-at-point)
+    (define-key eshell-mode-map (kbd "M-r") 'counsel-esh-history)
+    (define-key eshell-mode-map (kbd "C-w") 'eshell/kill-previous-output)
+    (define-key eshell-mode-map (kbd "M-w") 'eshell/copy-previous-output)
+    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+    (setq eshell-output-filter-functions
+          (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
     (add-to-list 'eshell-visual-commands "ncdu")
     (add-to-list 'eshell-visual-commands "nvim")
     (add-to-list 'eshell-visual-commands "ssh")
     (add-to-list 'eshell-visual-commands "tail")
     (add-to-list 'eshell-visual-commands "top")
     (add-to-list 'eshell-visual-commands "vim")
-
-    (eshell/alias "dot" "git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME $*")
     (eshell/alias "df" "df -h")
     (eshell/alias "whats-my-ip" "curl -s https://diagnostic.opendns.com/myip")
     (eshell/alias "dis" "drill +nocmd +noall +answer")
     (eshell/alias "show-hidden-files" "defaults write com.apple.finder AppleShowAllFiles -bool true; and killall Finder")
     (eshell/alias "hide-hidden-files" "defaults write com.apple.finder AppleShowAllFiles -bool false; and killall Finder")
     (eshell/alias "mergepdf" "/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py"))
-
   ;; TODO: These break if local has grc but tramp remote doesn't
   ;; (if (= 0 (eshell/exit-code "which" "grc"))
   ;;     (eshell/alias "colourify" "$(which grc) -es --colour=auto")
@@ -1067,17 +1182,81 @@ current buffer's file. The eshell is renamed to match that directory."
   ;;   (eshell/alias "host" "colourify -c conf.traceroute host")
   ;;   (eshell/alias "drill" "colourify -c conf.traceroute drill")
   ;;   (eshell/alias "curl" "colourify -c conf.curl curl")))
-  :bind
-  (("C-!" . eshell-here)
-   ("s-e" . eshell-here))
+
+  (defun eshell/kill-previous-output (&optional nth)
+    "Copies the output of the previous command to the kill ring.
+    When nth is set, it will copy the nth previous command.
+    Adapted from http://fasciism.com/2017/01/27/eshell-kill-previous-output/"
+    (save-excursion
+      ;; Move to the end of the eshell buffer.
+      (goto-char (point-max))
+      ;; Move to the start of the last prompt.
+      (search-backward-regexp eshell-prompt-regexp nil nil nth)
+      ;; Move to the start of the line, before the prompt.
+      (beginning-of-line)
+      ;; Remember this position as the end of the region.
+      (let ((end (point)))
+        ;; Move to the start of the last prompt.
+        (search-backward-regexp eshell-prompt-regexp)
+        ;; Move one line below the prompt, where the output begins.
+        (next-line)
+        ;; Find first line that's not blank.
+        (while (looking-at "^[[:space:]]*$")
+          (beginning-of-line)
+          (next-line))
+        (let ((count (count-words-region (point) end)))
+          ;; Kill region
+          (kill-region (point) end)
+          ;; Output stats on what was copied as a sanity check.
+          (format "Copied %s words to kill ring." count)))))
+
+  (defun eshell/copy-previous-output (&optional nth)
+    "Copies the output of the previous command to the kill ring.
+When nth is set, it will copy the nth previous command.
+    Stolen from http://fasciism.com/2017/01/27/eshell-kill-previous-output/"
+    (save-excursion
+      ;; Move to the end of the eshell buffer.
+      (goto-char (point-max))
+      ;; Move to the start of the last prompt.
+      (search-backward-regexp eshell-prompt-regexp nil nil nth)
+      ;; Move to the start of the line, before the prompt.
+      (beginning-of-line)
+      ;; Remember this position as the end of the region.
+      (let ((end (point)))
+        ;; Move to the start of the last prompt.
+        (search-backward-regexp eshell-prompt-regexp)
+        ;; Move one line below the prompt, where the output begins.
+        (next-line)
+        ;; Find first line that's not blank.
+        (while (looking-at "^[[:space:]]*$")
+          (beginning-of-line)
+          (next-line))
+        ;; Copy region to kill ring.
+        (copy-region-as-kill (point) end)
+        ;; Output stats on what was copied as a sanity check.
+        (format "Copied %s words to kill ring." (count-words-region (point) end)))))
+
+  :custom
+  (eshell-buffer-shorthand t)
+  (eshell-scroll-to-bottom-on-input 'all)
+  (eshell-error-if-no-glob t)
+  (eshell-hist-ignoredups t)
+  (eshell-save-history-on-exit t)
+  (eshell-prefer-lisp-functions t)
+  (eshell-prefer-lisp-variables t)
+  (eshell-destroy-buffer-when-process-dies t)
+  (eshell-prompt-function 'm-eshell-prompt-function)
+  (eshell-prompt-regexp "^() ")
+  (eshell-highlight-prompt nil)
   :hook
   ((eshell-mode . eshell/init)
    (eshell-before-prompt . (lambda ()
-                             (setq xterm-color-preserve-properties t)))
-   (eshell-mode . (lambda ()
-                    (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
-                    (setq eshell-output-filter-functions
-                          (remove 'eshell-handle-ansi-color eshell-output-filter-functions))))))
+                             (setq xterm-color-preserve-properties t))))
+  ;;  (sh-mode . (lambda ()
+  ;;               (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line))))
+  :bind
+  (("s-e" . eshell)
+   ("s-E" . eshell-here)))
 
 (use-package esh-autosuggest
   :hook ((eshell-mode . esh-autosuggest-mode))
@@ -1109,6 +1288,7 @@ current buffer's file. The eshell is renamed to match that directory."
   (bash-completion-setup))
 
 (use-package fish-mode
+  :custom (fish-indent-offset tab-width)
   :mode "\\.fish\\'")
 
 (use-package fish-completion

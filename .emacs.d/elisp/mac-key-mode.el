@@ -71,6 +71,7 @@
   "Mac-style key-binding mode."
   :group 'mac
   :version "22.3")
+
 (defconst mac-key-mode-lighter (char-to-string 8984) ; the command mark
   "A lighter string which is displayed in the modeline
 when `mac-key-mode' is on.")
@@ -87,7 +88,7 @@ when `mac-key-mode' is on.")
   :group 'mac-key-mode
   :type 'boolean)
 
-(defcustom mac-key-keep-highlight t
+(defcustom mac-key-keep-highlight nil
   "If non-nil, `mac-key-mode' keeps highlights when copying a region (kill-ring-save)"
   :group 'mac-key-mode
   :type 'boolean)
@@ -98,6 +99,7 @@ when `mac-key-mode' is on.")
 ;; process objects
 (defvar mac-key-speech-process nil
   "The process object for text-to-speech subprocess.")
+
 (defvar mac-key-ql-process nil
   "The process object for Quick Look subprocess.")
 

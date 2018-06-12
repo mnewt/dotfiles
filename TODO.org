@@ -1,77 +1,62 @@
-- [x] fix rubygems-update issue
-- [x] Migrate fish plugin manager to fisher
-- [x] aliases: move to ~ and make compatible with fish, bash, zsh so
+* Dotfiles TODO List
+
+** DONE fix rubygems-update issue
+** DONE Migrate fish plugin manager to fisher
+** DONE aliases: move to ~ and make compatible with fish, bash, zsh so
   they all use the same aliases file
-- [x] do the same for private.fish
-- [x] fix arch sed error
-- [x] install.sh: colorize output
-- [x] Fix bash\_prompt
-- [x] Migrate zlogin to bash aliases
-- [x] Port start-ssh-agent.fish to bash and zsh
-- [x] Vim and Emacs updates shouldn't make repo dirty -- don't store
-  packages themselves in repo
-- [x] Catch-22 for running =fisher= for first time: It both requires and
-  installs =bass=
-- [x] Fix tmux line length bug in =fish_prompt= -- probably not
-  stripping all control characters out when measuring the line length
+** DONE do the same for private.fish
+** DONE fix arch sed error
+** DONE install.sh: colorize output
+** DONE Fix bash\_prompt
+** DONE Migrate zlogin to bash aliases
+** DONE Port start-ssh-agent.fish to bash and zsh
+** DONE Vim and Emacs updates shouldn't make repo dirty -- don't store packages themselves in repo
+** DONE Catch-22 for running =fisher= for first time: It both requires and installs =bass=
+** DONE Fix tmux line length bug in =fish_prompt= -- probably not stripping all control characters out when measuring the line length
   (=bash_prompt= does not have this problem)
-- [x] prompt - direnv
-- [x] bash prompt sometimes exibits weird behavior -- moving the start
-  of the prompt to the middle of the line or even the previous line.
-  Guessing there are special characters not being printed properly, or
-  maybe the normal escape sequence isn't clearing everything
-- [x] Make tmux status bar more like vim's
+** DONE prompt - direnv
+** DONE bash prompt sometimes exibits weird behavior
+Moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
+** DONE Make tmux status bar more like vim's
   (https://github.com/edkolev/tmuxline.vim)
-- [x] Finish emacs tmuxline-ification
-- [x] Make =PS1= fallback look like =bash_prompt=
-- [x] Only update packages lists if =--save= flag is set so that repo
-  stays clean after =update=
-
-  - [x] Move all fish config to plugin
-  - [x] =update-fish=: problematic because fisher updates
+** DONE Finish emacs tmuxline-ification
+** DONE Make =PS1= fallback look like =bash_prompt=
+** DONE Only update packages lists if =--save= flag is set so that repo stays clean after =update= [3/3]
+  - [X] Move all fish config to plugin
+  - [X] =update-fish=: problematic because fisher updates
     ~/.config/fish/functions/*
-  - [x] All the rest
-
-- [x] Better manage vim and nvim configs
-- [x] BUG: Is =./install -f= removing dirs during =link_children=?
-- [x] Remove noise from atom status bar
-- [x] Get rid of =basic.vim=? No, it has some nice settings.
-- [x] wth\_color escape sequences sometimes dont' work over ssh/tmux
-  hould also be way faster
-- [x] BUG: update-python on arch overwrites packages that are managed by
-  pacman, causing pacman updates to fail
-- [x] BUG: On interactive login:
-  =set: Tried to change the read-only variable '_'= Has something to do
-  with adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
-- [x] BUG: Error message is displayed from prompt when tmux is not in
-  path
-- [x] Move prompt to its own plugin/repo - teleprompt
-- [x] BUG: =install=: Don't create files with literal name of '*' in
-  created directories (=link-children=) - only happens when specifying
-  source path on command line?
-- [x] BUG: Why does it always link .parinfer-file-extentions.txt?
-- [x] BUG: =inf-clojure= sets =comint-send-input= on every shell
-- [x] BUG: dired+ often doesn't work or doesn't work completely (details
-  not hidden and/or highlighting not working)
-- [x] Emacs: macos proced doesn't show all columns
-- [x] Get =diff-hl= to work
-- [x] Get =gist= to work
-- [x] tramp: add hostname to mode-line when connected via tramp
-- [x] Re-enable company-mode in tramp and optimize
-- [x] Move any requires in =init.el= to use-package
-- [x] Add =eless= to aliases
-- [x] Move =path.fish= to =env=
-- [x] install / install.settings should use arrays, not lists, for
-  variables
-- [ ] BUG: =ignore= in =install.settings= is getting ignored
-- [ ] Move to bare git repo
+  - [X] All the rest
+** DONE Better manage vim and nvim configs
+** DONE BUG: Is =./install -f= removing dirs during =link_children=?
+** DONE Remove noise from atom status bar
+** DONE Get rid of =basic.vim=? No, it has some nice settings.
+** DONE with_color escape sequences sometimes dont' work over ssh/tmux. should also be way faster
+** DONE BUG: update-python on arch overwrites packages that are managed by pacman, causing pacman updates to fail
+** DONE BUG: On interactive login:
+  =set: Tried to change the read-only variable '_'= Has something to dowith adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
+** DONE BUG: Error message is displayed from prompt when tmux is not in path
+** DONE Move prompt to its own plugin/repo - teleprompt
+** DONE BUG: =install=: Don't create files with literal name of '*' in created directories (=link-children=) - only happens when specifying source path on command line?
+** DONE BUG: Why does it always link .parinfer-file-extentions.txt?
+** DONE BUG: =inf-clojure= sets =comint-send-input= on every shell
+** DONE BUG: dired+ often doesn't work or doesn't work completely (details not hidden and/or highlighting not working)
+** DONE Emacs: macos proced doesn't show all columns
+** DONE Get =diff-hl= to work
+** DONE Get =gist= to work
+** DONE tramp: add hostname to mode-line when connected via tramp
+** DONE Re-enable company-mode in tramp and optimize
+** DONE Move any requires in =init.el= to use-package
+** DONE Add =eless= to aliases
+** DONE Move =path.fish= to =env=
+** DONE install / install.settings should use arrays, not lists, for variables
+** DONE BUG: =ignore= in =install.settings= is getting ignored
+** DONE Move to bare git repo
   (https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/)
-- [ ] Talk about eshell in README
-- [ ] Move README to org format
-- [ ] Make yanking indentation work on a newline inside a form in
-  parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work
-  with parinfer's =parinfer-smart-yank:yank=. Maybe advise the latter?)
-- [ ] Move update/save/load to its own plugin/repo
-- [ ] Individual app screenshots
-- [ ] demo gif
-- [ ] write blog post tour
+** DONE Talk about eshell in README
+** DONE Move README to org format
+** DONE Finish source
+** DONE Make bare repo setup compatible with magit and projectile. Could use a `link' and `unlink' function to create a temporary $HOME/.git file. See example: https://github.com/magit/magit/issues/460#issuecomment-36139308 and https://gitorious.org/magit/skangas-detached-worktree#more
+** DONE Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work with parinfer's =parinfer-smart-yank:yank=. Maybe advise the latter? Could turn on parinfer-paren-mode while yanking) [0/2]
+** TODO Update readme with new non-bare repo setup
+Mostly done. Need to finish backup section
+** TODO Fix Windows problems

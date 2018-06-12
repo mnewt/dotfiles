@@ -1,12 +1,11 @@
-.gitignore
-
 ;; -*- lexical-binding: t -*-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Top Level
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq gc-cons-threshold 40000000)
+(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
+(run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
@@ -106,16 +105,25 @@
        (add-hook 'mac-key-mode-hook (lambda ()
                                       (interactive)
                                       (when mac-key-mode
-                                          (setq mac-function-modifier 'hyper
-                                                mac-option-modifier 'meta
-                                                mac-command-modifier 'super))))
+                                        (setq mac-function-modifier 'hyper
+                                              mac-option-modifier 'meta
+                                              mac-command-modifier 'super))))
        (setq mac-key-advanced-setting t)
        (global-set-key (kbd "H-<backspace>") 'delete-char)
        (require 'mac-key-mode)
        (mac-key-mode +1)
        (set-face-font 'default "Monaco-13")
        (set-face-attribute 'default nil
-                           :weight 'light))
+                           :weight 'light)
+       ;; Use system trash
+       (setq delete-by-moving-to-trash t
+             trash-directory "~/.Trash")
+       (defun system-move-file-to-trash (file)
+         "Use \"trash\" to move FILE to the system trash.
+When using Homebrew, install it using \"brew install trash\"."
+         (call-process (executable-find "trash")
+                       nil 0 nil
+                       file)))
       ((eq system-type 'windows-nt)
        (setq w32-pass-lwindow-to-system nil)
        (setq w32-pass-rwindow-to-system nil)
@@ -148,6 +156,7 @@
 (setq suggest-key-bindings 5
       apropos-do-all t)
 
+;; eldoc
 (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
 (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
@@ -323,6 +332,8 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 
 (define-key emacs-lisp-mode-map (kbd "s-<return>") 'eval-last-sexp)
 (define-key emacs-lisp-mode-map (kbd "C-c C-k") 'eval-buffer)
+(define-key lisp-interaction-mode-map (kbd "s-<return>") 'eval-last-sexp)
+(define-key lisp-interaction-mode-map (kbd "C-c C-k") 'eval-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Shell, SSH, and Environment
