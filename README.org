@@ -1,49 +1,82 @@
 * Some dotfiles
-This setup is mostly shell agnostic, supporting [[https://www.gnu.org/software/emacs/manual/html_mono/eshell.html][eshell]], [[http://fishshell.com/][fish]], [[https://www.gnu.org/software/bash/][bash]], and [[http://www.zsh.org/][zsh]].
+  This setup is mostly shell agnostic, supporting [[https://www.gnu.org/software/emacs/manual/html_mono/eshell.html][eshell]], [[http://fishshell.com/][fish]], [[https://www.gnu.org/software/bash/][bash]], and [[http://www.zsh.org/][zsh]].
 
-In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to emacs, I am using eshell and rarely use a terminal outside of emacs.
+  In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to emacs, I am using eshell and rarely use a terminal outside of emacs.
 
-NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use [[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there. Feel free to create issues or pull requests on either (but I do prefer [[https://gitlab.com][GitLab]]).
+  NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use [[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there. Feel free to create issues or pull requests on either (but I do prefer [[https://gitlab.com][GitLab]]).
 
 * Tour
 ** Applications & Utilities
-Included are configurations for some programs, such as:
+   Included are configurations for some programs, such as:
 *** [[https://atom.io/][Atom]]
 *** [[https://www.gnu.org/software/emacs/][Emacs]]
 *** [[https://github.com/tmux/tmux][Tmux]]
 *** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 
 * Install
-This procedure will establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at $HOME. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under $HOME). Then we explicitly add just the files we want.
+  This procedure will establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at ~$HOME~. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under ~$HOME~). Then we explicitly add just the files we want.
 
-This is similar to the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that your dotfiles are in their proper locations and you explicitly choose which files to track and everything else is ignored. No symlinks, no duplication, no scripts. Further, you can have multiple repos tracking different sets of files, all with their workdirs pointing to $HOME.
+  This is similar to the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit because it allows any git-based program to interact with the repo). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that our dotfiles are in their proper locations and we explicitly choose which files to track and everything else is ignored. No symlinks, no duplication, no scripts. Further, we can have multiple repos tracking different sets of files, all with their workdirs pointing to ~$HOME~.
 
 ** Scenarios
-If you want to set up a repo, you'll want to consider how to transition from whatever is in place at the moment. Here are some basic plans for the main scenarios.
+   If we want to set up a repo, we'll want to consider how to transition from whatever is in place at the moment. Here are some basic plans for the main scenarios.
 
-*** Starting from scratch
-If you want to start a brand new repo, you'll do something like this to initialize and start working with it.
-#+BEGIN_SRC sh
+*** Getting started
+    Whether we want to start a brand new repo or clone a remote repo onto the local computer, run ~git init~ to begin.
+    #+BEGIN_SRC sh
+  mkdir -p $HOME/.config/repos
+  rm .git # if necessary
   git init --separate-git-dir $HOME/.config/repos/dotfiles $HOME
-#+END_SRC
+    #+END_SRC
 
 *** Clone an existing repo
-Clone your dotfiles, keeping the gitdir separate from the workdir
-#+BEGIN_SRC sh
+    Clone an existing remote repo.
+    #+BEGIN_SRC sh
   git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git $HOME
-#+END_SRC
+
+  git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git --no-checkout $HOME/.config/repos/temp
+  mv $HOME/.config/repos/temp/.git $HOME
+  
+  git remote add origin https://gitlab.com/mnewt/dotfiles.git
+  git fetch
+  git reset --mixed origin/master
+    #+END_SRC
 
 *** Don't show untracked files
-Don't show untracked files since there will always be lots of stuff in $HOME that you don't want in your repo.
-#+BEGIN_SRC sh
+    Don't show untracked files since there will always be lots of stuff in ~$HOME~ that we don't want in our repo.
+    #+BEGIN_SRC sh
   env GITDIR=$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
-#+END_SRC
+    #+END_SRC
 
-*** Link to a repo from the $HOME workdir
-The ~git-home-link~ function creates writes a .git file in $HOME pointing to one of the repos. By using this function, you can "activate" one of the repos such that you can use normal git comamnds in $HOME without specifying ~GITDIR~.
+*** Back up conflicting dotfiles
+    If there are conflicting files between the repo and the existing files in ~$HOME~ then the ~git reset~ above will not have populated all the files in the branch. So, back up the conflicting files.
+    #+BEGIN_SRC sh
+  modified=$(git diff --name-status | awk '/^M/{print $2}')
+  [ -n "$modified" ] && mkdir -p $HOME/.dotfiles-backup && cp -R $modified $HOME/.dotfiles-backup
+    #+END_SRC
 
-Put this function in your ~.bashrc~.
-#+BEGIN_SRC sh
+*** If necessary, remove symlinks to the old repository
+    If we're symlinking dotfiles into place before moving to a bare repo, those links must be removed. These are the commands I used to migrate. Wer mileage may vary. These are example commands and the last one is destructive. Be sure to know what we're doing!
+    #+BEGIN_SRC sh
+  # Find links that we may want to delete
+  find "$HOME" -maxdepth 1 -type l -print
+  # Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
+  find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -print
+  # Delete them
+  find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -delete
+    #+END_SRC
+
+*** Overwrite conflicting files
+    If there were conflicting files or links and we've taken care of them, reset hard to overwrite.
+    #+BEGIN_SRC sh
+  git reset --hard origin/master
+    #+END_SRC
+
+*** Link to a repo from the ~$HOME~ workdir
+    The ~git-home-link~ function creates writes a .git file in ~$HOME~ pointing to one of the repos. By using this function, we can "activate" one of the repos such that we can use normal git comamnds in ~$HOME~ without specifying ~GITDIR~.
+
+    Put this function in our ~.bashrc~ or similar (It's in my ~.aliases~ file).
+    #+BEGIN_SRC sh
   git-home-link () {
     # Link repo specified by $1 to $HOME using a .git file link
     if [ -n "$1" ] && [ -e "$HOME/.config/repos/$1" ]; then
@@ -54,98 +87,109 @@ Put this function in your ~.bashrc~.
       ls $HOME/.config/repos/
     fi
   }
-#+END_SRC
+    #+END_SRC
 
-*** Back up conflicting dotfiles
-If you want to checkout an existing repo into $HOME, you are probably going to have some conflicting files. Back them up before checking out.
-#+BEGIN_SRC sh
-# TODO
-#+END_SRC
+*** Start working with our new setup
+    Now use the repo pretty much how we would a normal one. However, note that .git in ~$HOME~ is just a file pointing to the actual directory at ~$HOME/.config/repos/dotfiles~. So before we use ~$HOME~ as a repo, link it. Then when we're done, unlink it so we don't accidentally commit something in a project subdirectory in the dotfiles repo.
 
-*** If necessary, remove symlinks to the old repository
-If were symlinking dotfiles into place before moving to a bare repo, those links must be removed. These are the commands I used to migrate. Your mileage may vary. These are example commands and the last one is destructive. Be sure to know what you're doing!
-#+BEGIN_SRC sh
-  # Find links that you may want to delete
-  find "$HOME" -maxdepth 1 -type l -print
-  # Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
-  find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -print
-  # Delete them
-  find "$HOME" -not -path "$HOME/Library/*" -maxdepth 3 -type l -delete
-#+END_SRC
-
-*** Start working with your new setup
-
-#+BEGIN_SRC sh
+    Further, note that files will not be tracked by default. We must manually add each new file to the repo. Changes will be tracked. This is the only tricky part as it's easy to overlook a file that should be part of the repo but is really just sitting in place, not tracked. Wer config will work on the local computer but when cloned to the next one things will be broken. This is really a feature though since we don't ever want files to be added accidentally.  
+    #+BEGIN_SRC sh
   git-home-link dotfiles
   git add .bashrc
   git commit -m "add .bashrc to new dotfiles repo"
   git push -u origin master
-  # Remove the link file when we are done so we don't accidentally commit
-  # something in a project subdir to our dotfiles repo
   rm $HOME/.git
-#+END_SRC
+    #+END_SRC
 
 *** Working in Emacs
-There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ that make it easy to work with this setup in Magit or Projectile.  
+    There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ that make it easy to work with this setup in Magit or Projectile.  
 
 * Update scripts
-There are set of update scripts in the =bin= directory to keep all the
-different software on a given system up to date.
+  There are set of update scripts in the =bin= directory to keep all the
+  different software on a given system up to date.
 
-Some of the things that can be updated:
+  Some of the things that can be updated:
 
-- Arch Linux
-- Atom Editor
-- Clojure
-- Debian/Ubuntu (apt-get)
-- Emacs
-- Fish Shell (fisherman)
-- iTerm2
-- macOS App Store
-- macOS Homebrew
-- Node.js Packages
-- Python Packages
-- Ruby Gems
-- Tmux
-- Vim/Neovim
+  - Arch Linux
+  - Atom Editor
+  - Clojure
+  - Debian/Ubuntu (apt-get)
+  - Emacs
+  - Fish Shell (fisherman)
+  - iTerm2
+  - macOS App Store
+  - macOS Homebrew
+  - Node.js Packages
+  - Python Packages
+  - Ruby Gems
+  - Tmux
+  - Vim/Neovim
 
-The master =update= script runs all of these in succession.
+  The master =update= script runs all of these in succession.
 
 * Application Notes
 
 ** Atom
-Install atom, then run this to install packages
-#+BEGIN_EXAMPLE
-  apm install --packages-file ~/.atom/packages.txt
-#+END_EXAMPLE
+   Install atom, then run this to install packages
+   #+BEGIN_EXAMPLE
+     apm install --packages-file ~/.atom/packages.txt
+   #+END_EXAMPLE
 
-To save the list of currently installed packages
-#+BEGIN_EXAMPLE
-  apm list --bare --installed --dev false > ~/.atom/packages.txt
-#+END_EXAMPLE
+   To save the list of currently installed packages
+   #+BEGIN_EXAMPLE
+     apm list --bare --installed --dev false > ~/.atom/packages.txt
+   #+END_EXAMPLE
 
 ** Emacs
-On macOS, it seems the version of makeinfo is too old and causes problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a newer version, then install Emacs, edit init.el and m-packages.el, launch emacs, and have fun.
-#+BEGIN_EXAMPLE
-  brew install git ripgrep texinfo
-  brew link --force texinfo
-  update-emacs
-#+END_EXAMPLE
+   On macOS, it seems the version of makeinfo is too old and causes problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a newer version, then install Emacs, edit init.el and m-packages.el, launch emacs, and have fun.
+   #+BEGIN_EXAMPLE
+     brew install git ripgrep texinfo
+     brew link --force texinfo
+     update-emacs
+   #+END_EXAMPLE
 
 ** Fish
-To install and switch your shell to =fish= on macOS:
+   To install and switch our shell to =fish= on macOS:
 
-#+BEGIN_EXAMPLE
-  brew install fish
-  chsh -s $(which fish)
-  fish -l
-  curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
-  fisher "$HOME/.config/fish_config" mnewt/fix
-#+END_EXAMPLE
+   #+BEGIN_EXAMPLE
+     brew install fish
+     chsh -s $(which fish)
+     fish -l
+     curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
+     fisher "$HOME/.config/fish_config" mnewt/fix
+   #+END_EXAMPLE
 
 ** Vim
-Install Vim or Neovim, edit .vimrc, then run =update-vim= to install
-packages.
-#+BEGIN_EXAMPLE
-  update-vim
-#+END_EXAMPLE
+   Install Vim or Neovim, edit .vimrc, then run =update-vim= to install
+   packages.
+   #+BEGIN_EXAMPLE
+     update-vim
+   #+END_EXAMPLE
+
+* License
+  All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]]:
+
+  This is free and unencumbered software released into the public domain.
+
+  Anyone is free to copy, modify, publish, use, compile, sell, or
+  distribute this software, either in source code form or as a compiled
+  binary, for any purpose, commercial or non-commercial, and by any
+  means.
+
+  In jurisdictions that recognize copyright laws, the author or authors
+  of this software dedicate any and all copyright interest in the
+  software to the public domain. We make this dedication for the benefit
+  of the public at large and to the detriment of our heirs and
+  successors. We intend this dedication to be an overt act of
+  relinquishment in perpetuity of all present and future rights to this
+  software under copyright law.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  OTHER DEALINGS IN THE SOFTWARE.
+
+  For more information, please refer to <http://unlicense.org/> 

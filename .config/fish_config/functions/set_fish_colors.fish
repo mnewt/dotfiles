@@ -5,7 +5,7 @@ function set_fish_colors -d 'set syntax highlighting colors'
   set -gx fish_color_cwd green
   set -gx fish_color_cwd_root red
   set -gx fish_color_end brgreen
-  set -gx fish_color_error --bold FF0052
+  set -gx fish_color_error FF0052
   set -gx fish_color_escape bryellow
   set -gx fish_color_history_current cyan
   set -gx fish_color_host yellow
