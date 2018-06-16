@@ -242,12 +242,8 @@ Windows external keyboard from time to time."
     ;; (define-key map (kbd "s-.") 'keyboard-quit)
     (define-key map (kbd "s-<up>") 'beginning-of-buffer)
     (define-key map (kbd "s-<down>") 'end-of-buffer)
-    (define-key map (kbd "s-<left>") (if (fboundp 'mwim-beginning-of-code-or-line)
-                                         'mwim-beginning-of-code-or-line
-                                       'beginning-of-line))
-    (define-key map (kbd "s-<right>") (if (fboundp 'mwim-end-of-code-or-line)
-                                          'mwim-end-of-code-or-line
-                                        'end-of-line))
+    (define-key map (kbd "s-<left>") 'beginning-of-line)
+    (define-key map (kbd "s-<right>") 'end-of-line)
     (define-key map (kbd "M-<left>") 'backward-word)
     (define-key map (kbd "M-<right>") 'forward-word)
     (define-key map (kbd "<A-mouse-1>") 'browse-url-at-mouse)

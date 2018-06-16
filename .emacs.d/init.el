@@ -678,6 +678,11 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
    ("C-h k" . helpful-key)
    ("C-c C-h" . helpful-at-point)))
 
+(use-package man
+  :config
+  (set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
+  (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t))
+
 (use-package tldr
   :init
   (global-unset-key (kbd "C-h t"))
@@ -776,14 +781,17 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 
 (use-package mwim
   :bind
-  (("C-a" . mwim-beginning-of-code-or-line)
-   ("C-e" . mwim-end-of-code-or-line)
-   :map mac-key-mode-map
-   ("s-<right>" . mwim-end-of-code-or-line)
-   ("s-<left>" . mwim-beginning-of-code-or-line)))
+  (([remap beginning-of-line] . mwim-beginning-of-code-or-line)
+   ([remap end-of-line] . mwim-end-of-code-or-line)))
 
 (use-package dired+
   :init
+  ;; try to use GNU ls since BSD ls doesn't explicitly support Emacs
+  (setq insert-directory-program (or (executable-find "gls")
+                                     (executable-find "ls"))
+        ;; don't prompt to kill buffers of deleted directories
+        dired-clean-confirm-killing-deleted-buffers nil)
+
   (defun dired-to-default-directory ()
     "Open directory containing the current file"
     (interactive)
@@ -881,8 +889,6 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
     (add-hook 'rg-mode-hook 'wgrep-ag-setup)))
 
 (use-package company
-  :init
-  (add-hook 'after-init-hook 'global-company-mode)
   :custom
   (company-backends
    '(company-capf company-gtags company-css company-elisp company-keywords
@@ -894,7 +900,8 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
    '(company-pseudo-tooltip-unless-just-one-frontend
      company-echo-metadata-frontend
      company-preview-frontend))
-  ;; (company-auto-complete t)
+  :config
+  (add-hook 'after-init-hook 'global-company-mode)
   :bind
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
@@ -972,11 +979,22 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
    ("C-c l" . counsel-locate)
    ("M-s-v" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
-   ;; :map ivy-minibuffer-map
-   ;; ("M-y" . ivy-next-line-and-call)
-   :map mac-key-mode-map
-   ("s-f" . counsel-grep-or-swiper)
-   ("s-o" . counsel-find-file)))
+   ([remap isearch-forward] . counsel-grep-or-swiper)
+   ([remap find-file] . counsel-find-file)
+   :map ivy-minibuffer-map
+   ("M-y" . ivy-next-line-and-call)))
+
+(use-package prescient
+  :config
+  (prescient-persist-mode))
+
+(use-package ivy-prescient
+  :config
+  (ivy-prescient-mode))
+
+(use-package company-prescient
+  :config
+  (company-prescient-mode))
 
 (use-package projectile
   :init
@@ -1314,9 +1332,19 @@ ID, ACTION, CONTEXT."
     (setq sp-base-key-bindings 'paredit)
     (setq sp-autoskip-closing-pair 'always)
     (setq sp-hybrid-kill-entire-symbol nil)
+
+    ;; Enable some default keybindings for Smartparens.
+    (show-smartparens-global-mode +1)
+    
+    ;; Highlight matching delimiters.
     (sp-use-paredit-bindings)
 
-    (show-smartparens-global-mode +1)
+    ;; Disable Smartparens in Org-related modes, since the keybindings
+    ;; conflict.
+    (with-eval-after-load 'org
+      (add-to-list 'sp-ignore-modes-list #'org-mode))
+    (with-eval-after-load 'org-agenda
+      (add-to-list 'sp-ignore-modes-list #'org-agenda-mode))
     
     ;; https://github.com/Fuco1/smartparens/issues/80
     (defun m-create-newline-and-enter-sexp (&rest _ignored)
@@ -1350,6 +1378,7 @@ ID, ACTION, CONTEXT."
                      :actions '(insert navigate)
                      :pre-handlers '(sp-sh-pre-handler)
                      :post-handlers '(sp-sh-block-post-handler))))
+
   :hook
   ((prog-mode conf-mode markdown-mode eshell-mode text-mode) . turn-on-smartparens-mode))
 
@@ -1885,6 +1914,9 @@ When nth is set, it will copy the nth previous command.
         ;; Output stats on what was copied as a sanity check.
         (format "Copied %s words to kill ring." (count-words-region (point) end)))))
 
+  (eval-after-load 'sh
+    (lambda (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line)))
+  
   :custom
   (eshell-buffer-shorthand t)
   (eshell-scroll-to-bottom-on-input 'all)
@@ -1897,12 +1929,11 @@ When nth is set, it will copy the nth previous command.
   (eshell-prompt-function 'm-eshell-prompt-function)
   (eshell-prompt-regexp "^() ")
   (eshell-highlight-prompt nil)
+  
   :hook
   ((eshell-mode . eshell/init)
    (eshell-before-prompt . (lambda ()
                              (setq xterm-color-preserve-properties t))))
-  ;;  (sh-mode . (lambda ()
-  ;;               (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line))))
   :bind
   (("s-e" . eshell-other-window)
    ("s-E" . eshell)
@@ -1921,6 +1952,10 @@ When nth is set, it will copy the nth previous command.
    ("C-c h m" . htmlize-many-files)
    :map dired-mode-map
    ("C-c h m" . htmlize-many-files-dired)))
+
+(use-package ipcalc
+  :commands
+  (ipcalc))
 
 (use-package dockerfile-mode
   :mode "Dockerfile\\'")
