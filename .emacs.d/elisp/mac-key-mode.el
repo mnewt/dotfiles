@@ -310,14 +310,14 @@ When Mac Key mode is enabled, mac-style key bindings are provided."
                              (eq (cdr buffer-undo-list) pending-undo-list))))                             
             'undo)
           (define-key-after menu-bar-edit-menu [mac-key-edit-separator]
-            '("--" . nil) 'redo)
+            '("--" . nil) 'redo)))
 
           ;; assign mac-key-quick-look to the SPC key
           (if (boundp 'dired-mode-map)
               (define-key dired-mode-map " " 'mac-key-quick-look)
             (add-hook 'dired-mode-hook
                       (lambda () (interactive)
-                        (define-key dired-mode-map " " 'mac-key-quick-look))))))
+                        (define-key dired-mode-map " " 'mac-key-quick-look))))
           
     (progn
 

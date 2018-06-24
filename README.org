@@ -32,11 +32,9 @@
 *** Clone an existing repo
     Clone an existing remote repo.
     #+BEGIN_SRC sh
-  git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git $HOME
-
   git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git --no-checkout $HOME/.config/repos/temp
   mv $HOME/.config/repos/temp/.git $HOME
-  
+  rm -rf $HOME/.config/repos/temp  
   git remote add origin https://gitlab.com/mnewt/dotfiles.git
   git fetch
   git reset --mixed origin/master
@@ -92,7 +90,7 @@
 *** Start working with our new setup
     Now use the repo pretty much how we would a normal one. However, note that .git in ~$HOME~ is just a file pointing to the actual directory at ~$HOME/.config/repos/dotfiles~. So before we use ~$HOME~ as a repo, link it. Then when we're done, unlink it so we don't accidentally commit something in a project subdirectory in the dotfiles repo.
 
-    Further, note that files will not be tracked by default. We must manually add each new file to the repo. Changes will be tracked. This is the only tricky part as it's easy to overlook a file that should be part of the repo but is really just sitting in place, not tracked. Wer config will work on the local computer but when cloned to the next one things will be broken. This is really a feature though since we don't ever want files to be added accidentally.  
+    Further, note that files will not be tracked by default. We must manually add each new file to the repo. Changes will be tracked. This is the only tricky part as it's easy to overlook a file that should be part of the repo but is really just sitting in place, not tracked. The config will work on the local computer but when cloned to the next one things will be broken. This is really a feature though since we don't ever want files to be added accidentally.  
     #+BEGIN_SRC sh
   git-home-link dotfiles
   git add .bashrc

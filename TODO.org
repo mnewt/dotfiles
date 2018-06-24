@@ -58,4 +58,6 @@ Moving the start of the prompt to the middle of the line or even the previous li
 ** DONE Make bare repo setup compatible with magit and projectile. Could use a `link' and `unlink' function to create a temporary $HOME/.git file. See example: https://github.com/magit/magit/issues/460#issuecomment-36139308 and https://gitorious.org/magit/skangas-detached-worktree#more
 ** DONE Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work with parinfer's =parinfer-smart-yank:yank=. Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
 ** DONE Update readme with new non-bare repo setup
+** TODO Fix yank-pop deleting a bunch more than the previous yank
+        Does this happen only when there are characters on the line after point?
 ** TODO Fix Windows problems
