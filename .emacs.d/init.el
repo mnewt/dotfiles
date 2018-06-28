@@ -1,4 +1,4 @@
-;;; init.el --- Emacs init file --- -*- lexical-binding: t -*-
+;; init.el --- Emacs init file --- -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Single, monolithic Emacs init file. Uses straight.el for package management
@@ -18,10 +18,6 @@
 
 (setq tls-checktrust t
       load-prefer-newer t)
-
-;; Path
-(setenv "PATH" (concat "~/.bin:/usr/local/bin:" (getenv "PATH")))
-(setq exec-path (append exec-path '("~/.bin" "/usr/local/bin")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Package Management
@@ -75,6 +71,47 @@
 
 (use-package epkg
   :defer 2)
+
+;; dash.el is required by many things, firstly the Environment section.
+(use-package dash
+  :config
+  (dash-enable-font-lock))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Environment
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Path
+(setq set-path-unix '("/usr/local/bin")
+      set-path-windows '("C:/bin"
+                         "C:/Program Files/Emacs/bin")
+      set-path-user '("~/.bin"))
+
+(defun set-path ()
+  "Set path variables correctly for Linux, macOS, or Windows"
+  (let* ((os-specific-paths (if (eq system-type 'windows-nt)
+                                set-path-windows
+                              set-path-unix))
+         (sep (if (eq system-type 'windows-nt) ";" ":"))
+         (old-path (split-string (getenv "PATH") sep))
+         ;; De-dupe and validate new path
+         (new-path
+          (-filter 'file-directory-p
+                   (-distinct (append set-path-user
+                                      os-specific-paths
+                                      old-path)))))
+    new-path
+    (setenv "PATH" (apply 'concat (-interpose sep new-path)))
+    (setq exec-path new-path)))
+
+(set-path)
+
+(defun expand-environment-variable ()
+  "Insert contents of an envionment variable at point."
+  (interactive)
+  (insert (getenv (read-envvar-name "Insert Environment Variable: "))))
+
+(global-set-key (kbd "C-c C-v") 'expand-environment-variable)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Theme
@@ -138,7 +175,7 @@
       (error "Problem loading theme %s" x))))
 
 (defun choose-theme ()
-  "Forward to `load-theme'.
+  "Forward to `load-theme'.))))
 Usable with `ivy-resume', `ivy-next-line-and-call' and
 `ivy-previous-line-and-call'."
   (interactive)
@@ -424,7 +461,7 @@ When using Homebrew, install it using \"brew install trash\"."
        (setq w32-pass-rwindow-to-system nil)
        (setq w32-lwindow-modifier 'super)
        (setq w32-rwindow-modifier 'super)
-       (set-face-font 'default "Consolas-13")))
+       (set-face-font 'default "Lucida Console-12")))
 
 ;; slow down mouse wheel scrolling
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)
@@ -1033,19 +1070,11 @@ ID, ACTION, CONTEXT."
    ("C-x C-j" . direx-project:jump-to-project-root)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Shell, SSH, and Environment
+;; Shell
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (add-hook 'shell-mode-hook
           (lambda () (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)))
-
-(defun expand-environment-variable ()
-  "Insert contents of an envionment variable at point."
-  (interactive)
-  (insert (getenv (read-envvar-name "Insert Environment Variable: "))))
-
-(global-set-key (kbd "C-c C-v") 'expand-environment-variable)
 
 ;; dtach (https://github.com/crigler/dtach)
 ;; https://emacs.stackexchange.com/questions/2283/attach-to-running-remote-shell-with-eshell-tramp-dtach
@@ -1198,8 +1227,7 @@ ID, ACTION, CONTEXT."
 
   (defun eshell/init ()
     (source-sh "~/.env")
-    ;; temporary because `source-sh' is broken
-    (setenv "PATH" "/Users/mn/.bin:/Users/mn/Library/Python/3.6/bin:/Users/mn/Library/Python/2.7/bin:/Users/mn/.gem/ruby/2.5.0/bin:/Users/mn/.gem/ruby/2.3.0/bin:/usr/local/bin:/usr/local/opt/texinfo/bin:/usr/local/opt/coreutils/libexec/gnubin:~/.bin:/usr/bin:/bin:/usr/sbin:/sbin")
+    ;; Do this at least temporary because `source-sh' is broken.
     (setq eshell-path-env (getenv "PATH"))
     (setenv "TERM" "eterm-color")
     (setenv "EDITOR" "emacsclient")
@@ -1490,7 +1518,10 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package company-shell
   :config
-  (add-to-list 'company-backends '(company-shell company-shell-env company-fish-shell)))
+  (setq-local shell-backends '(company-shell company-shell-env))
+  (if (executable-find "fish")
+      (add-to-list 'shell-backends company-fish-shell))
+  (add-to-list 'company-backends shell-backends))
 
 (use-package ivy
   :custom
@@ -1933,7 +1964,9 @@ Inserted by installing org-mode or when a release is made."
 (use-package pinentry
   :config
   (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
-  (pinentry-start))
+  ;; Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
+  (if (not (eq system-type 'windows-nt))
+      (pinentry-start)))
 
 (use-package tramp
   :config
