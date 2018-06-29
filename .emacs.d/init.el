@@ -17,6 +17,7 @@
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
 (setq tls-checktrust t
+      network-security-level 'high
       load-prefer-newer t)
 
 ;; Path
@@ -61,10 +62,10 @@
 
 (advice-add 'package-installed-p :around 'straight--advice-package-installed-p)
 
-;; suggested requires for `use-package'
+;; use-package is good
 (eval-when-compile
-  (require 'use-package)
-  (require 'bind-key))
+  (require 'use-package))
+(require 'bind-key)
 
 (defun update-packages ()
   "Use straight.el to update all packages."
@@ -288,38 +289,13 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                              (powerline-render rhs)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Persistence
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(desktop-save-mode 1)
-(save-place-mode 1)
-
-(use-package savehist
-  :config
-  (setq savehist-additional-variables
-        ;; search entries
-        '(search-ring regexp-search-ring)
-        ;; save every minute
-        savehist-autosave-interval 60)
-  (savehist-mode +1))
-
-(use-package recentf
-  :config
-  (setq recentf-max-saved-items 500
-        recentf-max-menu-items 15
-        ;; disable recentf-cleanup on Emacs start, because it can cause
-        ;; problems with remote files
-        recentf-auto-cleanup 'never)
-  (recentf-mode +1))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(setq frame-resize-pixelwise t)
-(toggle-frame-maximized)
+(setq frame-resize-pixelwise t
+      inhibit-splash-screen t)
 
-(setq inhibit-splash-screen t)
+(toggle-frame-maximized)
 
 (defun display-startup-echo-area-message ()
   "Run when Emacs has finished starting."
@@ -334,32 +310,34 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                              (with-current-buffer (get-buffer " *Echo Area 0*")
                                (setq-local face-remapping-alist '((default)))))))
 
-(setq visible-bell t ring-bell-function #'mode-line-visible-bell)
+(setq visible-bell t
+      ring-bell-function #'mode-line-visible-bell)
 
 (setq-default fill-column 80)
 
-;; wrap line at word boundary
-;; unfortunately, this causes performance problems, notably with swiper
+;; Wrap line at word boundary
+;; Unfortunately, this causes performance problems, notably with swiper
 ;; (global-visual-line-mode)
 
-;; highlight current line
+;; Highlight current line
 (global-hl-line-mode 1)
 
 ;; Show line in the original buffer from occur mode
 (setq list-matching-lines-jump-to-current-line t)
 
+;; Reduce scrolling lag
 ;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
 (setq auto-window-vscroll nil)
 
 ;; Use the system clipboard
 (setq select-enable-clipboard t)
 
-;; whenever an external process changes a file underneath emacs, and there
+;; Whenever an external process changes a file underneath emacs, and there
 ;; was no unsaved changes in the corresponding buffer, just revert its
-;; content to reflect what's on-disk.
+;; content to reflect what's on disk.
 (global-auto-revert-mode 1)
 
-;; full screen
+;; Full screen
 (defun fullscreen ()
   "Toggle fullscreen mode."
   (interactive)
@@ -368,9 +346,10 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (global-set-key (kbd "C-s-f") #'fullscreen)
 (global-set-key (kbd "<C-s-268632070>") #'fullscreen)
 
-;; change yes/no prompts to y/n
+;; Change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+;; Configure the frame
 (when window-system
   (menu-bar-mode -1)
   (when (fboundp 'tool-bar-mode)
@@ -382,20 +361,22 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   (setq initial-frame-alist '((top . 1)
                               (left . 75)
                               (width . 195)
-                              (height . 58)))
-  (setq default-frame-alist '((top . 60)
+                              (height . 58))
+        default-frame-alist '((top . 60)
                               (left . 80)
                               (width . 190)
                               (height . 53))))
 
+;; OS specific configuration
 (cond ((eq system-type 'darwin)
-       (setq ns-alternate-modifier 'meta)
-       (setq ns-right-alternate-modifier 'none)
-       (setq ns-command-modifier 'super)
-       (setq ns-right-command-modifier 'left)
-       (setq ns-control-modifier 'control)
-       (setq ns-right-control-modifier 'left)
-       (setq ns-function-modifier 'hyper)
+       (setq ns-alternate-modifier 'meta
+             ns-right-alternate-modifier 'none
+             ns-command-modifier 'super
+             ns-right-command-modifier 'left
+             ns-control-modifier 'control
+             ns-right-control-modifier 'left
+             ns-function-modifier 'hyper
+             mac-key-advanced-setting t)
        (when window-system (menu-bar-mode +1))
        (add-hook 'mac-key-mode-hook (lambda ()
                                       (interactive)
@@ -403,7 +384,6 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                                         (setq mac-function-modifier 'hyper
                                               mac-option-modifier 'meta
                                               mac-command-modifier 'super))))
-       (setq mac-key-advanced-setting t)
        (global-set-key (kbd "H-<backspace>") 'delete-char)
        (require 'mac-key-mode)
        (mac-key-mode +1)
@@ -420,20 +400,23 @@ When using Homebrew, install it using \"brew install trash\"."
                        nil 0 nil
                        file)))
       ((eq system-type 'windows-nt)
-       (setq w32-pass-lwindow-to-system nil)
-       (setq w32-pass-rwindow-to-system nil)
-       (setq w32-lwindow-modifier 'super)
-       (setq w32-rwindow-modifier 'super)
+       (setq w32-pass-lwindow-to-system nil
+             w32-pass-rwindow-to-system nil
+             w32-lwindow-modifier 'super
+             w32-rwindow-modifier 'super)
        (set-face-font 'default "Consolas-13")))
 
 ;; slow down mouse wheel scrolling
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)
-                                    ((control) . nil)))
-(setq scroll-margin 1 scroll-conservatively 1 scroll-up-aggressively 0.01 scroll-down-aggressively
-      0.01 mouse-wheel-progressive-speed 1)
-(setq-default scroll-up-aggressively 0.01 scroll-down-aggressively 0.01)
-;; mouse wheel works horizontally as well
-(setq mouse-wheel-tilt-scroll t)
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil))
+      scroll-margin 1
+      scroll-conservatively 1
+      scroll-up-aggressively 0.01
+      scroll-down-aggressively 0.01
+      mouse-wheel-progressive-speed 1
+      scroll-up-aggressively 0.01
+      scroll-down-aggressively 0.01
+      ;; mouse wheel works horizontally as well
+      mouse-wheel-tilt-scroll t)
 
 ;; Enable `goto-address-mode' globally
 (define-globalized-minor-mode global-goto-address-mode goto-address-mode
@@ -443,6 +426,30 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; ido, just in case ivy doesn't work with something.
 (setq ido-enable-flex-matching t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Persistence
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(desktop-save-mode 1)
+(save-place-mode 1)
+
+(use-package savehist
+  :custom
+  (savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
+  (savehist-autosave-interval 60)
+  :config
+  (savehist-mode +1))
+
+(use-package recentf
+  :custom
+  (recentf-max-saved-items 500)
+  (recentf-max-menu-items 15)
+  ;; disable recentf-cleanup on Emacs start, because it can cause
+  ;; problems with remote files
+  (recentf-auto-cleanup 'never)
+  :config
+  (recentf-mode +1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Help
@@ -627,6 +634,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 (use-package eyebrowse
   :custom
   (eyebrowse-new-workspace t)
+  (eyebrowse-mode-line-separator " ")
   :config
   (eyebrowse-mode t)
   :bind
@@ -639,7 +647,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
   ("s-7" . eyebrowse-switch-to-window-config-7)
   ("s-8" . eyebrowse-switch-to-window-config-8)
   ("s-9" . eyebrowse-switch-to-window-config-9)
-  ("s-0" . eyebrowse-switch-to-window-config-0)):defer 0
+  ("s-0" . eyebrowse-switch-to-window-config-0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Editing
@@ -660,11 +668,12 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
       mouse-drag-and-drop-region-cut-when-buffers-differ t)
 
 ;; store all backup and autosave files in their own directory
-(setq backup-directory-alist '((".*" . "~/.emacs.d/backup")))
-(setq version-control t)
-(setq delete-old-versions t)
-(setq auto-save-list-file-prefix "~/.emacs.d/autosave/")
-(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
+(setq backup-directory-alist '((".*" . "~/.emacs.d/backup"))
+      version-control t
+      vc-make-backup-files t
+      delete-old-versions -1
+      auto-save-list-file-prefix "~/.emacs.d/autosave/"
+      auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
 
 ;; Enable every deactivated command
 (setq disabled-command-function nil)
@@ -689,10 +698,16 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 
 (define-key global-map (kbd "RET") 'newline-and-indent)
 
+;; http://whattheemacsd.com/key-bindings.el-03.html
+(global-set-key (kbd "M-J")
+                (lambda ()
+                  (interactive)
+                  (join-line -1)))
+
 ;; show-paren-mode
 (defadvice show-paren-function (after show-matching-paren-offscreen activate)
   "If the matching paren is offscreen, show the matching line in the echo area.
-   Has no effect if the character before point is not of the syntax class ')'."
+Has no effect if the character before point is not of the syntax class ')'."
   (interactive)
   (let* ((cb (char-before (point)))
          (matching-text (and cb
@@ -714,9 +729,20 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
                        (set (make-local-variable 'comment-auto-fill-only-comments) t)
                        (auto-fill-mode t)))
 
+(defun goto-line-with-feedback ()
+  "Show line numbers temporarily, while prompting for the line number input."
+  (interactive)
+  (unwind-protect
+      (progn
+        (linum-mode 1)
+        (goto-line (read-number "Goto line: ")))
+    (linum-mode -1)))
+
+(global-set-key [remap goto-line] 'goto-line-with-feedback)
+
 ;; https://emacs.stackexchange.com/questions/3743/how-to-move-region-to-other-window
 (defun move-region-to-other-window (start end)
-  "Move selected text to other window"
+  "Move selected text to other window."
   (interactive "r")
   (if (use-region-p)
       (let ((count (count-words-region start end)))
@@ -730,7 +756,7 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
     (message "No region selected")))
 
 (defun copy-region-to-other-window (start end)
-  "Move selected text to other window"
+  "Move selected text to other window."
   (interactive "r")
   (if (use-region-p)
       (let ((count (count-words-region start end)))
@@ -739,14 +765,31 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
           (other-window 1)
           (yank)
           (newline))
-        (other-window -1)     
+        (other-window -1)
         (message "Moved %s words" count))
     (message "No region selected")))
 
 (global-set-key (kbd "s-C") #'copy-region-to-other-window)
 (global-set-key (kbd "s-X") #'move-region-to-other-window)
 
+(use-package elisp-slime-nav
+  :hook
+  (emacs-lisp-mode . (lambda () (elisp-slime-nav-mode t))))
+
 (use-package undo-tree
+  :init
+  ;; Keep region when undoing in region.
+  ;; http://whattheemacsd.com/my-misc.el-02.html
+  (defadvice undo-tree-undo (around keep-region activate)
+    (if (use-region-p)
+        (let ((m (set-marker (make-marker) (mark)))
+              (p (set-marker (make-marker) (point))))
+          ad-do-it
+          (goto-char p)
+          (set-mark m)
+          (set-marker p nil)
+          (set-marker m nil))
+      ad-do-it))
   :custom
   (undo-tree-load-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
   :config
@@ -982,6 +1025,13 @@ ID, ACTION, CONTEXT."
       ;; don't prompt to kill buffers of deleted directories
       dired-clean-confirm-killing-deleted-buffers nil)
 
+;; Auto refresh buffers
+(global-auto-revert-mode 1)
+
+;; Also auto refresh dired, but be quiet about it
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)
+
 (defun dired-to-default-directory ()
   "Open directory containing the current file."
   (interactive)
@@ -1036,9 +1086,18 @@ ID, ACTION, CONTEXT."
 ;; Shell, SSH, and Environment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; http://whattheemacsd.com/setup-shell.el-01.html
+(defun comint-delchar-or-eof-or-kill-buffer (arg)
+  "`C-d' on an empty line in the shell terminates the process."
+  (interactive "p")
+  (if (null (get-buffer-process (current-buffer)))
+      (kill-buffer)
+    (comint-delchar-or-maybe-eof arg)))
 
 (add-hook 'shell-mode-hook
-          (lambda () (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)))
+          (lambda ()
+            (define-key shell-mode-map (kbd "C-d") 'comint-delchar-or-eof-or-kill-buffer)
+            (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)))
 
 (defun expand-environment-variable ()
   "Insert contents of an envionment variable at point."
@@ -1562,6 +1621,13 @@ Inserted by installing org-mode or when a release is made."
    :map ivy-minibuffer-map
    ("M-y" . ivy-next-line-and-call)))
 
+(use-package ivy-dired-history
+  :config
+  (add-to-list 'savehist-additional-variables 'ivy-dired-history-variable)
+  :bind
+  (:map dired-mode-map
+        ("," . dired)))
+
 (use-package prescient
   :config
   (prescient-persist-mode))
@@ -1887,34 +1953,42 @@ Inserted by installing org-mode or when a release is made."
     (unless inf-clojure-minor-mode
       (setq-local comint-send-input 'comint-simple-send)))
   :hook
-                                        ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
+  ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
   (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
         ("s-<return>" . inf-clojure-eval-last-sexp)
         ("C-c C-k" . inf-clojure-eval-buffer)))
 
+;; Configured to use CHICKEN Scheme
 (use-package geiser
-  :defer 2
+  :custom
+  (geiser-default-implementation 'chicken)
+  (geiser-mode-eval-last-sexp-to-buffer t)
+  (scheme-program-name "csi -:c")
   :config
-  (progn
-    ;; Use CHICKEN Scheme
-    (setq scheme-program-name "csi -:c")
+  (setq-default geiser-scheme-implementation 'chicken)
 
-    ;; Indenting module body code at column 0
-    (defun scheme-module-indent (state indent-point normal-indent) 0)
-    (put 'module 'scheme-indent-function 'scheme-module-indent)
+  ;; Indenting module body code at column 0
+  (defun scheme-module-indent (state indent-point normal-indent) 0)
+  (put 'module 'scheme-indent-function 'scheme-module-indent)
 
-    (put 'and-let* 'scheme-indent-function 1)
-    (put 'parameterize 'scheme-indent-function 1)
-    (put 'handle-exceptions 'scheme-indent-function 1)
-    (put 'when 'scheme-indent-function 1)
-    (put 'unless 'scheme-indenfunction 1)
-    (put 'match 'scheme-indent-function 1)))
+  (put 'and-let* 'scheme-indent-function 1)
+  (put 'parameterize 'scheme-indent-function 1)
+  (put 'handle-exceptions 'scheme-indent-function 1)
+  (put 'when 'scheme-indent-function 1)
+  (put 'unless 'scheme-indenfunction 1)
+  (put 'match 'scheme-indent-function 1)
+  :commands
+  (geiser run-geiser run-chicken)
+  :bind
+  (:map geiser-mode-map
+        ("s-<return>" . geiser-eval-last-sexp)))
 
 (use-package rainbow-mode
   :hook
   ((sass-mode emacs-lisp-mode) . rainbow-mode))
+
 (use-package highlight-escape-sequences
   :defer 1
   :config
@@ -2099,6 +2173,9 @@ shell is left intact."
   (web-mode . m-web-mode-hook))
 
 (use-package js2-mode
+  :init
+  ;; Set tab width for js-mode and json-mode
+  (setq js-indent-level tab-width)
   :mode "\\.js\\'"
   :hook
   (js2-mode . js2-imenu-extras-mode)
@@ -2148,6 +2225,8 @@ shell is left intact."
   :mode "\\.sa?c?ss\\'")
 
 (use-package flycheck
+  :custom
+  (sentence-end-double-space nil)
   :bind
   (("C-c ! !" . flycheck-mode)))
 
@@ -2771,7 +2850,7 @@ shell is left intact."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TODO: Get pointhistory to work
-;; (require 'm-pointhistory)
+(require 'm-pointhistory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Private

@@ -2,4 +2,5 @@
 
 brew install chicken
 chicken-install -s apropos chicken-doc
-cd `csi -p ‘(chicken-home)’` $ curl http://3e8.org/pub/chicken-doc/chicken-doc-repo.tgz | sudo tar zx
+cd `csi -p ‘(chicken-home)’`
+curl http://3e8.org/pub/chicken-doc/chicken-doc-repo.tgz | tar zx

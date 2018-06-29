@@ -106,7 +106,7 @@
   (interactive)
   (pointhistory-histmove -1 pointhistory-auto-ring 'pointhistory-auto-pos))
 
-(defvar pointhistory-save-at-jump-width 300
+(defvar pointhistory-save-at-jump-width 100
   "If point that far between two commands the original point goes into pointhistory-ring.")
 
 (defvar pointhistory-previous-point 0
@@ -130,7 +130,6 @@
         (eval `(defadvice ,cmd (after pointhistory activate)
                  (setq pointhistory-move-cmd (quote ,cmd))))))
         
-
 (pointhistory-advice-commands)
 
 (defun pointhistory-post-command-hook ()
@@ -158,5 +157,7 @@
 (global-set-key (kbd "s-<") 'pointhistory-auto-backward)
 (global-set-key (kbd "s->") 'pointhistory-auto-forward)
 
+
 (provide 'm-pointhistory)
+
 ;;; pointhistory.el ends here
