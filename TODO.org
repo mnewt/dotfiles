@@ -7,7 +7,7 @@
 ** DONE do the same for private.fish
 ** DONE fix arch sed error
 ** DONE install.sh: colorize output
-** DONE Fix bash\_prompt
+** DONE Fix bash_prompt
 ** DONE Migrate zlogin to bash aliases
 ** DONE Port start-ssh-agent.fish to bash and zsh
 ** DONE Vim and Emacs updates shouldn't make repo dirty -- don't store packages themselves in repo
@@ -56,8 +56,15 @@ Moving the start of the prompt to the middle of the line or even the previous li
 ** DONE Move README to org format
 ** DONE Finish source
 ** DONE Make bare repo setup compatible with magit and projectile. Could use a `link' and `unlink' function to create a temporary $HOME/.git file. See example: https://github.com/magit/magit/issues/460#issuecomment-36139308 and https://gitorious.org/magit/skangas-detached-worktree#more
-** DONE Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work with parinfer's =parinfer-smart-yank:yank=. Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
+** DONE Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work with parinfer's =parinfer-smart-yank:yank=. 
+        Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
 ** DONE Update readme with new non-bare repo setup
+** DONE Fix Windows problems
+** DONE eshell should have a way to cd relative to tramp path
+        Example:
+        pwd: =/sshx:host:/some/path=
+        =cd :/other/path= => =/sshx:host:/other/path=
+
 ** TODO Fix yank-pop deleting a bunch more than the previous yank
+        What are repro steps?
         Does this happen only when there are characters on the line after point?
-** TODO Fix Windows problems

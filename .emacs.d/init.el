@@ -88,6 +88,31 @@
                          "C:/Program Files/Emacs/bin")
       set-path-user '("~/.bin"))
 
+(defun source-sh (filename)
+  "Update environment variables from a shell source file."
+  (interactive "fSource file: ")
+
+  (message "Sourcing environment from `%s'..." filename)
+  (with-temp-buffer
+
+    (shell-command (format "diff -u <(true; export) <(source %s; export)" filename) '(4))
+
+    (let ((envvar-re "declare -x \\([^=]+\\)=\\(.*\\)$"))
+      ;; Remove environment variables
+      (while (search-forward-regexp (concat "^-" envvar-re) nil t)
+        (let ((var (match-string 1)))
+          (message "%s" (prin1-to-string `(setenv ,var nil)))
+          (setenv var nil)))
+
+      ;; Update environment variables
+      (goto-char (point-min))
+      (while (search-forward-regexp (concat "^+" envvar-re) nil t)
+        (let ((var (match-string 1))
+              (value (read (match-string 2))))
+          (message "%s" (prin1-to-string `(setenv ,var ,value)))
+          (setenv var value)))))
+  (message "Sourcing environment from `%s'... done." filename))
+
 (defun set-path ()
   "Set path variables correctly for Linux, macOS, or Windows"
   (let* ((os-specific-paths (if (eq system-type 'windows-nt)
@@ -97,14 +122,15 @@
          (old-path (split-string (getenv "PATH") sep))
          ;; De-dupe and validate new path
          (new-path
-          (-filter 'file-directory-p
-                   (-distinct (append set-path-user
-                                      os-specific-paths
-                                      old-path)))))
-    new-path
+          (-map 'expand-file-name
+                (-filter 'file-directory-p
+                         (-distinct (append set-path-user
+                                            os-specific-paths
+                                            old-path))))))
     (setenv "PATH" (apply 'concat (-interpose sep new-path)))
     (setq exec-path new-path)))
 
+(source-sh "~/.env")
 (set-path)
 
 (defun expand-environment-variable ()
@@ -112,7 +138,13 @@
   (interactive)
   (insert (getenv (read-envvar-name "Insert Environment Variable: "))))
 
-(global-set-key (kbd "C-c C-v") 'expand-environment-variable)
+(bind-key "C-c C-v" 'expand-environment-variable)
+
+(use-package server
+  :defer 1
+  :config
+  (unless (server-running-p)
+    (server-start)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Theme
@@ -380,8 +412,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   (interactive)
   (set-frame-parameter nil 'fullscreen (if (frame-parameter nil 'fullscreen) nil 'fullboth)))
 
-(global-set-key (kbd "C-s-f") #'fullscreen)
-(global-set-key (kbd "<C-s-268632070>") #'fullscreen)
+(bind-keys ("C-s-f" . fullscreen)
+           ("<C-s-268632070>" . fullscreen))
 
 ;; Change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -421,7 +453,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                                         (setq mac-function-modifier 'hyper
                                               mac-option-modifier 'meta
                                               mac-command-modifier 'super))))
-       (global-set-key (kbd "H-<backspace>") 'delete-char)
+       (bind-key "H-<backspace>" 'delete-char)
        (require 'mac-key-mode)
        (mac-key-mode +1)
        (set-face-font 'default "Monaco-13")
@@ -527,7 +559,7 @@ When using Homebrew, install it using \"brew install trash\"."
 
 (use-package tldr
   :init
-  (global-unset-key (kbd "C-h t"))
+  (unbind-key "C-h t")
   :bind
   (("C-h t t" . tldr)
    ("C-h t u" . tldr-update-docs)))
@@ -551,24 +583,24 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; Buffer Navigation and Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+(bind-key "C-x C-b" 'ibuffer)
 
 (setq windmove-wrap-around t)
-(global-set-key (kbd "H-w") 'windmove-up)
-(global-set-key (kbd "H-s") 'windmove-down)
-(global-set-key (kbd "H-a") 'windmove-left)
-(global-set-key (kbd "H-d") 'windmove-right)
-(global-set-key (kbd "M-]") 'windmove-right)
-(global-set-key (kbd "M-[") 'windmove-left)
+(bind-keys ("H-a" . windmove-left)
+           ("H-d" . windmove-right)
+           ("H-w" . windmove-up)
+           ("H-s" . windmove-down)
+           ("M-]" . windmove-right)
+           ("M-[" . windmove-left))
 
 ;; navigating with mark
-(global-set-key (kbd "M-s-,") 'pop-to-mark-command)
-(global-set-key (kbd "M-s-≤") 'pop-to-mark-command)
-(global-set-key (kbd "s-,") 'pop-global-mark)
+(bind-keys ("M-s-," . pop-to-mark-command)
+           ("M-s-≤" . pop-to-mark-command)
+           ("s-," . pop-global-mark))
 
 ;; quick switch buffers
-(global-set-key (kbd "s-}") 'next-buffer)
-(global-set-key (kbd "s-{") 'previous-buffer)
+(bind-keys ("s-}" . next-buffer)
+           ("s-{" . previous-buffer))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -577,9 +609,9 @@ When using Homebrew, install it using \"brew install trash\"."
   (select-window (next-window))
   (kill-buffer-and-window))
 
-(global-set-key (kbd "M-s-w") 'kill-buffer-and-window)
-(global-set-key (kbd "M-s-∑") 'kill-buffer-and-window)
-(global-set-key (kbd "M-s-W") 'kill-other-buffer-and-window)
+(bind-keys ("M-s-w" . kill-buffer-and-window)
+           ("M-s-∑" . kill-buffer-and-window)
+           ("M-s-W" . kill-other-buffer-and-window))
 
 ;; https://www.emacswiki.org/emacs/ToggleWindowSplit
 (defun toggle-window-split ()
@@ -595,7 +627,8 @@ When using Homebrew, install it using \"brew install trash\"."
                                      (<= (cadr this-win-edges)
                                          (cadr next-win-edges)))))
              (splitter (if (= (car this-win-edges)
-                              (car (window-edges (next-window)))) 'split-window-horizontally
+                              (car (window-edges (next-window))))
+                           'split-window-horizontally
                          'split-window-vertically)))
         (delete-other-windows)
         (let ((first-win (selected-window)))
@@ -606,14 +639,15 @@ When using Homebrew, install it using \"brew install trash\"."
           (select-window first-win)
           (if this-win-2nd (other-window 1))))))
 
-(define-key ctl-x-4-map "t" 'toggle-window-split)
-(global-set-key (kbd "<H-up>") 'shrink-window)
-(global-set-key (kbd "<H-down>") 'enlarge-window)
-(global-set-key (kbd "<H-left>") 'shrink-window-horizontally)
-(global-set-key (kbd "<H-right>") 'enlarge-window-horizontally)
+(bind-keys ("<H-up>" . shrink-window)
+           ("<H-down>" . enlarge-window)
+           ("<H-left>" . shrink-window-horizontally)
+           ("<H-right>" . enlarge-window-horizontally)
+           :map ctl-x-4-map
+           ("t" . toggle-window-split))
 
 ;; tags
-(global-set-key (kbd "s-R") #'xref-find-definitions-other-window)
+(bind-key "s-R" #'xref-find-definitions-other-window)
 
 ;; Create friendly names for buffers with the same name
 (setq uniquify-buffer-name-style 'forward
@@ -733,13 +767,14 @@ and file 'filename' will be opened and cursor set on line 'linenumber'"
 ;; move by whole words
 ;; (global-superword-mode)
 
-(define-key global-map (kbd "RET") 'newline-and-indent)
+(bind-key "RET" #'newline-and-indent)
 
 ;; http://whattheemacsd.com/key-bindings.el-03.html
-(global-set-key (kbd "M-J")
-                (lambda ()
-                  (interactive)
-                  (join-line -1)))
+(defun join-line-previous ()
+  (interactive)
+  (join-line -1))
+
+(bind-key "M-J" #'join-line-previous)
 
 ;; show-paren-mode
 (defadvice show-paren-function (after show-matching-paren-offscreen activate)
@@ -752,11 +787,11 @@ Has no effect if the character before point is not of the syntax class ')'."
                              (blink-matching-open))))
     (when matching-text (message matching-text))))
 
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+(setq ediff-window-setup-function #'ediff-setup-windows-plain)
 
 ;; make a shell script executable automatically on save
 (add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
+          #'executable-make-buffer-file-executable-if-script-p)
 
 ;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
 (setq executable-prefix-env t)
@@ -775,7 +810,7 @@ Has no effect if the character before point is not of the syntax class ')'."
         (goto-line (read-number "Goto line: ")))
     (linum-mode -1)))
 
-(global-set-key [remap goto-line] 'goto-line-with-feedback)
+(bind-key [remap goto-line] #'goto-line-with-feedback)
 
 ;; https://emacs.stackexchange.com/questions/3743/how-to-move-region-to-other-window
 (defun move-region-to-other-window (start end)
@@ -806,8 +841,8 @@ Has no effect if the character before point is not of the syntax class ')'."
         (message "Moved %s words" count))
     (message "No region selected")))
 
-(global-set-key (kbd "s-C") #'copy-region-to-other-window)
-(global-set-key (kbd "s-X") #'move-region-to-other-window)
+(bind-keys ("s-C" . copy-region-to-other-window)
+           ("s-X" . move-region-to-other-window))
 
 (use-package elisp-slime-nav
   :hook
@@ -841,9 +876,9 @@ Has no effect if the character before point is not of the syntax class ')'."
    ("M-s-ω" . undo-tree-visualize)))
 
 (use-package easy-kill
-  :config
-  (global-set-key [remap kill-ring-save] 'easy-kill)
-  (global-set-key [remap mark-sexp] 'easy-mark))
+  :bind
+  (([remap kill-ring-save] . easy-kill)
+   ([remap mark-sexp] . easy-mark)))
 
 (use-package ace-jump-zap
   :bind
@@ -854,6 +889,47 @@ Has no effect if the character before point is not of the syntax class ')'."
   :bind
   (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
    ([remap move-end-of-line] . mwim-end-of-code-or-line)))
+
+(use-package expand-region
+  :init
+  (setq expand-region-fast-keys-enabled nil)
+  :bind
+  (("s-d" . er/expand-region)
+   ("s-D" . er/contract-region)))
+
+(use-package multiple-cursors
+  :bind
+  (("C-S-c C-S-c" . mc/edit-lines)
+   ("M-s-m" . mc/edit-lines)
+   ("M-s-µ" . mc/edit-lines)
+   ("C->" . mc/mark-next-like-this)
+   ("C-<" . mc/mark-previous-like-this)
+   ("C-c C-<" . mc/mark-all-like-this)
+   ("C-c C-a"  . mc/mark-all-dwim)))
+
+;; (use-package mc-extras
+;;   :bind
+;;   (:map mc/keymap
+;;         ("C-. M-C-f" . mc/mark-next-sexps)
+;;         ("C-. M-C-b" . mc/mark-previous-sexps)
+;;         ("C-. <" . mc/mark-all-above)
+;;         ("C-. >" . mc/mark-all-below)
+;;         ("C-. C-d" . mc/remove-current-cursor)
+;;         ("C-. C-k" . mc/remove-cursors-at-eol)
+;;         ("C-. d" . mc/remove-duplicated-cursors)
+;;         ("C-. C-." . mc/freeze-fake-cursors-dwim)
+;;         ("C-. ." . mc/move-to-column)
+;;         ("C-. =" . mc/compare-chars)))
+
+;; TODO: Get origami-mode to work
+(use-package origami
+  :bind
+  (:map origami-mode-map
+        ("M-s-]" . origami-close-node-recursively)
+        ("M-s-[" . origami-open-node-recursively)
+        ("s-|" . origami-recursively-toggle-node)
+        ("s-+" . origami-show-only-node)
+        ("s-=" . origami-open-all-nodes)))
 
 (use-package smartparens
   :init
@@ -1090,11 +1166,11 @@ ID, ACTION, CONTEXT."
           (lambda ()
             (dired-hide-details-mode t)))
 
-(define-key dired-mode-map (kbd "C-c o") #'dired-open-file)
-(define-key dired-mode-map (kbd "C-x f") #'find-file-literally-at-point)
+(bind-keys :map dired-mode-map ("C-c o" . dired-open-file))
+(bind-keys :map dired-mode-map ("C-x f" . find-file-literally-at-point))
 
-(global-set-key (kbd "C-x C-d") #'dired-to-default-directory)
-(global-set-key (kbd "C-x d") #'dired)
+(bind-keys ("C-x C-d" . dired-to-default-directory)
+           ("C-x d" . dired))
 
 (use-package diredfl
   :config
@@ -1120,7 +1196,7 @@ ID, ACTION, CONTEXT."
    ("C-x C-j" . direx-project:jump-to-project-root)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Shell
+;; Shell and SSH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; http://whattheemacsd.com/setup-shell.el-01.html
@@ -1133,8 +1209,8 @@ ID, ACTION, CONTEXT."
 
 (add-hook 'shell-mode-hook
           (lambda ()
-            (define-key shell-mode-map (kbd "C-d") 'comint-delchar-or-eof-or-kill-buffer)
-            (define-key shell-mode-map (kbd "SPC") 'comint-magic-space)))
+            (bind-keys :map shell-mode-map ("C-d" . comint-delchar-or-eof-or-kill-buffer))
+            (bind-keys :map shell-mode-map ("SPC" . comint-magic-space))))
 
 ;; dtach (https://github.com/crigler/dtach)
 ;; https://emacs.stackexchange.com/questions/2283/attach-to-running-remote-shell-with-eshell-tramp-dtach
@@ -1225,31 +1301,6 @@ ID, ACTION, CONTEXT."
         (end-of-buffer)
         (switch-to-buffer-other-window buf))))
 
-  (defun source-sh (filename)
-    "Update environment variables from a shell source file."
-    (interactive "fSource file: ")
-
-    (message "Sourcing environment from `%s'..." filename)
-    (with-temp-buffer
-
-      (shell-command (format "diff -u <(true; export) <(source %s; export)" filename) '(4))
-
-      (let ((envvar-re "declare -x \\([^=]+\\)=\\(.*\\)$"))
-        ;; Remove environment variables
-        (while (search-forward-regexp (concat "^-" envvar-re) nil t)
-          (let ((var (match-string 1)))
-            (message "%s" (prin1-to-string `(setenv ,var nil)))
-            (setenv var nil)))
-
-        ;; Update environment variables
-        (goto-char (point-min))
-        (while (search-forward-regexp (concat "^+" envvar-re) nil t)
-          (let ((var (match-string 1))
-                (value (read (match-string 2))))
-            (message "%s" (prin1-to-string `(setenv ,var ,value)))
-            (setenv var value)))))
-    (message "Sourcing environment from `%s'... done." filename))
-
   (defun eshell/exit-code (cmd &rest args)
     "Run PROGRAM with ARGS and return the exit code"
     (with-temp-buffer (apply 'call-process cmd nil (current-buffer) nil args)))
@@ -1267,6 +1318,15 @@ ID, ACTION, CONTEXT."
   (defun eshell/s (hostname)
     "Change directory to host via tramp"
     (eshell/cd (concat "/sshx:" hostname ":")))
+
+  ;; TODO
+  (defun tramp-insert-remote-part ()
+    "Insert current tramp prefix at point"
+    (interactive)
+    (if-let (remote (file-remote-p default-directory))
+        (insert remote)))
+
+  (bind-key "C-c f" 'tramp-insert-remote-part)
 
   (defun eshell/info (&optional subject)
     "Invoke `info', optionally opening the Info system to SUBJECT."
@@ -1287,20 +1347,20 @@ ID, ACTION, CONTEXT."
 
   (defun eshell/init ()
     (source-sh "~/.env")
-    ;; Do this at least temporary because `source-sh' is broken.
     (setq eshell-path-env (getenv "PATH"))
     (setenv "TERM" "eterm-color")
     (setenv "EDITOR" "emacsclient")
 
-    (global-key-binding (kbd "M-p") 'eshell-send-previous-input)
     ;; (add-hook sh-mode-hook
-    ;;           (lambda () (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line)))
-    (define-key eshell-mode-map (kbd "C-a") 'eshell-maybe-bol)
-    (define-key eshell-mode-map (kbd "C-d") 'eshell-quit-or-delete-char)
-    (define-key eshell-mode-map (kbd "<tab>") 'completion-at-point)
-    (define-key eshell-mode-map (kbd "M-r") 'counsel-esh-history)
-    (define-key eshell-mode-map (kbd "C-w") 'eshell/kill-previous-output)
-    (define-key eshell-mode-map (kbd "M-w") 'eshell/copy-previous-output)
+    ;;           (lambda () (bind-keys :map sh-mode-map "s-<ret>" . eshell-send-current-line)))
+    (bind-keys :map eshell-mode-map
+               ("M-p" 'eshell-send-previous-input)
+               ("C-a" . eshell-maybe-bol)
+               ("C-d" . eshell-quit-or-delete-char)
+               ("<tab>" . completion-at-point)
+               ("M-r" . counsel-esh-history)
+               ("C-w" . eshell/kill-previous-output)
+               ("M-w" . eshell/copy-previous-output))
     (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
     (setq eshell-output-filter-functions
           (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
@@ -1396,7 +1456,7 @@ When nth is set, it will copy the nth previous command.
         (format "Copied %s words to kill ring." (count-words-region (point) end)))))
 
   (eval-after-load 'sh
-    (lambda (define-key sh-mode-map (kbd "s-<ret>") 'eshell-send-current-line)))
+    (lambda (bind-keys :map (sh-mode-map "s-<ret>" . eshell-send-current-line))))
   
   :custom
   (eshell-buffer-shorthand t)
@@ -1425,6 +1485,97 @@ When nth is set, it will copy the nth previous command.
   :hook ((eshell-mode . esh-autosuggest-mode))
   :bind (:map esh-autosuggest-active-map
               ("C-e" . company-complete-selection)))
+
+(use-package pinentry
+  :config
+  (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
+  ;; Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
+  (if (not (eq system-type 'windows-nt))
+      (pinentry-start)))
+
+(use-package tramp
+  :config
+  (defun ssh-sudo (path)
+    "ssh to host, sudo to root, open dired"
+    (interactive "M [User@] Hostname: ")
+    (let* ((at (string-match "@" path))
+           (colon (string-match ":" path))
+           (user (if at
+                     (concat (substring path 0 at) "@")
+                   ""))
+           (host (if at
+                     (substring path (+ 1 at))
+                   path))
+           (dir (if colon
+                    (substring path (+ 1 colon))
+                  ":/")))
+      (find-file (concat "/sshx:" user host "|sudo:root@" host dir))))
+
+  (defun sudo-toggle--add-sudo (f)
+    "Add sudo to file path string"
+    (if (file-remote-p f)
+        (with-parsed-tramp-file-name (expand-file-name f) nil
+          (concat "/" method ":"
+                  (when user (concat user "@"))
+                  host "|sudo:root@" host ":" localname))
+      (concat "/sudo:root@localhost:" (expand-file-name f))))
+
+  (defun sudo-toggle--remove-sudo (f)
+    "Remove sudo from file path string"
+    (cond
+     ((string-match-p "/sudo:root@localhost:" f)
+      (replace-regexp-in-string (getenv "HOME") "~" (substring f 21)))
+
+     ((string-match-p "|sudo:root@" f)
+      (replace-regexp-in-string "|sudo:root@[^:]*" "" f))))
+
+  (defun sudo-toggle ()
+    "Reopen the current file, directory, or shell as root.  For
+files and dired buffers, the non-sudo buffer is replaced with a
+sudo buffer.  For shells, a sudo shell is opened but the non-sudo
+shell is left intact."
+    (interactive)
+    (let* ((position (point))
+           (f (expand-file-name (or buffer-file-name default-directory)))
+           (newf (if (string-match-p "sudo:" f)
+                     (sudo-toggle--remove-sudo f)
+                   (sudo-toggle--add-sudo f)))
+           ;; so that you don't get method overrides
+           (tramp-default-proxies-alist nil))
+      (cond ((or buffer-file-name (derived-mode-p 'dired-mode))
+             (find-alternate-file newf)
+             (goto-char position))
+            ((derived-mode-p 'shell-mode)
+             (if (string-match-p "*shell/sudo:root@" (buffer-name))
+                 (kill-buffer-and-window)
+               (with-temp-buffer
+                 (cd newf)
+                 (shell (format "*shell/sudo:root@%s*"
+                                (with-parsed-tramp-file-name newf nil host))))))
+            ((derived-mode-p 'eshell-mode)
+             (eshell-return-to-prompt)
+             (insert (concat "cd " newf))
+             (eshell-send-input))
+            (t (message "Can't sudo this buffer")))))
+  
+  ;; Disable file accesses when visiting buffers accessed via tramp for performance reasons
+  (defun disable-file-accesses ()
+    (when (file-remote-p default-directory)
+      (setq-local projectile-mode-line "Projectile")
+      (setq-local company-backends (remove 'company-files company-backends))))
+
+  :hook
+  (find-file . disable-file-accesses))
+
+(use-package xterm-color
+  :hook
+  ((shell-mode . (lambda ()
+                   (add-hook 'comint-preoutput-filter-functions
+                             'xterm-color-filter nil t)))))
+
+(use-package eterm-256color
+  :hook
+  (term-mode . eterm-256color-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ERC
@@ -1474,14 +1625,20 @@ Inserted by installing org-mode or when a release is made."
 (add-hook 'text-mode-hook #'turn-on-visual-line-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Packages
+;; Log files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package server
-  :defer 1
+(use-package vlf
+  :custom
+  (vlf-application 'dont-ask)
   :config
-  (unless (server-running-p)
-    (server-start)))
+  (require 'vlf-setup))
+
+(use-package logview)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Packages
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (use-package ace-jump-mode
 ;;   :bind
@@ -1498,47 +1655,6 @@ Inserted by installing org-mode or when a release is made."
 (use-package proc-net
   :bind
   (("C-c n" . list-network-processes)))
-
-(use-package expand-region
-  :init
-  (setq expand-region-fast-keys-enabled nil)
-  :bind
-  (("s-d" . er/expand-region)
-   ("s-D" . er/contract-region)))
-
-(use-package multiple-cursors
-  :bind
-  (("C-S-c C-S-c" . mc/edit-lines)
-   ("M-s-m" . mc/edit-lines)
-   ("M-s-µ" . mc/edit-lines)
-   ("C->" . mc/mark-next-like-this)
-   ("C-<" . mc/mark-previous-like-this)
-   ("C-c C-<" . mc/mark-all-like-this)
-   ("C-c C-a"  . mc/mark-all-dwim)))
-
-;; (use-package mc-extras
-;;   :bind
-;;   (:map mc/keymap
-;;         ("C-. M-C-f" . mc/mark-next-sexps)
-;;         ("C-. M-C-b" . mc/mark-previous-sexps)
-;;         ("C-. <" . mc/mark-all-above)
-;;         ("C-. >" . mc/mark-all-below)
-;;         ("C-. C-d" . mc/remove-current-cursor)
-;;         ("C-. C-k" . mc/remove-cursors-at-eol)
-;;         ("C-. d" . mc/remove-duplicated-cursors)
-;;         ("C-. C-." . mc/freeze-fake-cursors-dwim)
-;;         ("C-. ." . mc/move-to-column)
-;;         ("C-. =" . mc/compare-chars)))
-
-;; TODO: Get origami-mode to work
-(use-package origami
-  :bind
-  (:map origami-mode-map
-        ("M-s-]" . origami-close-node-recursively)
-        ("M-s-[" . origami-open-node-recursively)
-        ("s-|" . origami-recursively-toggle-node)
-        ("s-+" . origami-show-only-node)
-        ("s-=" . origami-open-all-nodes)))
 
 (use-package wgrep
   :bind
@@ -1580,7 +1696,7 @@ Inserted by installing org-mode or when a release is made."
   :config
   (setq-local shell-backends '(company-shell company-shell-env))
   (if (executable-find "fish")
-      (add-to-list 'shell-backends company-fish-shell))
+      (add-to-list 'shell-backends 'company-fish-shell))
   (add-to-list 'company-backends shell-backends))
 
 (use-package ivy
@@ -1600,8 +1716,8 @@ Inserted by installing org-mode or when a release is made."
               (ivy-done)
               (ivy-resume)))))
 
-(use-package ivy-hydra
-  :defer 1)
+;; (use-package ivy-hydra
+;;   :defer 1)
 
 (use-package swiper
   :init
@@ -1819,11 +1935,13 @@ Inserted by installing org-mode or when a release is made."
 ;; Emacs Lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-key emacs-lisp-mode-map (kbd "s-<return>") 'eval-last-sexp)
-(define-key emacs-lisp-mode-map (kbd "C-c C-k") 'eval-buffer)
-(define-key emacs-lisp-mode-map (kbd "C-x e") 'macrostep-expand)
-(define-key lisp-interaction-mode-map (kbd "s-<return>") 'eval-last-sexp)
-(define-key lisp-interaction-mode-map (kbd "C-c C-k") 'eval-buffer)
+(bind-keys :map emacs-lisp-mode-map
+           ("s-<return>" . eval-last-sexp)
+           ("C-c C-k" . eval-buffer)
+           ("C-x e" . macrostep-expand))
+(bind-keys :map lisp-interaction-mode-map
+           ("s-<return>" . eval-last-sexp)
+           ("C-c C-k" . eval-buffer))
 
 (add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
 
@@ -2004,7 +2122,6 @@ Inserted by installing org-mode or when a release is made."
   ;; Indenting module body code at column 0
   (defun scheme-module-indent (state indent-point normal-indent) 0)
   (put 'module 'scheme-indent-function 'scheme-module-indent)
-
   (put 'and-let* 'scheme-indent-function 1)
   (put 'parameterize 'scheme-indent-function 1)
   (put 'handle-exceptions 'scheme-indent-function 1)
@@ -2012,10 +2129,7 @@ Inserted by installing org-mode or when a release is made."
   (put 'unless 'scheme-indenfunction 1)
   (put 'match 'scheme-indent-function 1)
   :commands
-  (geiser run-geiser run-chicken)
-  :bind
-  (:map geiser-mode-map
-        ("s-<return>" . geiser-eval-last-sexp)))
+  (geiser run-geiser run-chicken))
 
 (use-package rainbow-mode
   :hook
@@ -2035,97 +2149,6 @@ Inserted by installing org-mode or when a release is made."
   :mode "\\.md\\|markdown\\'"
   :init
   (setq markdown-command "multimarkdown"))
-
-(use-package pinentry
-  :config
-  (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
-  ;; Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
-  (if (not (eq system-type 'windows-nt))
-      (pinentry-start)))
-
-(use-package tramp
-  :config
-  (defun ssh-sudo (path)
-    "ssh to host, sudo to root, open dired"
-    (interactive "M [User@] Hostname: ")
-    (let* ((at (string-match "@" path))
-           (colon (string-match ":" path))
-           (user (if at
-                     (concat (substring path 0 at) "@")
-                   ""))
-           (host (if at
-                     (substring path (+ 1 at))
-                   path))
-           (dir (if colon
-                    (substring path (+ 1 colon))
-                  ":/")))
-      (find-file (concat "/sshx:" user host "|sudo:root@" host dir))))
-
-  (defun sudo-toggle--add-sudo (f)
-    "Add sudo to file path string"
-    (if (file-remote-p f)
-        (with-parsed-tramp-file-name (expand-file-name f) nil
-          (concat "/" method ":"
-                  (when user (concat user "@"))
-                  host "|sudo:root@" host ":" localname))
-      (concat "/sudo:root@localhost:" (expand-file-name f))))
-
-  (defun sudo-toggle--remove-sudo (f)
-    "Remove sudo from file path string"
-    (cond
-     ((string-match-p "/sudo:root@localhost:" f)
-      (replace-regexp-in-string (getenv "HOME") "~" (substring f 21)))
-
-     ((string-match-p "|sudo:root@" f)
-      (replace-regexp-in-string "|sudo:root@[^:]*" "" f))))
-
-  (defun sudo-toggle ()
-    "Reopen the current file, directory, or shell as root.  For
-files and dired buffers, the non-sudo buffer is replaced with a
-sudo buffer.  For shells, a sudo shell is opened but the non-sudo
-shell is left intact."
-    (interactive)
-    (let* ((position (point))
-           (f (expand-file-name (or buffer-file-name default-directory)))
-           (newf (if (string-match-p "sudo:" f)
-                     (sudo-toggle--remove-sudo f)
-                   (sudo-toggle--add-sudo f)))
-           ;; so that you don't get method overrides
-           (tramp-default-proxies-alist nil))
-      (cond ((or buffer-file-name (derived-mode-p 'dired-mode))
-             (find-alternate-file newf)
-             (goto-char position))
-            ((derived-mode-p 'shell-mode)
-             (if (string-match-p "*shell/sudo:root@" (buffer-name))
-                 (kill-buffer-and-window)
-               (with-temp-buffer
-                 (cd newf)
-                 (shell (format "*shell/sudo:root@%s*"
-                                (with-parsed-tramp-file-name newf nil host))))))
-            ((derived-mode-p 'eshell-mode)
-             (eshell-return-to-prompt)
-             (insert (concat "cd " newf))
-             (eshell-send-input))
-            (t (message "Can't sudo this buffer")))))
-  
-  ;; Disable file accesses when visiting buffers accessed via tramp for performance reasons
-  (defun disable-file-accesses ()
-    (when (file-remote-p default-directory)
-      (setq-local projectile-mode-line "Projectile")
-      (setq-local company-backends (remove 'company-files company-backends))))
-
-  :hook
-  (find-file . disable-file-accesses))
-
-(use-package xterm-color
-  :hook
-  ((shell-mode . (lambda ()
-                   (add-hook 'comint-preoutput-filter-functions
-                             'xterm-color-filter nil t)))))
-
-(use-package eterm-256color
-  :hook
-  (term-mode . eterm-256color-mode))
 
 (use-package htmlize
   :bind
@@ -2325,8 +2348,8 @@ shell is left intact."
 ;;    ("C-c C-p" . hydra-projectile/body)
 ;;    ("C-c C-m" . hydra-markdown-mode/body)))
 
-;; (define-key dired-mode-map "." 'hydra-dired/body)
-;; ;; (define-key ivy-minibuffer-map "\C-o" 'soo-ivy/body)
+;; (bind-keys :map dired-mode-map ("." hydra-dired/body)
+;;            :map ivy-minibuffer-map ("C-o" . soo-ivy/body)
 
 ;; (defhydra hydra-zoom (:color pink)
 ;;   "zoom"
@@ -2726,7 +2749,7 @@ shell is left intact."
 ;;   ("q" quit-window :color blue)
 ;;   ("." nil :color blue))
 
-;; (define-key ibuffer-mode-map "." 'hydra-ibuffer-main/body)
+;; (bind-keys :map ibuffer-mode-map ("." . hydra-ibuffer-main/body)
 ;; (add-hook 'ibuffer-hook #'hydra-ibuffer-main/body)
 
 ;; (defhydra hydra-multiple-cursors (:hint nil)
