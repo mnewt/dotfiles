@@ -65,6 +65,25 @@ Moving the start of the prompt to the middle of the line or even the previous li
         pwd: =/sshx:host:/some/path=
         =cd :/other/path= => =/sshx:host:/other/path=
 
-** TODO Fix yank-pop deleting a bunch more than the previous yank
-        What are repro steps?
-        Does this happen only when there are characters on the line after point?
+** DONE Fix yank-pop deleting a bunch more than the previous yank       :bug:
+   What are repro steps? Does this happen only when there are characters on
+   the line after point? 
+
+   Thinking we should use a temp buffer to build the yanked text using parinfer
+   as normal, then insert it at point. 
+
+   All that sounded great, but when I removed the kludgey advice I had created,
+   everything seemed to work. Not sure what changed but super.
+
+** DONE Make solarized theme colors work with eshell
+
+** DONE Fix org-mode <s expansion                                       :bug:
+   Had to do with running HEAD version of org-mode. Stopped that.
+** DONE Improve and unify persistence
+** DONE =find= in eshell runs elisp function find. It should run the system =find= utility.
+** DONE Add script to set up new computer
+** TODO Implement =grc= in elisp
+** TODO term-mode filter out escape sequence
+   =]0;fish=
+   Guessing this is the xterm sequence to set the title?
+** TODO =copy-region-oter-window= and =move-region-other-window= should also copy the line if no region is selected
