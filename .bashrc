@@ -33,7 +33,6 @@ source_if () {
 
 source_if "$HOME/.env"
 source_if "$HOME/.aliases"
-source_if "$HOME/.private.sh"
 source_if "$HOME/.bin/__prompt"
 
 source_if "/usr/local/share/bash-completion/bash_completion"

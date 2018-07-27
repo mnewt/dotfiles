@@ -1,15 +1,20 @@
 #!/bin/bash
 # Update Arch Linux
 
+ensure () {
+  echo $pkgs | grep -q $1 >/dev/null || pacman -Sy --noconfirm $1 
+}
+
 if [ -e '/etc/arch-release' ]; then
   echo "Updating Arch Linux..."
-  sudo pacman-key --refresh-keys
-  sudo pacman -Syu --noconfirm
+  pkgs=$(pacman -Q | awk '{print $1}')
+  ensure archlinux-keyring
+  ensure pacman-contrib
+  sudo pacman -Syyu --noconfirm
   sudo pacman -Qtdq > /dev/null && \
     sudo pacman --noconfirm -Rns $(pacman -Qtdq)
   sudo paccache -r
   sudo paccache -ruk0
-  sudo pacman-optimize
 else
   echo "Not running Arch Linux, skipping"
 fi

@@ -563,19 +563,6 @@ When using Homebrew, install it using \"brew install trash\"."
   (("C-h t t" . tldr)
    ("C-h t u" . tldr-update-docs)))
 
-;; StackExchange
-(use-package sx
-  :config
-  (bind-keys :prefix "C-c s"
-             :prefix-map my-sx-map
-             :prefix-docstring "Global keymap for SX."
-             ("q" . sx-tab-all-questions)
-             ("i" . sx-inbox)
-             ("o" . sx-open-link)
-             ("u" . sx-tab-unanswered-my-tags)
-             ("a" . sx-ask)
-             ("s" . sx-search)))
-
 (use-package info-colors
   :defer 1
   :config
@@ -1090,19 +1077,6 @@ ID, ACTION, CONTEXT."
   ((prog-mode conf-mode markdown-mode eshell-mode text-mode) . turn-on-smartparens-mode))
 
 (use-package parinfer
-  :init
-  ;; This doesn't seem necessary or helpful anymore
-  ;; (defun m-parinfer-yank-advice (f &rest args)
-  ;;   "Make parinfer yanking work OK even when smartparens is enabled"
-  ;;   (let ((current-mode parinfer--mode))
-  ;;     ;; Insert something to make sure indent-mode puts parens after point 
-  ;;     (insert ".")
-  ;;     (parinfer--invoke-parinfer-instantly (point))
-  ;;     (parinfer--switch-to-paren-mode)
-  ;;     (parinfer-backward-delete-char)
-  ;;     (apply f args)
-  ;;     (if (eq 'indent current-mode)
-  ;;         (parinfer--switch-to-indent-mode))))
   :custom
   (parinfer-extensions 
    '(defaults         ; should be included.
@@ -1111,7 +1085,6 @@ ID, ACTION, CONTEXT."
       smart-yank))     ; Yank behavior depend on mode.
   :config
   (parinfer-strategy-add 'default 'newline-and-indent)
-  ;; (advice-add 'parinfer-smart-yank:yank :around #'m-parinfer-yank-advice)
   :hook
   ((clojure-mode common-lisp-mode emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode) . parinfer-mode)
   :bind
@@ -1209,6 +1182,9 @@ ID, ACTION, CONTEXT."
 ;;; Shell and SSH
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; The default is /bin/bash. On macOS, brew installs bash to /usr/local/bin.
+(setq-default shell-file-name (executable-find "bash"))
+
 (require 'tramp)
 
 ;; Configure TRAMP to respect the PATH variable on the remote machine (for
@@ -1255,17 +1231,37 @@ ID, ACTION, CONTEXT."
             (apply-partially #'string-match "^/sshx\?:\\([a-z]+\\):")
             recentf-list))))
 
+(defun ssh-choose-host ()
+  "Make a list of recent ssh hosts and interactively choose one."
+  (completing-read "SSH to Host: "
+                   (-distinct
+                    (append
+                     (list-hosts-from-recentf)
+                     (list-hosts-from-known-hosts)
+                     (list-hosts-from-ssh-config)
+                     (list-hosts-from-etc-hosts)))
+                   nil t))
+
+(use-package ssh
+  :custom
+  (ssh-directory-tracking-mode 'ftp)
+  :hook
+  (ssh-mode . (lambda ()
+                (shell-dirtrack-mode t)
+                (setq dirtrackp nil)))
+  :bind
+  ("C-c C-s" . ssh))
+
+;; (defun ssh (host)
+;;   "Choose an ssh HOST and then ssh to it."
+;;   (interactive (list (ssh-choose-host)))
+;;   (setq-local explicit-ssh-args (list "a"))
+;;   (let ((explicit-shell-file-name (executable-find "ssh")))
+;;     (shell "*ssh a*")))
+
 (defun sshd (host)
-  "Make a list of recent HOSTs and interactively choose one."
-  (interactive
-   (list (completing-read "SSH to Host: "
-                          (-distinct
-                           (append
-                            (list-hosts-from-recentf)
-                            (list-hosts-from-known-hosts)
-                            (list-hosts-from-ssh-config)
-                            (list-hosts-from-etc-hosts)))
-                          nil t)))
+  "Choose an ssh host and then open it with dired."
+  (interactive (list (ssh-choose-host)))
   (find-file (concat "/sshx:" host ":")))
 
 (eval-after-load 'sh
@@ -1301,7 +1297,7 @@ ID, ACTION, CONTEXT."
 ;; Adapted from https://stackoverflow.com/a/42666026/1588358
 (defun xterm-color-apply-on-minibuffer ()
   (let ((bufs (remove-if-not
-               (lambda (x) (string-starts-with (buffer-name x) " *Echo Area"))
+               (lambda (x) (string-prefix-p " *Echo Area" (buffer-name x)))
                (buffer-list))))
     (dolist (buf bufs)
       (with-current-buffer buf
@@ -1310,7 +1306,7 @@ ID, ACTION, CONTEXT."
 (defun xterm-color-apply-on-minibuffer-advice (proc &rest rest)
   (xterm-color-apply-on-minibuffer))
 
-(advice-add 'shell-command :after #'ansi-color-apply-on-minibuffer-advice)
+(advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
 
 ;; xterm colors
 (use-package xterm-color
@@ -2001,57 +1997,56 @@ shell is left intact."
 ;; Version control
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; https://github.com/magit/magit/issues/460#issuecomment-36139308
+(defun git-worktree-link (gitdir worktree)
+  (require 'magit)
+  (interactive (list (read-directory-name "Gitdir: ")
+                     (read-directory-name "Worktree: ")))
+  (with-temp-file (expand-file-name ".git" worktree)
+    (insert "gitdir: " (file-relative-name gitdir worktree) "\n"))
+  (magit-call-git "config" "-f" (expand-file-name "config" gitdir)
+                  "core.worktree" (file-relative-name worktree gitdir))
+  ;; Configure projectile to only look at tracked files
+  (if (boundp 'projectile-git-command)
+      (setq projectile-git-command "git ls-files -zc --exclude-standard"))
+  (message "Linked worktree: %s from gitdir: %s" worktree gitdir))
+
+(defun git-worktree-unlink (gitdir worktree)
+  (interactive (list (read-directory-name "Gitdir: ")
+                     (read-directory-name "Worktree: ")))
+  ;; Configure projectile back to default
+  (if (boundp 'projectile-git-command)
+      (setq projectile-git-command "git ls-files -zco --exclude-standard"))
+  ;; This does `git config --unset core.worktree'.  We don't actually
+  ;; have to do this and not doing it would have some advantages, but
+  ;; might be confusing.
+  ;; (magit-set nil "core.worktree")
+  ;; This causes an error if this actually is a directory, which is
+  ;; a good thing, it saves us from having to do this explicitly :-)
+  (delete-file (expand-file-name ".git" worktree)))
+
+(setq git-home-repo-dir "~/.config/repos")
+
+(defun git-home-link (repo)
+  (interactive (list (completing-read "Link git home repository: "
+                                      (directory-files "~/.config/repos" nil "^[^.]")
+                                      nil t)))
+  (setq repo (expand-file-name repo git-home-repo-dir))
+  ;; "Fix" repositories that were created with --bare.
+  ;; (let ((default-directory (file-name-as-directory repo)))
+  ;;   (magit-set "false" "core.bare"))
+  ;; Regular link.
+  (git-worktree-link repo (getenv "HOME")))
+
+(defun git-home-unlink ()
+  (interactive)
+  (git-worktree-unlink (with-temp-buffer
+                         (insert-file-contents (expand-file-name ".git" (getenv "HOME")))
+                         (re-search-forward "gitdir: \\(.+\\)")
+                         (expand-file-name (match-string 1)))
+                       (getenv "HOME")))
+
 (use-package magit
-  :init
-  ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
-  (defun git-worktree-link (gitdir worktree)
-    (require 'magit)
-    (interactive (list (read-directory-name "Gitdir: ")
-                       (read-directory-name "Worktree: ")))
-    (with-temp-file (expand-file-name ".git" worktree)
-      (insert "gitdir: " (file-relative-name gitdir worktree) "\n"))
-    (magit-call-git "config" "-f" (expand-file-name "config" gitdir)
-                    "core.worktree" (file-relative-name worktree gitdir))
-    ;; Configure projectile to only look at tracked files
-    (if (boundp 'projectile-git-command)
-        (setq projectile-git-command "git ls-files -zc --exclude-standard"))
-    (message "Linked worktree: %s from gitdir: %s" worktree gitdir))
-
-  (defun git-worktree-unlink (gitdir worktree)
-    (interactive (list (read-directory-name "Gitdir: ")
-                       (read-directory-name "Worktree: ")))
-    ;; Configure projectile back to default
-    (if (boundp 'projectile-git-command)
-        (setq projectile-git-command "git ls-files -zco --exclude-standard"))
-    ;; This does `git config --unset core.worktree'.  We don't actually
-    ;; have to do this and not doing it would have some advantages, but
-    ;; might be confusing.
-    ;; (magit-set nil "core.worktree")
-    ;; This causes an error if this actually is a directory, which is
-    ;; a good thing, it saves us from having to do this explicitly :-)
-    (delete-file (expand-file-name ".git" worktree)))
-
-  (setq git-home-repo-dir "~/.config/repos")
-
-  (defun git-home-link (repo)
-    (interactive (list (completing-read "Link git home repository: "
-                                        (directory-files "~/.config/repos" nil "^[^.]")
-                                        nil t)))
-    (setq repo (expand-file-name repo git-home-repo-dir))
-    ;; "Fix" repositories that were created with --bare.
-    ;; (let ((default-directory (file-name-as-directory repo)))
-    ;;   (magit-set "false" "core.bare"))
-    ;; Regular link.
-    (git-worktree-link repo (getenv "HOME")))
-
-  (defun git-home-unlink ()
-    (interactive)
-    (git-worktree-unlink (with-temp-buffer
-                           (insert-file-contents (expand-file-name ".git" (getenv "HOME")))
-                           (re-search-forward "gitdir: \\(.+\\)")
-                           (expand-file-name (match-string 1)))
-                         (getenv "HOME")))
-
   :custom
   (magit-completing-read-function 'ivy-completing-read)
   :bind

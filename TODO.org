@@ -3,7 +3,7 @@
 ** DONE fix rubygems-update issue
 ** DONE Migrate fish plugin manager to fisher
 ** DONE aliases: move to ~ and make compatible with fish, bash, zsh so
-  they all use the same aliases file
+   they all use the same aliases file
 ** DONE do the same for private.fish
 ** DONE fix arch sed error
 ** DONE install.sh: colorize output
@@ -13,19 +13,19 @@
 ** DONE Vim and Emacs updates shouldn't make repo dirty -- don't store packages themselves in repo
 ** DONE Catch-22 for running =fisher= for first time: It both requires and installs =bass=
 ** DONE Fix tmux line length bug in =fish_prompt= -- probably not stripping all control characters out when measuring the line length
-  (=bash_prompt= does not have this problem)
+   (=bash_prompt= does not have this problem)
 ** DONE prompt - direnv
 ** DONE bash prompt sometimes exibits weird behavior
-Moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
+   Moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
 ** DONE Make tmux status bar more like vim's
-  (https://github.com/edkolev/tmuxline.vim)
+   (https://github.com/edkolev/tmuxline.vim)
 ** DONE Finish emacs tmuxline-ification
 ** DONE Make =PS1= fallback look like =bash_prompt=
 ** DONE Only update packages lists if =--save= flag is set so that repo stays clean after =update= [3/3]
-  - [X] Move all fish config to plugin
-  - [X] =update-fish=: problematic because fisher updates
-    ~/.config/fish/functions/*
-  - [X] All the rest
+   - [X] Move all fish config to plugin
+   - [X] =update-fish=: problematic because fisher updates
+     ~/.config/fish/functions/*
+   - [X] All the rest
 ** DONE Better manage vim and nvim configs
 ** DONE BUG: Is =./install -f= removing dirs during =link_children=?
 ** DONE Remove noise from atom status bar
@@ -33,7 +33,7 @@ Moving the start of the prompt to the middle of the line or even the previous li
 ** DONE with_color escape sequences sometimes dont' work over ssh/tmux. should also be way faster
 ** DONE BUG: update-python on arch overwrites packages that are managed by pacman, causing pacman updates to fail
 ** DONE BUG: On interactive login:
-  =set: Tried to change the read-only variable '_'= Has something to dowith adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
+   =set: Tried to change the read-only variable '_'= Has something to dowith adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
 ** DONE BUG: Error message is displayed from prompt when tmux is not in path
 ** DONE Move prompt to its own plugin/repo - teleprompt
 ** DONE BUG: =install=: Don't create files with literal name of '*' in created directories (=link-children=) - only happens when specifying source path on command line?
@@ -51,19 +51,19 @@ Moving the start of the prompt to the middle of the line or even the previous li
 ** DONE install / install.settings should use arrays, not lists, for variables
 ** DONE BUG: =ignore= in =install.settings= is getting ignored
 ** DONE Move to bare git repo
-  (https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/)
+   (https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/)
 ** DONE Talk about eshell in README
 ** DONE Move README to org format
 ** DONE Finish source
 ** DONE Make bare repo setup compatible with magit and projectile. Could use a `link' and `unlink' function to create a temporary $HOME/.git file. See example: https://github.com/magit/magit/issues/460#issuecomment-36139308 and https://gitorious.org/magit/skangas-detached-worktree#more
 ** DONE Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work with parinfer's =parinfer-smart-yank:yank=. 
-        Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
+   Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
 ** DONE Update readme with new non-bare repo setup
 ** DONE Fix Windows problems
 ** DONE eshell should have a way to cd relative to tramp path
-        Example:
-        pwd: =/sshx:host:/some/path=
-        =cd :/other/path= => =/sshx:host:/other/path=
+   Example:
+   pwd: =/sshx:host:/some/path=
+   =cd :/other/path= => =/sshx:host:/other/path=
 
 ** DONE Fix yank-pop deleting a bunch more than the previous yank       :bug:
    What are repro steps? Does this happen only when there are characters on
@@ -80,10 +80,24 @@ Moving the start of the prompt to the middle of the line or even the previous li
 ** DONE Fix org-mode <s expansion                                       :bug:
    Had to do with running HEAD version of org-mode. Stopped that.
 ** DONE Improve and unify persistence
-** DONE =find= in eshell runs elisp function find. It should run the system =find= utility.
 ** DONE Add script to set up new computer
+** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
+** TODO Eshell copy and kill output
+** TODO =find= in eshell runs elisp function find. It should run the system =find= utility.
+** TODO Get Eshell/tramp to cache and/or save passwords [0/2]
+*** TODO For the user
+*** TODO For sudo/sudoers
 ** TODO Implement =grc= in elisp
 ** TODO term-mode filter out escape sequence
+   This happens when running =fish= in =shell-mode=:
    =]0;fish=
-   Guessing this is the xterm sequence to set the title?
-** TODO =copy-region-oter-window= and =move-region-other-window= should also copy the line if no region is selected
+   Guessing this is the (remains of the?) xterm sequence to set the title?
+** TODO =copy-region-other-window= and =move-region-other-window= should also copy the line if no region is selected
+** TODO Get =pointhistory= to work
+   Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
+** TODO Add indicator to modeline when narrowing
+** TODO Desktop should restore eshell buffers
+   =desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
+** TODO w3m easily view buffer in appropriate mode
+   Such as displaying a markdown file in `markdown-mode`. Maybe just copy the buffer to another buffer and change mode based on the original buffer's file name?
+** TODO Make Eshell prompt look good with a light theme
