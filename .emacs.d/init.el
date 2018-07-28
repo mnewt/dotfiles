@@ -1,4 +1,4 @@
-;; init.el --- Emacs init file --- -*- lexical-binding: t -*-
+;;; init.el --- Emacs init file --- -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Single, monolithic Emacs init file. Uses straight.el for package management
@@ -728,6 +728,48 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 (setq-default indent-tabs-mode nil
               tab-width 2
               tab-stop-list (number-sequence tab-width 120 tab-width))
+
+(use-package outshine
+  :custom
+  (outline-minor-mode-prefix "\M-#")
+  :config
+  ;; Narrowing now works within the headline rather than requiring to be on it
+  (advice-add 'outshine-narrow-to-subtree :before
+              (lambda (&rest args) (unless (outline-on-heading-p t)
+                                     (outline-previous-visible-heading 1))))
+  :hook
+  (outline-minor-mode . outshine-hook-function)
+  (prog-mode . outline-minor-mode))
+
+(defun outline-show-current-sublevel ()
+  "Show only the current top level section."
+  (interactive)
+  (unless outline-minor-mode
+    (outline-minor-mode t))
+  (outline-hide-sublevels 1)
+  (outline-show-subtree))
+
+(defun outline-subtree-previous ()
+  "Go to and expand previous sublevel."
+  (interactive)
+  (unless outline-minor-mode
+    (outline-minor-mode t))
+  (outline-hide-sublevels 1)
+  (outline-previous-visible-heading 1)
+  (outline-show-subtree))
+
+(defun outline-subtree-next ()
+  "Go to and expand previous sublevel."
+  (interactive)
+  (unless outline-minor-mode
+    (outline-minor-mode t))
+  (outline-hide-sublevels 1)
+  (outline-next-visible-heading 1)
+  (outline-show-subtree))
+
+(bind-keys ("M-=" . outline-show-current-sublevel)
+           ("M-p" . outline-subtree-previous)
+           ("M-n" . outline-subtree-next))
 
 ;; sh-mode
 (setq sh-basic-offset tab-width
@@ -1532,7 +1574,7 @@ http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
    ("s-v" . clipboard-yank)
-   ("H-h" . esh-help-run-help))
+   ("C-h C-e" . esh-help-run-help))
 
   ;; xterm colors
   (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
@@ -1554,34 +1596,7 @@ http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
   (add-to-list 'eshell-visual-subcommands '("dw" "log"))
   
   ;; Eshell aliases
-  ;; Run system `find' utility instead of lisp function.
-  (eshell/alias "find" (concat (executable-find "find") " $*"))
   (eshell/alias "mergepdf" "/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py $*"))
-;; TODO: These break if local has grc but tramp remote doesn't
-;; (if (= 0 (eshell/exit-code "which" "grc"))
-;;     (eshell/alias "colourify" "$(which grc) -es --colour=auto")
-;;   (eshell/alias "configure" "colourify ./configure")
-;;   (eshell/alias "diff" "colourify diff")
-;;   (eshell/alias "make" "colourify make")
-;;   (eshell/alias "gcc" "colourify gcc")
-;;   (eshell/alias "g++" "colourify g++")
-;;   (eshell/alias "as" "colourify as")
-;;   (eshell/alias "gas" "colourify gas")
-;;   (eshell/alias "ld" "colourify ld")
-;;   (eshell/alias "netstat" "colourify netstat")
-;;   (eshell/alias "ping" "colourify ping")
-;;   (eshell/alias "traceroute" "colourify traceroute")
-;;   (eshell/alias "tracepath" "colourify -c conf.traceroute tracepath")
-;;   (eshell/alias "arp" "colourify -c conf.traceroute arp")
-;;   (eshell/alias "tail" "colourify -c conf.log tail")
-;;   (eshell/alias "ps" "colourify -c conf.ps ps")
-;;   (eshell/alias "ifconfig" "colourify -c conf.traceroute ifconfig")
-;;   (eshell/alias "nmap" "colourify -c conf.nmap nmap")
-;;   (eshell/alias "lsof" "colourify -c conf.traceroute lsof")
-;;   (eshell/alias "dig" "colourify -c conf.traceroute dig")
-;;   (eshell/alias "host" "colourify -c conf.traceroute host")
-;;   (eshell/alias "drill" "colourify -c conf.traceroute drill")
-;;   (eshell/alias "curl" "colourify -c conf.curl curl")))
 
 (use-package eshell
   :custom
@@ -1590,8 +1605,6 @@ http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
   (eshell-error-if-no-glob t)
   (eshell-hist-ignoredups t)
   (eshell-save-history-on-exit t)
-  (eshell-prefer-lisp-functions t)
-  (eshell-prefer-lisp-variables t)
   (eshell-prompt-function 'm-eshell-prompt-function)
   (eshell-prompt-regexp "^() ")
   (eshell-highlight-prompt nil)
@@ -1600,8 +1613,8 @@ http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
    (eshell-before-prompt . (lambda ()
                              (setq xterm-color-preserve-properties t))))
   :bind
-  (("s-e" . eshell-other-window)
-   ("s-E" . eshell)
+  (("s-e" . eshell)
+   ("s-E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
 
@@ -1733,10 +1746,15 @@ shell is left intact."
 (erc-services-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Note Taking, Journal, and Documentation
+;;; Notes, Journal, and Documentation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (add-hook 'text-mode-hook #'turn-on-visual-line-mode)
+
+;; Org-mode
+
+;; Clean view
+(setq org-startup-indented t)
 
 ;; Calendar and Journal
 
@@ -1790,7 +1808,7 @@ shell is left intact."
 ;;   ("C-c o w" . org-wunderlist-fetch))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Log files
+;;; Log files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package vlf
@@ -1904,6 +1922,7 @@ shell is left intact."
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
    ("C-c l" . counsel-locate)
+   ("C-c o" . counsel-outline)
    ("M-s-v" . counsel-yank-pop)
    ("M-s-√" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
@@ -1994,7 +2013,7 @@ shell is left intact."
    ("s-J" . dumb-jump-quick-look)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Version control
+;;; Version control
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
@@ -2078,7 +2097,7 @@ shell is left intact."
   (dired-mode . diff-hl-dired-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Network and System Utilities
+;;; Network and System Utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package w3m
@@ -2123,7 +2142,7 @@ shell is left intact."
                     " | awk '/;; ANSWER SECTION:/{flag=1;next}/;;/{flag=0}flag'"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Emacs Lisp
+;;; Emacs Lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (bind-keys :map emacs-lisp-mode-map
@@ -2137,7 +2156,7 @@ shell is left intact."
 (add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Other File Modes and Formats
+;;; Other File Modes and Formats
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; display nfo files in all their glory
@@ -2548,14 +2567,14 @@ the end of each line."
   :commands (wttrin))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Other Packages
+;;; Other Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TODO: Get pointhistory to work
 (require 'm-pointhistory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Private
+;;; Private
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Load private stuff
@@ -2564,7 +2583,7 @@ the end of each line."
     (load-file f)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Custom
+;;; Custom
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq custom-file "~/.emacs.d/custom.el")

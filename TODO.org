@@ -1,5 +1,4 @@
 * Dotfiles TODO List
-
 ** DONE fix rubygems-update issue
 ** DONE Migrate fish plugin manager to fisher
 ** DONE aliases: move to ~ and make compatible with fish, bash, zsh so
@@ -82,11 +81,12 @@
 ** DONE Improve and unify persistence
 ** DONE Add script to set up new computer
 ** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
-** TODO Eshell copy and kill output
-** TODO =find= in eshell runs elisp function find. It should run the system =find= utility.
+** DONE Eshell copy and kill output
+** DONE =find= in eshell runs elisp function find. It should run the system =find= utility.
 ** TODO Get Eshell/tramp to cache and/or save passwords [0/2]
 *** TODO For the user
 *** TODO For sudo/sudoers
+** TODO use org/outline to fold top level sections
 ** TODO Implement =grc= in elisp
 ** TODO term-mode filter out escape sequence
    This happens when running =fish= in =shell-mode=:
