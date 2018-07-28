@@ -403,45 +403,52 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 ;; Change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-;; OS specific configuration
-(cond ((eq system-type 'darwin)
-       (setq ns-alternate-modifier 'meta
-             ns-right-alternate-modifier 'none
-             ns-command-modifier 'super
-             ns-right-command-modifier 'left
-             ns-control-modifier 'control
-             ns-right-control-modifier 'left
-             ns-function-modifier 'hyper
-             mac-key-advanced-setting t)
-       (when window-system (menu-bar-mode +1))
-       (add-hook 'mac-key-mode-hook (lambda ()
-                                      (interactive)
-                                      (when mac-key-mode
-                                        (setq mac-function-modifier 'hyper
-                                              mac-option-modifier 'meta
-                                              mac-command-modifier 'super))))
-       (bind-key "H-<backspace>" 'delete-char)
-       (require 'mac-key-mode)
-       (mac-key-mode +1)
-       (set-face-font 'default "Monaco-13")
-       (set-face-attribute 'default nil
-                           :weight 'light)
-       ;; Use system trash
-       (setq delete-by-moving-to-trash t
-             trash-directory "~/.Trash")
-       (defun system-move-file-to-trash (file)
-         "Use \"trash\" to move FILE to the system trash.
+(defun config-macos ()
+  "Configure Emacs for macOS."
+  (setq ns-alternate-modifier 'meta
+        ns-right-alternate-modifier 'none
+        ns-command-modifier 'super
+        ns-right-command-modifier 'left
+        ns-control-modifier 'control
+        ns-right-control-modifier 'left
+        ns-function-modifier 'hyper
+        mac-key-advanced-setting t)
+  (when window-system (menu-bar-mode +1))
+  (add-hook 'mac-key-mode-hook (lambda ()
+                                 (interactive)
+                                 (when mac-key-mode
+                                   (setq mac-function-modifier 'hyper
+                                         mac-option-modifier 'meta
+                                         mac-command-modifier 'super))))
+  (bind-key "H-<backspace>" 'delete-char)
+  (require 'mac-key-mode)
+  (mac-key-mode +1)
+  (set-face-font 'default "Monaco-13")
+  (set-face-attribute 'default nil
+                      :weight 'light)
+  ;; Use system trash
+  (setq delete-by-moving-to-trash t
+        trash-directory "~/.Trash")
+  (defun system-move-file-to-trash (file)
+    "Use \"trash\" to move FILE to the system trash.
 When using Homebrew, install it using \"brew install trash\"."
-         (call-process (executable-find "trash")
-                       nil 0 nil
-                       file)))
-      ((eq system-type 'windows-nt)
-       (menu-bar-mode -1)
-       (setq w32-pass-lwindow-to-system nil
-             w32-pass-rwindow-to-system nil
-             w32-lwindow-modifier 'super
-             w32-rwindow-modifier 'super)
-       (set-face-font 'default "Lucida Console-12")))
+    (call-process (executable-find "trash")
+                  nil 0 nil
+                  file)))
+
+(defun config-windows-nt ()
+  "Configure Emacs for Windows NT."
+  (menu-bar-mode -1)
+  (setq w32-pass-lwindow-to-system nil
+        w32-pass-rwindow-to-system nil
+        w32-lwindow-modifier 'super
+        w32-rwindow-modifier 'super)
+  (set-face-font 'default "Lucida Console-12"))
+  
+;; OS specific configuration
+(pcase system-type
+  ('darwin (config-macos))
+  ('windows-nt (config-windows-nt)))
 
 ;; slow down mouse wheel scrolling
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil))
