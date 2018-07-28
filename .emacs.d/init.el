@@ -476,7 +476,10 @@ When using Homebrew, install it using \"brew install trash\"."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; savehist
-(setq savehist-additional-variables '(kill-ring
+(setq savehist-autosave-interval 60
+      history-length t
+      history-delete-duplicates t
+      savehist-additional-variables '(kill-ring
                                       search-ring
                                       regexp-search-ring
                                       file-name-history
@@ -484,10 +487,7 @@ When using Homebrew, install it using \"brew install trash\"."
                                       read-expression-history
                                       command-history
                                       extended-command-history
-                                      ivy-history)
-      savehist-autosave-interval 60
-      history-length t
-      history-delete-duplicates t)
+                                      ivy-history))
 (savehist-mode 1)
 
 ;; save-place
@@ -511,7 +511,7 @@ When using Homebrew, install it using \"brew install trash\"."
   nil)
 (add-hook 'dired-after-readin-hook #'recentd-track-opened-file)
 
-;; store all backup and autosave files in their own directory
+;; Store all backup and autosave files in their own directory.
 (setq backup-directory-alist '((".*" . "~/.emacs.d/backup"))
       version-control t
       vc-make-backup-files t
@@ -1451,14 +1451,21 @@ ID, ACTION, CONTEXT."
   (with-temp-buffer (apply 'call-process cmd nil (current-buffer) nil args)))
 
 (defun m-eshell-prompt-function ()
-  (concat
-   (when (not (eshell-exit-success-p))
-     (propertize (concat " " (number-to-string eshell-last-command-status) " ")
-                 'face `(:background "red")))
-   (propertize (concat " " (replace-regexp-in-string (getenv "HOME") "~" (eshell/pwd)) " ")
-               'face `(:background "cyan" :foreground "black"))
-   (propertize "\n() "
-               'face `(:foreground "white" :weight bold))))
+  "Produce a highlighted prompt for Eshell."
+  (mapconcat
+   (lambda (list)
+     (when list
+       (propertize (concat " " (car list) " ")
+                   'read-only t
+                   'font-lock-face (cdr list)
+                   'front-sticky '(font-lock-face read-only)
+                   'rear-nonsticky '(font-lock-face read-only))))
+   `(,(when (not (eshell-exit-success-p))
+        `(,(number-to-string eshell-last-command-status)
+          :background "red" :foreground "white" :weight bold))
+     (,(abbreviate-file-name (eshell/pwd)) :background "cyan" :foreground "black")
+     (,(if (zerop (user-uid)) "\n(#)" "\n()") :foreground "white" :weight bold))
+   ""))
 
 (defun eshell/s (hostname)
   "Change directory to host via tramp"
@@ -1761,7 +1768,8 @@ shell is left intact."
 ;; Org-mode
 
 ;; Clean view
-(setq org-startup-indented t)
+(setq org-startup-indented t
+      org-special-ctrl-a/e t)
 
 ;; Calendar and Journal
 

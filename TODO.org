@@ -80,14 +80,17 @@
    Had to do with running HEAD version of org-mode. Stopped that.
 ** DONE Improve and unify persistence
 ** DONE Add script to set up new computer
-** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
 ** DONE Eshell copy and kill output
 ** DONE =find= in eshell runs elisp function find. It should run the system =find= utility.
+** DONE use org/outline to fold top level sections
+** DONE Fix search in Notes
+** DONE Eshell read-only prompt
 ** TODO Get Eshell/tramp to cache and/or save passwords [0/2]
 *** TODO For the user
 *** TODO For sudo/sudoers
-** TODO use org/outline to fold top level sections
+** TODO Fix Eshell / tramp tab completion adding a space after the file name
 ** TODO Implement =grc= in elisp
+** TODO Find and squash causes of unresponsiveness when editing remote files
 ** TODO term-mode filter out escape sequence
    This happens when running =fish= in =shell-mode=:
    =]0;fish=
@@ -96,6 +99,7 @@
 ** TODO Get =pointhistory= to work
    Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
 ** TODO Add indicator to modeline when narrowing
+** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
 ** TODO Desktop should restore eshell buffers
    =desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
 ** TODO w3m easily view buffer in appropriate mode
