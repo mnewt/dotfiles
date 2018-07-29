@@ -85,6 +85,7 @@
 ** DONE use org/outline to fold top level sections
 ** DONE Fix search in Notes
 ** DONE Eshell read-only prompt
+** DONE Eshell import aliases from bash
 ** TODO Get Eshell/tramp to cache and/or save passwords [0/2]
 *** TODO For the user
 *** TODO For sudo/sudoers

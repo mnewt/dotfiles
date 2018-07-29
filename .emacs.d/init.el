@@ -1564,7 +1564,14 @@ http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
                        map))))
     (define-key newmap key def)))
 
+(defun eshell/import-aliases ()
+  "Retrieve bash aliases and format them for import into Eshell."
+  (shell-command ". ~/.env && . ~/.aliases && alias | sed -E \"s/^alias ([^=]+)='(.*)'$/alias \\1 \\2 \\$*/g; s/'\\\\''/'/g;\""
+                 "*bash aliases*"))
+
 (defun eshell/init ()
+  "This function is called when Eshell starts in order to
+initialize the Eshell environment."
   (source-sh "~/.env")
   (setq eshell-path-env (getenv "PATH"))
   (setenv "TERM" "eterm-color")
