@@ -1446,10 +1446,6 @@ ID, ACTION, CONTEXT."
       (end-of-buffer)
       (switch-to-buffer-other-window buf))))
 
-(defun eshell/exit-code (cmd &rest args)
-  "Run PROGRAM with ARGS and return the exit code"
-  (with-temp-buffer (apply 'call-process cmd nil (current-buffer) nil args)))
-
 (defun m-eshell-prompt-function ()
   "Produce a highlighted prompt for Eshell."
   (mapconcat
@@ -1469,7 +1465,20 @@ ID, ACTION, CONTEXT."
 
 (defun eshell/s (hostname)
   "Change directory to host via tramp"
-  (eshell/cd (concat "/sshx:" hostname ":")))
+  (eshell/cd (concat "/ssh:" hostname ":")))
+
+(defun eshell/rd (&optional directory)
+  "Change to DIRECTORY using a path relative to the remote host.
+Example: rd /etc -> /sshx:host:/etc"
+  (print (if (and (string-prefix-p "/" directory)
+                  (file-remote-p default-directory))
+             (concat (replace-regexp-in-string "[^:]*$" "" default-directory) directory)
+           directory)))
+
+(defun eshell/really-clear ()
+  "Call `eshell/clear' with an argument to really clear the buffer."
+  (eshell/clear 1))
+  
 
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
@@ -1585,7 +1594,7 @@ initialize the Eshell environment."
   (local-set-minor-mode-key 'mac-key-mode (kbd "s-v") nil)
   
   (bind-keys
-   ("M-p" 'eshell-send-previous-input)
+   ("M-P" . eshell-send-previous-input)
    :map eshell-mode-map
    ("C-a" . eshell-maybe-bol)
    ("C-d" . eshell-quit-or-delete-char)
@@ -1615,9 +1624,9 @@ initialize the Eshell environment."
   (add-to-list 'eshell-visual-commands "w3m")
   (add-to-list 'eshell-visual-subcommands '("git" "log" "diff" "show"))
   (add-to-list 'eshell-visual-subcommands '("dw" "log"))
-  
-  ;; Eshell aliases
-  (eshell/alias "mergepdf" "/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py $*"))
+
+  ;; Load the Eshell versions of `su' and `sudo'
+  (add-to-list 'eshell-modules-list 'eshell-tramp))
 
 (use-package eshell
   :custom
@@ -1627,7 +1636,7 @@ initialize the Eshell environment."
   (eshell-hist-ignoredups t)
   (eshell-save-history-on-exit t)
   (eshell-prompt-function 'm-eshell-prompt-function)
-  (eshell-prompt-regexp "^() ")
+  (eshell-prompt-regexp "^(#?) ")
   (eshell-highlight-prompt nil)
   :hook
   ((eshell-mode . eshell/init)
@@ -2423,9 +2432,9 @@ the end of each line."
   :defer 2)
 
 (use-package bash-completion
-  :defer 2
-  :config
-  (bash-completion-setup))
+  :init
+  (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
+  :commands bash-completion-dynamic-complete)
 
 (use-package csv-mode
   :mode "\\.csv\\'")
