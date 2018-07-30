@@ -736,6 +736,8 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
               tab-width 2
               tab-stop-list (number-sequence tab-width 120 tab-width))
 
+(setq initial-scratch-message nil)
+
 (use-package outshine
   :custom
   (outline-minor-mode-prefix "\M-#")
@@ -746,7 +748,12 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
                                      (outline-previous-visible-heading 1))))
   :hook
   (outline-minor-mode . outshine-hook-function)
-  (prog-mode . outline-minor-mode))
+  (prog-mode . outline-minor-mode)
+  :bind
+  (:map outline-minor-mode-map
+        ;; Don't trample on smarparens or org bindings
+        ("M-<up>" . nil)
+        ("M-<down>" . nil)))
 
 (defun outline-show-current-sublevel ()
   "Show only the current top level section."
@@ -1467,18 +1474,42 @@ ID, ACTION, CONTEXT."
   "Change directory to host via tramp"
   (eshell/cd (concat "/ssh:" hostname ":")))
 
-(defun eshell/rd (&optional directory)
+(defun eshell/cd-advice (f &optional directory)
   "Change to DIRECTORY using a path relative to the remote host.
-Example: rd /etc -> /sshx:host:/etc"
-  (print (if (and (string-prefix-p "/" directory)
-                  (file-remote-p default-directory))
-             (concat (replace-regexp-in-string "[^:]*$" "" default-directory) directory)
+Examples:
+  > cd /etc -> /sshx:host:/etc
+  > cd : -> /sshx:host:/home/user"
+  (funcall f
+   (if (file-remote-p default-directory)
+       (let ((remote-prefix (replace-regexp-in-string ":[^:]*$" ":" default-directory)))
+         (cond
+          ;; If `directory' starts with `$HOME' then we assume the
+          ;; original arg started with "~" and we change directory to
+          ;; the remote `$HOME'. We can always use `cd' with no args
+          ;; to return to local `$HOME'.
+          ((string-prefix-p (getenv "HOME") directory)
+           (concat remote-prefix
+                   (replace-regexp-in-string (concat (getenv "HOME") "/?")
+                                             ""
+                                             directory)))
+          ;; If `directory' starts with "/" this it's an absolute path
+          ;; but we want to make it relative to the remote host,
+          ;; rather than localhost.
+          ((string-prefix-p "/" directory)
+           (concat remote-prefix directory))
+          (t
            directory)))
+     directory)))
 
-(defun eshell/really-clear ()
+(advice-add #'eshell/cd :around #'eshell/cd-advice)
+
+(defun eshell/really-clear (f &rest args)
   "Call `eshell/clear' with an argument to really clear the buffer."
-  (eshell/clear 1))
-  
+  (if args
+      (apply f args)
+    (funcall f 1)))
+
+(advice-add #'eshell/clear :around #'eshell/really-clear)
 
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
@@ -1505,60 +1536,34 @@ Example: rd /etc -> /sshx:host:/etc"
   (insert cmd)
   (eshell-queue-input))
 
-(defun eshell-bounds-of-previous-output (&optional nth)
-  "Returns the start and end of the previous command output.
-When `nth' is set, get bounds of nth command output. Adapted from
-http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
-  (save-excursion
-    ;; Move to the end of the eshell buffer.
-    (goto-char (point-max))
-    ;; Move to the start of the last prompt.
-    (search-backward-regexp eshell-prompt-regexp nil nil nth)
-    ;; Move to the start of the line, before the prompt.
-    (beginning-of-line)
-    ;; Remember this position as the end of the region.
-    (let ((end (point)))
-      ;; Move to the start of the last prompt.
-      (search-backward-regexp eshell-prompt-regexp)
-      ;; Move one line below the prompt, where the output begins.
-      (next-line)
-      ;; Find first line that's not blank.
-      (while (looking-at "^[[:space:]]*$")
-        (beginning-of-line)
-        (next-line))
-      (list (point) end))))
-
-(defun eshell-kill-previous-output (&optional nth)
-  "Kill the output of the previous command. When `nth' is set,
-copy the nth previous command. "
-  (interactive "p")
-  (destructuring-bind (start end) (eshell-bounds-of-previous-output nth)
+(defun eshell-kill-previous-output ()
+  "Kill the output of the previous command."
+  (interactive)
+  (let ((inhibit-read-only t)
+        (lines (count-lines (eshell-beginning-of-output)
+                            (eshell-end-of-output))))
+    ;; Kill region
+    (kill-region (eshell-beginning-of-output) (eshell-end-of-output))
     (save-excursion
-      (goto-char start)
-      ;; Kill region
-      (kill-region start end)
       ;; Write something in place of the text so we know what happened.
-      (insert "--- Killed command output ---\n"))))
+      (goto-char (eshell-beginning-of-output))
+      (insert (format "--- Killed %d lines ---\n" lines)))))
 
-(defun eshell-kill-previous-output-to-buffer (&optional nth)
-  "Moves output of the previous command to a new buffer When nth
-is set, it will copy the nth previous command. Adapted from
-http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
-  (interactive "p")
-  (eshell-kill-previous-output nth)
+(defun eshell-kill-previous-output-to-buffer ()
+  "Moves output of the previous command to a new buffer."
+  (interactive)
+  (eshell-kill-previous-output)
   (switch-to-buffer-other-window "*eshell-stdout*")
   (yank))
 
-(defun eshell-copy-previous-output (&optional nth)
-  "Copies the output of the previous command to the kill ring. When nth is set,
-it will copy the nth previous command. Stolen from
-http://fasciism.com/2017/01/27/eshell-kill-previous-output/."
-  (interactive "p")
-  (destructuring-bind (start end) (eshell-bounds-of-previous-output nth)
-    (save-excursion
-      (goto-char start)
-      ;; Copy region to kill ring
-      (copy-region-as-kill start end))))
+(defun eshell-copy-previous-output ()
+  "Copies the output of the previous command to the kill ring."
+  (interactive)
+  (let ((lines (count-lines (eshell-beginning-of-output)
+                            (eshell-end-of-output))))
+    ;; Copy region to kill ring
+    (copy-region-as-kill (eshell-beginning-of-output) (eshell-end-of-output))
+    (message "Copied %d lines" lines)))
 
 ;; https://stackoverflow.com/a/14769115/1588358
 (defun local-set-minor-mode-key (mode key def)
@@ -1600,6 +1605,7 @@ initialize the Eshell environment."
    ("C-d" . eshell-quit-or-delete-char)
    ("<tab>" . completion-at-point)
    ("M-r" . counsel-esh-history)
+   ("H-l" . eshell/clear)
    ("C-w" . eshell-kill-previous-output)
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
