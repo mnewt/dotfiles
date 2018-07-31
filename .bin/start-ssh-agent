@@ -3,7 +3,7 @@
 [ "$BASH_VERSION" ] && shopt -s nullglob
 [ "$ZSH_VERSION" ] && setopt null_glob
 
-declare -a SSH_KEYS=( ${HOME}/.ssh/*_?sa )
+SSH_KEYS=( ${HOME}/.ssh/*rsa )
 
 SSH_ENV="$HOME/.ssh/environment"
 SSH_ADD="/usr/bin/ssh-add"
@@ -13,10 +13,19 @@ start_agent () {
   echo "Starting SSH agent..."
   ${SSH_AGENT} | sed 's/^echo/#echo/' > "${SSH_ENV}"
   . "${SSH_ENV}"
+}
+
+add_keys () {
   echo "Adding keys:"
   echo "${SSH_KEYS[@]}"
   ${SSH_ADD} "${SSH_KEYS[@]}"
 }
 
+# Source ssh environment file if it exists.
 [ -f "${SSH_ENV}" ] && . "${SSH_ENV}"
+
+# If ssh-agent is not running, start it.
 ps -ef | grep ${SSH_AGENT_PID} | grep -q ssh-agent || start_agent
+
+# If there are more keys in ~/.ssh than are loaded into ssh-agent, add them.
+[ "$("$SSH_ADD" -l | wc -l)" -ge "${#SSH_KEYS[@]}" ] || add_keys

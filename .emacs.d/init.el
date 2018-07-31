@@ -132,6 +132,7 @@
     (setq exec-path new-path)))
 
 (source-sh "~/.env")
+(source-sh "~/.bin/start-ssh-agent")
 (set-path)
 
 (defun expand-environment-variable ()
@@ -146,6 +147,10 @@
   :config
   (unless (server-running-p)
     (server-start)))
+
+(use-package restart-emacs
+  :commands
+  (restart-emacs))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Theme
@@ -362,12 +367,17 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                              (with-current-buffer (get-buffer " *Echo Area 0*")
                                (setq-local face-remapping-alist '((default)))))))
 
+;; blinking is NOT OK
+(blink-cursor-mode -1)
+
 (setq visible-bell t
       ring-bell-function #'mode-line-visible-bell)
 
-;; Save existing system clipboard text into kill ring before replacing it,
-;; ensuring it doesn't get irrevocably destroyed.
-(setq save-interprogram-paste-before-kill t
+;; Use the system clipboard
+(setq select-enable-clipboard t
+      ;; Save existing system clipboard text into kill ring before replacing it,
+      ;; ensuring it doesn't get irrevocably destroyed.
+      save-interprogram-paste-before-kill t
       ;; use mouse to kill/yank
       mouse-yank-at-point t
       mouse-drag-and-drop-region t
@@ -383,8 +393,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 ;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
 (setq auto-window-vscroll nil)
 
-;; Use the system clipboard
-(setq select-enable-clipboard t)
+;; Enable every deactivated command, because some are handy and why not?
+(setq disabled-command-function nil)
 
 ;; Whenever an external process changes a file underneath emacs, and there
 ;; was no unsaved changes in the corresponding buffer, just revert its
@@ -598,6 +608,10 @@ When using Homebrew, install it using \"brew install trash\"."
 (bind-keys ("s-}" . next-buffer)
            ("s-{" . previous-buffer))
 
+
+;; scratch
+(setq initial-scratch-message nil)
+
 (defun new-scratch-buffer ()
    "Create a scratch buffer."
    (interactive)
@@ -728,8 +742,8 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;;; Editing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; blinking is NOT OK
-(blink-cursor-mode -1)
+;; Wrap text
+(setq-default fill-column 80)
 
 ;; Newline at end of file
 (setq require-final-newline t)
@@ -737,15 +751,13 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;; delete selection on insert or yank
 (delete-selection-mode 1)
 
-;; Enable every deactivated command, because some are handy and why not?
-(setq disabled-command-function nil)
-
 ;; tabs
 (setq-default indent-tabs-mode nil
               tab-width 2
               tab-stop-list (number-sequence tab-width 120 tab-width))
 
-(setq initial-scratch-message nil)
+;; Replace `delete-horizontal-space' with the more useful `cycle-spacing'. 
+(bind-key "M-\\" #'cycle-spacing)
 
 (use-package outshine
   :custom
@@ -1244,13 +1256,17 @@ ID, ACTION, CONTEXT."
    ("C-x C-j" . direx-project:jump-to-project-root)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Shell and SSH
+;;; Shell, SSH, Tramp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; The default is /bin/bash. On macOS, brew installs bash to /usr/local/bin.
 (setq-default shell-file-name (executable-find "bash"))
 
 (require 'tramp)
+
+;; password-cache
+(setq password-cache-expiry nil)
+;; TODO: Get start ssh-agent and import environment variables
 
 ;; Configure TRAMP to respect the PATH variable on the remote machine (for
 ;; remote eshell sessions)
@@ -1307,16 +1323,6 @@ ID, ACTION, CONTEXT."
                      (list-hosts-from-etc-hosts)))
                    nil t))
 
-(use-package ssh
-  :custom
-  (ssh-directory-tracking-mode 'ftp)
-  :hook
-  (ssh-mode . (lambda ()
-                (shell-dirtrack-mode t)
-                (setq dirtrackp nil)))
-  :bind
-  ("C-c C-s" . ssh))
-
 ;; (defun ssh (host)
 ;;   "Choose an ssh HOST and then ssh to it."
 ;;   (interactive (list (ssh-choose-host)))
@@ -1328,6 +1334,16 @@ ID, ACTION, CONTEXT."
   "Choose an ssh host and then open it with dired."
   (interactive (list (ssh-choose-host)))
   (find-file (concat "/sshx:" host ":")))
+
+(use-package ssh
+  :custom
+  (ssh-directory-tracking-mode 'ftp)
+  :hook
+  (ssh-mode . (lambda ()
+                (shell-dirtrack-mode t)
+                (setq dirtrackp nil)))
+  :bind
+  ("C-c C-s" . ssh))
 
 (eval-after-load 'sh
   (lambda ()
@@ -1747,14 +1763,14 @@ shell is left intact."
           (t (message "Can't sudo this buffer")))))
 
 ;; Disable file accesses when visiting buffers accessed via tramp for performance reasons
-(defun disable-file-accesses ()
+(defun tramp-disable-file-accesses ()
   (when (file-remote-p default-directory)
     (setq-local projectile-mode-line "Projectile")
-    (setq-local company-backends (remove 'company-files company-backends))))
+    (setq-local company-backends company-backends-remote)))
 
 (use-package tramp
   :hook
-  (find-file . disable-file-accesses))
+  (find-file . tramp-disable-file-accesses))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mount  
@@ -1896,6 +1912,10 @@ shell is left intact."
      company-preview-frontend))
   :config
   (add-hook 'after-init-hook 'global-company-mode)
+  (setq company-backends-remote
+        '((company-shell company-shell-env)
+          company-capf company-css company-elisp company-keywords
+          company-yasnippet company-dabbrev-code company-dabbrev company-ispell))
   :bind
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
