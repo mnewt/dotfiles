@@ -90,12 +90,12 @@
 *** https://github.com/szermatt/emacs-bash-completion
 ** DONE outline-minor-mode should not trample on key binding "M-<up>"
 ** DONE Advise =eshell/cd= such that paths starting with "/" and "~" are interpreted relative to the remote host
+** DONE "s-n" should create a new scratch buffer
 ** TODO Get Eshell/tramp to cache and/or save passwords [0/2]
 *** TODO For the user
 *** TODO For sudo/sudoers
 ** TODO Add git-ls-files command
 https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-ls-files-in-magit#25227438
-** TODO "s-n" should create a new scratch buffer
 ** TODO Fix Eshell / tramp tab completion adding a space after the file name
 ** TODO Implement =grc= in elisp
 ** TODO Find and squash causes of unresponsiveness when editing remote files

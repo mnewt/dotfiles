@@ -598,6 +598,15 @@ When using Homebrew, install it using \"brew install trash\"."
 (bind-keys ("s-}" . next-buffer)
            ("s-{" . previous-buffer))
 
+(defun new-scratch-buffer ()
+   "Create a scratch buffer."
+   (interactive)
+   (switch-to-buffer (get-buffer-create "<untitled>"))
+   (setq buffer-file-name "untitled")
+   (lisp-interaction-mode))
+
+(bind-key "s-n" #'new-scratch-buffer)
+
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
   "Kill the buffer in the other window."
