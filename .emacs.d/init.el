@@ -2111,6 +2111,22 @@ shell is left intact."
                          (expand-file-name (match-string 1)))
                        (getenv "HOME")))
 
+(defun projectile-git-ls-files (&optional dir)
+  "Create a new buffer listing all the tracked files in the git
+repo, optionally specified by DIR."
+  (interactive)
+  (cd (projectile-project-root))
+  (-filter #'nil-blank-string
+           (split-string (shell-command-to-string "git ls-files") "\n")))
+
+(defun projectile-git-ls-files-dired (&optional dir)
+  (interactive)
+  (dired (cons (projectile-project-root)
+               (projectile-git-ls-files (projectile-project-root))))
+  (rename-buffer (format "*git ls-files %s*" (projectile-project-root))))
+
+(bind-key "C-x G" #'projectile-git-ls-files-dired)
+
 (use-package magit
   :custom
   (magit-completing-read-function 'ivy-completing-read)

@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-# Runs at non-login interactive shell (except macOS)
+# Runs at non-login interactive shell
 
 # simple prompt in case the fancy one isn't used
 __prompt_cmdstatus_bg=001
