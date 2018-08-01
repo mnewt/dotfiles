@@ -31,9 +31,10 @@
 ;; (package-initialize)
 
 ;; Bootstrap straight.el
+(defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 4))
+      (bootstrap-version 5))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
@@ -1542,7 +1543,7 @@ Examples:
   (if-let (remote (file-remote-p default-directory))
       (insert remote)))
 
-(bind-key "C-c f" 'tramp-insert-remote-part)
+(bind-key "C-c f" #'tramp-insert-remote-part)
 
 (defun eshell/info (&optional subject)
   "Invoke `info', optionally opening the Info system to SUBJECT."
@@ -1635,6 +1636,9 @@ initialize the Eshell environment."
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
    ("s-v" . clipboard-yank)
+   ("C-S-<backspace>" . eshell-kill-input)
+   ("C-M-p" . eshell-previous-prompt)
+   ("C-M-n" . eshell-next-prompt)
    ("C-h C-e" . esh-help-run-help))
 
   ;; xterm colors
@@ -1814,9 +1818,47 @@ shell is left intact."
 
 ;; Org-mode
 
+;; Install Org from git
+;; https://github.com/raxod502/straight.el#installing-org-with-straightel
+(require 'subr-x)
+(straight-use-package 'git)
+
+(defun org-git-version ()
+  "The Git version of org-mode.
+Inserted by installing org-mode or when a release is made."
+  (require 'git)
+  (let ((git-repo (expand-file-name
+                   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (git-run "describe"
+              "--match=release\*"
+              "--abbrev=6"
+              "HEAD"))))
+
+(defun org-release ()
+  "The release version of org-mode.
+Inserted by installing org-mode or when a release is made."
+  (require 'git)
+  (let ((git-repo (expand-file-name
+                   "straight/repos/org/" user-emacs-directory)))
+    (string-trim
+     (string-remove-prefix
+      "release_"
+      (git-run "describe"
+               "--match=release\*"
+               "--abbrev=0"
+               "HEAD")))))
+
+(provide 'org-version)
+
+(straight-use-package 'org)
+
 ;; Clean view
 (setq org-startup-indented t
-      org-special-ctrl-a/e t)
+      ;; smart C-a/e
+      org-special-ctrl-a/e t
+      ;; smart C-k
+      org-special-ctrl-k t)
 
 ;; Calendar and Journal
 
