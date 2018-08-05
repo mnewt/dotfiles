@@ -94,6 +94,7 @@ Had to do with running HEAD version of org-mode. Stopped that.
 ** DONE Add git-ls-files command
 https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-ls-files-in-magit#25227438
 ** TODO Get Eshell/tramp to cache and/or save passwords [2/3]
+Enable logging with =(setq auth-source-debug t)=
 *** DONE For the user
 *** DONE For sudo/sudoers - alias for su/sudo?
 *** TODO What about when sudo is called in other ways, such as from a script? It doesn't seem to cache the password then.

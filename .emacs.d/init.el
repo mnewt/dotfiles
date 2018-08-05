@@ -2,7 +2,7 @@
 
 ;;; Commentary:
 ;; Single, monolithic Emacs init file. Uses straight.el for package management
-;; and use-package for package configuration.
+;; and use-package for as much package configuration as possible.
 
 ;;; Code:
 
@@ -390,6 +390,34 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 ;; Show line in the original buffer from occur mode
 (setq list-matching-lines-jump-to-current-line t)
 
+;; (defun scroll-down-4 ()
+;;   "Scroll 4 lines down."
+;;   (interactive)
+;;   (setq this-command 'scroll-down)
+;;   (scroll-down 4))
+
+;; (defun scroll-up-4 ()
+;;   "Scroll 4 lines up."
+;;   (interactive)
+;;   (setq this-command 'scroll-up)
+;;   (scroll-up 4))
+
+(defun next-line-4 ()
+  "Scroll 4 lines down."
+  (interactive)
+  (setq this-command 'next-line)
+  (next-line 4))
+
+(defun previous-line-4 ()
+  "Scroll 4 lines up."
+  (interactive)
+  (setq this-command 'previous-line)
+  (previous-line 4))
+
+(bind-keys
+ ("C-S-p" . previous-line-4)
+ ("C-S-n" . next-line-4))
+
 ;; Reduce scrolling lag
 ;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
 (setq auto-window-vscroll nil)
@@ -542,7 +570,7 @@ When using Homebrew, install it using \"brew install trash\"."
       apropos-do-all t)
 
 ;; About Emacs is not useful so replace binding with `apropos'
-(bind-keys ("C-h C-a" . apropos))
+;; (bind-keys ("C-h C-a" . apropos))
 
 ;; ELDoc
 (add-hook 'emacs-lisp-mode-hook #'turn-on-eldoc-mode)
@@ -1821,7 +1849,7 @@ shell is left intact."
 ;; Install Org from git
 ;; https://github.com/raxod502/straight.el#installing-org-with-straightel
 (require 'subr-x)
-(straight-use-package 'git)
+(use-package git)
 
 (defun org-git-version ()
   "The Git version of org-mode.
@@ -1851,7 +1879,14 @@ Inserted by installing org-mode or when a release is made."
 
 (provide 'org-version)
 
-(straight-use-package 'org)
+(use-package org
+  :custom
+  (org-directory "~/Notes")
+  :bind
+  ("C-c l" . org-store-link)
+  ("C-c a" . org-agenda)
+  ("C-c c" . org-capture)
+  ("C-c b" . org-switchb))
 
 ;; Clean view
 (setq org-startup-indented t
@@ -2012,8 +2047,7 @@ Inserted by installing org-mode or when a release is made."
   ;; This isn't the last message displayed so there isn't really a point in displaying it at all
   ;; (message (concat "Replaced `" ivy--old-text "\' with `" replacement"\' across entire buffer.")))
   :bind
-  (("C-s" . swiper)
-   ("s-5" . replace-regexp-entire-buffer)))
+  (("s-5" . replace-regexp-entire-buffer)))
 ;; :map ivy-minibuffer-map
 ;; ("s-5" . ivy--replace-regexp-entire-buffer)))
 
@@ -2029,15 +2063,19 @@ Inserted by installing org-mode or when a release is made."
    ("C-c u" . counsel-unicode-char)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
-   ("C-c l" . counsel-locate)
    ("C-c o" . counsel-outline)
    ("M-s-v" . counsel-yank-pop)
    ("M-s-√" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
-   ([remap isearch-forward] . counsel-grep-or-swiper)
+   ;; ([remap isearch-forward] . counsel-grep-or-swiper)
    ([remap find-file] . counsel-find-file)
    :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line-and-call)))
+   ("M-y" . ivy-next-line-and-call)
+   ;; Stop mac-key-mode from shadowing "s-f"
+   :map mac-key-mode-map
+   ("s-f" . nil)))
+
+(bind-key "s-f" #'counsel-grep-or-swiper)
 
 (use-package ivy-dired-history
   :config
@@ -2430,7 +2468,7 @@ the end of each line."
 ;; (use-package counsel-dash
 ;;   :custom
 ;;   (counsel-dash-docsets-path "~/Dash/DocSets")
-;;   (counsel-dash-common-docsets '("bash")))
+;;   (counsel-dash-common-docsets ("bash")))
 
 (use-package visual-regexp-steroids
   :bind
