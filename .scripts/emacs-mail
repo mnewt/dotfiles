@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+brew install isync
+brew services start isync ~/.scripts/homebrew.mxcl.isync.plist
+brew install mu --with-emacs

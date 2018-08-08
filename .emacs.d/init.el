@@ -1689,6 +1689,7 @@ initialize the Eshell environment."
   (add-to-list 'eshell-visual-subcommands '("dw" "log"))
 
   ;; Load the Eshell versions of `su' and `sudo'
+  (require 'em-tramp)
   (add-to-list 'eshell-modules-list 'eshell-tramp))
 
 (use-package eshell
