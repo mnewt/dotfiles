@@ -157,6 +157,11 @@
 ;;; Theme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; eww uses this, among others.
+(set-face-attribute 'variable-pitch nil
+                    :family "Georgia"
+                    :height 1.5)
+
 ;; Base faces for modeline
 (defface m-inactive0 '((t (:inherit mode-line-inactive)))
   "Powerline inactive face 0."
@@ -1941,6 +1946,9 @@ Inserted by installing org-mode or when a release is made."
         (progn
           (insert "journal")
           (yas-expand)))))
+
+(use-package nov
+  :mode "\\.epub\\'")
 
 ;; Doesn't seem to work. Probably API changed?
 ;; (use-package org-wunderlist
