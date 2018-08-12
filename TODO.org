@@ -111,6 +111,7 @@ Guessing this is the (remains of the?) xterm sequence to set the title?
 Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
 ** TODO Add indicator to modeline when narrowing
 ** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
+The way I first implemented this is not ideal. It should only back up dirty files.
 ** TODO Desktop should restore eshell buffers
 =desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
 ** TODO w3m easily view buffer in appropriate mode

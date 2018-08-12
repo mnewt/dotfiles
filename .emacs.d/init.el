@@ -1811,6 +1811,134 @@ shell is left intact."
   (find-file . tramp-disable-file-accesses))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Highlight Things
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Ideas to filter Eshell output:
+;; 1. Eshell feeds each line of program output to
+;; `eshell-preoutput-filter-functions'. This is easy but there is no obvious way
+;; to handle multi-line semantics.
+;; 2. Highlight region from `(eshell-beginning-of-output)' to
+;; `(eshell-end-of-output)'. See https://emacs.stackexchange.com/a/5408.
+;; 3. Maybe use `org-src-font-lock-fontify-block'.
+
+;; The downsides to #2 and #3 are that the output is not highlighted until after
+;; the command finishes.
+
+;; See https://www.emacswiki.org/emacs?SampleMode for mode boilerplate. Note
+;; that we are purposefully not using a derived mode because this is not an
+;; interactive mode and we don't want to do useless, user-oriented stuff on a
+;; temporary buffer. We are going for the most minimal mode possible and it is
+;; only intended to be used programmatically so we will eschew the normal
+;; boilerplate and mode features like hooks and maps.
+
+;; TODO: Make keyword lists for:
+;; 1. No matching command
+;; 2. All commands, even matching
+;; 3. Specific to a command
+
+;; TODO: Highlight Eshell command line while it's being typed
+
+;; TODO: Make this a defcustom and explain
+(setq hlt-face-property-type 'face)
+
+;; TODO: Builtin Eshell commands
+
+;; TODO: Emacs Lisp functions
+
+;; TODO: Executables found in $PATH
+(setq hlt-keyword-path-command
+      `(,(concat "\\<"
+                 (regexp-opt '("update" "update-arch" "update-atom" "update-clojure") t)
+                 "\\>")
+        font-lock-keyword-face))
+
+(setq hlt-keyword-ipv4-address
+      '("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+" font-lock-string-face))
+
+(setq hlt-keyword-ipv6-address
+      '("\\(:?[a-f0-9:]*::[a-f0-9:]*\\)" font-lock-string-face))
+
+(setq hlt-keyword-human-readable-number
+      '("[0-9]+\\(:?k|K|m|M|g|G|t|T\\)" font-lock-variable-name-face))
+
+(setq hlt-font-lock-keywords
+      (list hlt-keyword-ipv4-address
+            hlt-keyword-ipv6-address))
+
+(setq hlt-command-keywords
+      `(("df" (,(regexp-opt '("Filesystem" "Size" "Used" "Avail" "Use%" "Mounted on") t)
+               font-lock-builtin-face)))))
+
+(defun hlt-mode ()
+  "Major mode for highlighting things. It is not intended to be
+  used interactively, only programmatically."
+  (kill-all-local-variables)
+  (set (make-local-variable 'font-lock-defaults) '(hlt-font-lock-keywords))
+  (setq major-mode 'hlt-mode))
+
+(defun hlt-fontify-string (string &optional keywords)
+  "Use `hlt-font-lock-keywords' to fontify the STRING, sort of
+like `font-lock-fontify-keywords-region' would, only simpler."
+  (dolist (pair (or keywords hlt-font-lock-keywords))
+    (let ((re (car pair))
+          (face (cdr pair))
+          (start 0))
+      (while (string-match re string start)
+        (add-text-properties (match-beginning 0) (match-end 0)
+                             `(,hlt-face-property-type ,face) string)
+        (setq start (match-end 0)))))
+  string)
+
+(defun hlt-fontify-region (start end &optional keywords)
+  "Like `font-lock-fontify-keywords-region' only can be run
+without an activated mode."
+  ;; Blatantly lie to `font-lock', telling it things have already been set up.
+  (let ((font-lock-set-defaults t)
+        (font-lock-keywords (or keywords hlt-font-lock-keywords)))
+    (font-lock-fontify-keywords-region start end)))
+
+(defun hlt-fontify-string-for-command (command string)
+  "Like `hlt-fontify-string' but does special stuff for the specified COMMAND."
+  (hlt-fontify-string (alist-get command hlt-command-keywords nil nil 'string=)))
+
+(defun hlt-eshell-preoutput-filter (string)
+  "Add this to `eshell-preoutput-filter-functions' to highlight Eshell output."
+  (hlt-fontify-string string
+   (append hlt-font-lock-keywords
+           (alist-get eshell-last-command-name
+                      hlt-command-keywords nil nil 'string=))))
+
+;; (defun hlt-fontify-text (text)
+;;   (with-temp-buffer
+;;     (erase-buffer)
+;;     (insert text)
+;;     ;; TODO: Maybe replace `font-lock.el' machinery with our own, for speed.
+;;     (setq major-mode 'hlt-mode)
+;;     (set (make-local-variable 'font-lock-defaults) '(hlt-font-lock-keywords))
+;;     (font-lock-default-function 'hlt-mode)
+;;     ;; I can't think of any use cases for syntactic fontification so we skip it.
+;;     (font-lock-fontify-keywords-region (point-min) (point-max) nil)
+;;     (if hlt-use-font-lock-face
+;;         (hlt-replace-face-with-font-lock-face (buffer-string))
+;;       (buffer-string))))
+
+;; (defun hlt-replace-face-with-font-lock-face (text)
+;;   "Replace property 'face with 'font-lock-face so that font-lock
+;; functions don't strip it."
+;;   (let ((pos 0))
+;;     (while (setq next (next-single-property-change pos 'face text))
+;;       (put-text-property pos next 'font-lock-face (get-text-property pos 'face text) text)
+;;       (setq pos next))
+;;     (add-text-properties 0 (length text) '(fontified t) text)
+;;     text))
+
+(provide 'hlt-mode)
+
+(add-hook 'eshell-preoutput-filter-functions 'hlt-eshell-preoutput-filter)
+;; (remove-hook 'eshell-preoutput-filter-functions 'hlt-eshell-preoutput-filter)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mount  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -2069,6 +2197,7 @@ Inserted by installing org-mode or when a release is made."
    ("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
    ("C-h <tab>" . counsel-info-lookup-symbol)
+   ("C-h C-a" . counsel-apropos)
    ("C-c u" . counsel-unicode-char)
    ("C-c g" . counsel-git)
    ("C-c j" . counsel-git-grep)
@@ -2473,11 +2602,6 @@ the end of each line."
     (add-to-list 'dash-at-point-mode-alist '(inferior-emacs-lisp-mode . "elisp")))
   :bind
   ("M-s-." . dash-at-point))
-
-;; (use-package counsel-dash
-;;   :custom
-;;   (counsel-dash-docsets-path "~/Dash/DocSets")
-;;   (counsel-dash-common-docsets ("bash")))
 
 (use-package visual-regexp-steroids
   :bind
