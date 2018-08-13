@@ -10,7 +10,7 @@
 ;;; Top Level
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Give Emacs 1GB of heap but run gc on idle
+;; Give Emacs 1GB of heap but run gc on idle.
 (setq gc-cons-threshold 1073741824)
 (run-with-idle-timer 3 t (lambda () (garbage-collect)))
 
@@ -799,59 +799,9 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;; Replace `delete-horizontal-space' with the more useful `cycle-spacing'. 
 (bind-key "M-\\" #'cycle-spacing)
 
-(use-package outshine
-  :custom
-  (outline-minor-mode-prefix "\M-#")
-  :config
-  ;; Narrowing now works within the headline rather than requiring to be on it
-  (advice-add 'outshine-narrow-to-subtree :before
-              (lambda (&rest args) (unless (outline-on-heading-p t)
-                                     (outline-previous-visible-heading 1))))
-  :hook
-  (outline-minor-mode . outshine-hook-function)
-  (prog-mode . outline-minor-mode)
-  :bind
-  (:map outline-minor-mode-map
-        ;; Don't trample on smarparens or org bindings
-        ("M-<up>" . nil)
-        ("M-<down>" . nil)))
-
-(defun outline-show-current-sublevel ()
-  "Show only the current top level section."
-  (interactive)
-  (unless outline-minor-mode
-    (outline-minor-mode t))
-  (outline-hide-sublevels 1)
-  (outline-show-subtree))
-
-(defun outline-subtree-previous ()
-  "Go to and expand previous sublevel."
-  (interactive)
-  (unless outline-minor-mode
-    (outline-minor-mode t))
-  (outline-hide-sublevels 1)
-  (outline-previous-visible-heading 1)
-  (outline-show-subtree))
-
-(defun outline-subtree-next ()
-  "Go to and expand previous sublevel."
-  (interactive)
-  (unless outline-minor-mode
-    (outline-minor-mode t))
-  (outline-hide-sublevels 1)
-  (outline-next-visible-heading 1)
-  (outline-show-subtree))
-
-(bind-keys ("M-=" . outline-show-current-sublevel)
-           ("M-p" . outline-subtree-previous)
-           ("M-n" . outline-subtree-next))
-
 ;; sh-mode
 (setq sh-basic-offset tab-width
       sh-indentation tab-width)
-
-;; git
-(add-to-list 'auto-mode-alist '("\\.gitignore\\'" . conf-mode))
 
 ;; dw (https://gitlab.com/mnewt/dw)
 (add-to-list 'auto-mode-alist '("\\DWfile.*\\'" . sh-mode))
@@ -873,21 +823,35 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 
 (bind-key "M-J" #'join-line-previous)
 
-;; show-paren-mode
-(defadvice show-paren-function (after show-matching-paren-offscreen activate)
-  "If the matching paren is offscreen, show the matching line in the echo area.
-Has no effect if the character before point is not of the syntax class ')'."
+(defun dos2unix ()
+  "Convert DOS aformatted buffer to Unix by removing the ^M at
+the end of each line."
   (interactive)
-  (let* ((cb (char-before (point)))
-         (matching-text (and cb
-                             (char-equal (char-syntax cb) ?\))
-                             (blink-matching-open))))
-    (when matching-text (message matching-text))))
+  (let ((line (line-number-at-pos))
+        (column (current-column)))
+    (mark-whole-buffer)
+    (replace-string "
+      " "")
+    (goto-line line)
+    (move-to-column column)))
+
+(defun touch (cmd)
+  "Run touch in `default-directory'."
+  (interactive
+   (list (read-shell-command "Run touch (like this): "
+                             "touch "
+                             'touch-history
+                             "touch ")))
+  (shell-command cmd))
+
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
 
 ;; Just set up 3 windows, no fancy frames or whatever
 (setq ediff-window-setup-function #'ediff-setup-windows-plain)
 
-;; make a shell script executable automatically on save
+;; Make a shell script executable automatically on save
 (add-hook 'after-save-hook
           #'executable-make-buffer-file-executable-if-script-p)
 
@@ -1033,6 +997,55 @@ Has no effect if the character before point is not of the syntax class ')'."
         ("M-S-<up>" . move-text-up)
         ("M-S-<down>" . move-text-down)))
 
+;; outline-mode for folding sections
+(use-package outshine
+  :custom
+  (outline-minor-mode-prefix "\M-#")
+  :config
+  ;; Narrowing now works within the headline rather than requiring to be on it
+  (advice-add 'outshine-narrow-to-subtree :before
+              (lambda (&rest args) (unless (outline-on-heading-p t)
+                                     (outline-previous-visible-heading 1))))
+  :hook
+  (outline-minor-mode . outshine-hook-function)
+  (prog-mode . outline-minor-mode)
+  :bind
+  (:map outline-minor-mode-map
+        ;; Don't trample on smarparens or org bindings
+        ("M-<up>" . nil)
+        ("M-<down>" . nil)))
+
+(defun outline-show-current-sublevel ()
+  "Show only the current top level section."
+  (interactive)
+  (unless outline-minor-mode
+    (outline-minor-mode t))
+  (outline-hide-sublevels 1)
+  (outline-show-subtree))
+
+(defun outline-subtree-previous ()
+  "Go to and expand previous sublevel."
+  (interactive)
+  (unless outline-minor-mode
+    (outline-minor-mode t))
+  (outline-hide-sublevels 1)
+  (outline-previous-visible-heading 1)
+  (outline-show-subtree))
+
+(defun outline-subtree-next ()
+  "Go to and expand previous sublevel."
+  (interactive)
+  (unless outline-minor-mode
+    (outline-minor-mode t))
+  (outline-hide-sublevels 1)
+  (outline-next-visible-heading 1)
+  (outline-show-subtree))
+
+(bind-keys ("M-=" . outline-show-current-sublevel)
+           ("M-p" . outline-subtree-previous)
+           ("M-n" . outline-subtree-next))
+
+;; hs-minor-mode for folding all top level forms
 (use-package hideshow
   :custom
   (hs-hide-comments-when-hiding-all nil)
@@ -1041,7 +1054,13 @@ Has no effect if the character before point is not of the syntax class ')'."
   :hook
   (hs-minor-mode . hs-hide-all))
 
-;; Smartparens
+(use-package unfill
+  :bind
+  ("M-q" . unfill-toggle))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; S-Expressions, Parentheses, Brackets
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun sp-sh-post-handler (id action context)
   "Bash post handler.
@@ -1165,13 +1184,13 @@ ID, ACTION, CONTEXT."
     (with-eval-after-load 'org-agenda (add-to-list 'sp-ignore-modes-list #'org-agenda-mode))
     
     (sp-with-modes
-        '(c-mode c++-mode css-modejavascript-mode js2-mode json-mode objc-mode
+        '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
                  python-mode java-mode sh-mode web-mode)
       (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
       (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
 
     (sp-with-modes
-        '(python-mode)
+        '(python-mode sh-mode)
       (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
       (sp-local-pair "\"\"\"" "\"\"\""
                      :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
@@ -1206,9 +1225,9 @@ ID, ACTION, CONTEXT."
   :custom
   (parinfer-extensions 
    '(defaults         ; should be included.
-      pretty-parens    ; different paren styles for different modes.
-      smart-tab        ; C-b & C-f jump positions and smart shift with tab & S-tab.
-      smart-yank))     ; Yank behavior depend on mode.
+     pretty-parens    ; different paren styles for different modes.
+     smart-tab        ; C-b & C-f jump positions and smart shift with tab & S-tab.
+     smart-yank))     ; Yank behavior depends on mode.
   :config
   (parinfer-strategy-add 'default 'newline-and-indent)
   :hook
@@ -1228,10 +1247,6 @@ ID, ACTION, CONTEXT."
         ("C-i" . indent-for-tab-command)
         ("<tab>" . parinfer-smart-tab:dwim-right)
         ("S-<tab>" . parinfer-smart-tab:dwim-left)))
-
-(use-package unfill
-  :bind
-  ("M-q" . unfill-toggle))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dired
@@ -1983,7 +1998,7 @@ Inserted by installing org-mode or when a release is made."
 (use-package logview)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Search, completion, symbols, project management
+;;; Search, Completion, Symbols, Project Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package wgrep
@@ -2188,8 +2203,11 @@ Inserted by installing org-mode or when a release is made."
    ("s-J" . dumb-jump-quick-look)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Version control
+;;; Version Control
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; git
+(add-to-list 'auto-mode-alist '("\\.gitignore\\'" . conf-mode))
 
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
@@ -2353,31 +2371,6 @@ repo, optionally specified by DIR."
 ;; display nfo files in all their glory
 ;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
 (add-to-list 'auto-coding-alist '("\\.nfo\\'" . ibm437))
-
-(defun dos2unix ()
-  "Convert DOS aformatted buffer to Unix by removing the ^M at
-the end of each line."
-  (interactive)
-  (let ((line (line-number-at-pos))
-        (column (current-column)))
-    (mark-whole-buffer)
-    (replace-string "
-      " "")
-    (goto-line line)
-    (move-to-column column)))
-
-(defun touch (cmd)
-  "Run touch in `default-directory'."
-  (interactive
-   (list (read-shell-command "Run touch (like this): "
-                             "touch "
-                             'touch-history
-                             "touch ")))
-  (shell-command cmd))
-
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
 
 (use-package quickrun
   :commands
