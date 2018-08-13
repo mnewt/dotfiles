@@ -3,6 +3,8 @@
 
 if installed gem; then
   echo "Updating ruby gems..."
+  # Always use homebrew ruby if it's installed
+  installed brew && brew ls --versions ruby && brew link --overwrite ruby  
   installed update_rubygems || gem install rubygems-update
   update_rubygems
   gem update
