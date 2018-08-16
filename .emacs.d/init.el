@@ -251,6 +251,78 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   (add-to-list 'm-themes '(dracula . activate-theme-dracula))
   (activate-theme 'dracula))
 
+(use-package moe-theme
+  :load-path "straight/build/moe-theme"
+  :config
+  (defun activate-theme-moe-light ()
+    (setq face-remapping-alist
+          '((m-inactive0 :background "#262834" :foreground "#565861")
+            (m-active0 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive1 :background "#262834" :foreground "#565861")
+            (m-active1 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive2 :background "#262834" :foreground "#565861")
+            (m-active2 :background "#CECFD2" :foreground "#565861")
+            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
+            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
+            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
+            (m-active4 :background "#00e5e5" :foreground "#262834")))
+    (set-cursor-color "#F60")
+    (set-mouse-color "black")
+    (set-face-attribute 'mode-line-emphasis nil :foreground "orange"))
+  (defun activate-theme-moe-dark ()
+    (setq face-remapping-alist
+          '((m-inactive0 :background "#262834" :foreground "#565861")
+            (m-active0 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive1 :background "#262834" :foreground "#565861")
+            (m-active1 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive2 :background "#262834" :foreground "#565861")
+            (m-active2 :background "#CECFD2" :foreground "#565861")
+            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
+            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
+            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
+            (m-active4 :background "#00e5e5" :foreground "#262834")))
+    (set-cursor-color "#F60")
+    (set-mouse-color "white")
+    (set-face-attribute 'mode-line-emphasis nil :foreground "orange"))
+  (add-to-list 'm-themes '(moe-light . activate-theme-moe-light))
+  (add-to-list 'm-themes '(moe-dark . activate-theme-moe-dark)))
+
+(use-package spacemacs-theme
+  :defer t
+  :load-path "straight/build/spacemacs-theme"
+  :config
+  (defun activate-theme-spacemacs-light ()
+    (setq face-remapping-alist
+          '((m-inactive0 :background "#262834" :foreground "#565861")
+            (m-active0 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive1 :background "#262834" :foreground "#565861")
+            (m-active1 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive2 :background "#262834" :foreground "#565861")
+            (m-active2 :background "#CECFD2" :foreground "#565861")
+            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
+            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
+            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
+            (m-active4 :background "#00e5e5" :foreground "#262834")))
+    (set-cursor-color "#F60")
+    (set-mouse-color "black"))
+  (defun activate-theme-spacemacs-dark ()
+    (setq face-remapping-alist
+          '((m-inactive0 :background "#262834" :foreground "#565861")
+            (m-active0 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive1 :background "#262834" :foreground "#565861")
+            (m-active1 :background "#565861" :foreground "#E6E7E8")
+            (m-inactive2 :background "#262834" :foreground "#565861")
+            (m-active2 :background "#CECFD2" :foreground "#565861")
+            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
+            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
+            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
+            (m-active4 :background "#00e5e5" :foreground "#262834")))
+    (set-cursor-color "#F60")
+    (set-mouse-color "white")
+    (set-face-attribute 'mode-line-emphasis nil :foreground "orange"))
+  (add-to-list 'm-themes '(spacemacs-light . activate-theme-spacemacs-light))
+  (add-to-list 'm-themes '(spacemacs-dark . activate-theme-spacemacs-dark)))
+
 (use-package monokai-theme
   :load-path "straight/build/monokai-theme"
   :config
@@ -633,21 +705,24 @@ When using Homebrew, install it using \"brew install trash\"."
 
 (setq windmove-wrap-around t)
 (bind-keys ("H-a" . windmove-left)
+           ("H-h" . windmove-left)
            ("H-d" . windmove-right)
+           ("H-l" . windmove-right)
            ("H-w" . windmove-up)
+           ("H-j" . windmove-up)
            ("H-s" . windmove-down)
+           ("H-k" . windmove-down)
            ("M-]" . windmove-right)
            ("M-[" . windmove-left))
 
-;; navigating with mark
+;; Navigating with mark
 (bind-keys ("M-s-," . pop-to-mark-command)
            ("M-s-≤" . pop-to-mark-command)
            ("s-," . pop-global-mark))
 
-;; quick switch buffers
+;; Quick switch buffers using standard macOS tab movement bindings
 (bind-keys ("s-}" . next-buffer)
            ("s-{" . previous-buffer))
-
 
 ;; scratch
 (setq initial-scratch-message nil)
@@ -705,7 +780,7 @@ When using Homebrew, install it using \"brew install trash\"."
            :map ctl-x-4-map
            ("t" . toggle-window-split))
 
-;; tags
+;; Tags
 (bind-key "s-R" #'xref-find-definitions-other-window)
 
 ;; Create friendly names for buffers with the same name
@@ -788,10 +863,10 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;; Newline at end of file
 (setq require-final-newline t)
 
-;; delete selection on insert or yank
+;; Delete selection on insert or yank
 (delete-selection-mode 1)
 
-;; tabs
+;; Tabs
 (setq-default indent-tabs-mode nil
               tab-width 2
               tab-stop-list (number-sequence tab-width 120 tab-width))
@@ -1155,6 +1230,12 @@ ID, ACTION, CONTEXT."
                 (save-excursion (newline))
               (newline))))))))
 
+(defun sp-backward-slurp-into-previous-sexp (&optional arg)
+  "Add the sexp at point into the preceeding list."
+  (interactive)
+  (sp-backward-symbol)
+  (sp-forward-slurp-sexp))
+
 ;; https://github.com/Fuco1/smartparens/issues/80
 (defun sp-create-newline-and-enter-sexp (&rest _ignored)
   "Open a new brace or bracket expression, with relevant newlines and indent. "
@@ -1162,12 +1243,6 @@ ID, ACTION, CONTEXT."
   (indent-according-to-mode)
   (forward-line -1)
   (indent-according-to-mode))
-
-(defun sp-backward-slurp-into-previous-sexp (&optional arg)
-  "Add the sexp at point into the preceeding list."
-  (interactive)
-  (sp-backward-symbol)
-  (sp-forward-slurp-sexp))
 
 (use-package smartparens
   :config
@@ -1190,7 +1265,7 @@ ID, ACTION, CONTEXT."
       (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
 
     (sp-with-modes
-        '(python-mode sh-mode)
+        '(Python-Mode sh-mode)
       (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
       (sp-local-pair "\"\"\"" "\"\"\""
                      :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
@@ -1694,7 +1769,7 @@ initialize the Eshell environment."
    ("C-d" . eshell-quit-or-delete-char)
    ("<tab>" . completion-at-point)
    ("M-r" . counsel-esh-history)
-   ("H-l" . eshell/clear)
+   ("C-L" . eshell/clear)
    ("C-w" . eshell-kill-previous-output)
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
@@ -2367,6 +2442,88 @@ repo, optionally specified by DIR."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Other File Modes and Formats
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; language detection
+
+(defun eww-tag-pre (dom)
+  (let ((shr-folding-mode 'none)
+        (shr-current-font 'default))
+    (shr-ensure-newline)
+    (insert (eww-fontify-pre dom))
+    (shr-ensure-newline)))
+
+(defun eww-fontify-pre (dom)
+  (with-temp-buffer
+    (shr-generic dom)
+    (let ((mode (eww-buffer-auto-detect-mode)))
+      (when mode
+        (eww-fontify-buffer mode)))
+    (buffer-string)))
+
+(defun eww-fontify-buffer (mode)
+  (delay-mode-hooks (funcall mode))
+  (font-lock-default-function mode)
+  (font-lock-default-fontify-region (point-min)
+                                    (point-max)
+                                    nil))
+
+(defun eww-buffer-auto-detect-mode ()
+  (let* ((map '((ada ada-mode)
+                (awk awk-mode)
+                (c c-mode)
+                (cpp c++-mode)
+                (clojure clojure-mode lisp-mode)
+                (csharp csharp-mode java-mode)
+                (css css-mode)
+                (dart dart-mode)
+                (delphi delphi-mode)
+                (emacslisp emacs-lisp-mode)
+                (erlang erlang-mode)
+                (fortran fortran-mode)
+                (fsharp fsharp-mode)
+                (go go-mode)
+                (groovy groovy-mode)
+                (haskell haskell-mode)
+                (html html-mode)
+                (java java-mode)
+                (javascript javascript-mode)
+                (json json-mode javascript-mode)
+                (latex latex-mode)
+                (lisp lisp-mode)
+                (lua lua-mode)
+                (matlab matlab-mode octave-mode)
+                (objc objc-mode c-mode)
+                (perl perl-mode)
+                (php php-mode)
+                (prolog prolog-mode)
+                (python python-mode)
+                (r r-mode)
+                (ruby ruby-mode)
+                (rust rust-mode)
+                (scala scala-mode)
+                (shell shell-script-mode)
+                (smalltalk smalltalk-mode)
+                (sql sql-mode)
+                (swift swift-mode)
+                (visualbasic visual-basic-mode)
+                (xml sgml-mode)))
+         (language (language-detection-string
+                    (buffer-substring-no-properties (point-min) (point-max))))
+         (modes (cdr (assoc language map)))
+         (mode (cl-loop for mode in modes
+                        when (fboundp mode)
+                        return mode)))
+    (message (format "%s" language))
+    (when (fboundp mode)
+      mode)))
+
+;; Configure eww to detect and render code snippets embedded in html
+(setq shr-external-rendering-functions
+      '((pre . eww-tag-pre)))
+
+(use-package language-detection
+  :commands
+  (language-detection-buffer language-detection-string))
 
 ;; display nfo files in all their glory
 ;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
