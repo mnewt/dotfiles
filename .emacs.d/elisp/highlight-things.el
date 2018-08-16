@@ -74,15 +74,21 @@
   :type '(list)
   :group 'hlt)
 
+(defcustom hlt-keyword-mac-address
+  '("[0-9a-f]\\{2\\}\\(?::[0-9a-f]\\{2\\}\\)\\{5\\}" font-lock-string-face)
+  "MAC address."
+  :type '(list)
+  :group 'hlt)
+
 (defcustom hlt-keyword-ipv6-address
-  '("[0-9a-f]*\\(?:::?[0-9a-f]+\\)" font-lock-string-face)
+  '("[0-9a-f]\\{4\\}\\(?:::?[0-9a-f]\\{1,4\\}\\)+" font-lock-string-face)
   "IPv6 address."
   :type '(list)
   :group 'hlt)
 
 (defcustom hlt-keyword-human-readable-number
   '("\\<[0-9.]+[kKmMgGtT]\\>" font-lock-builtin-face)
-  "Human readable number, like in `ls -h'."
+  "Human readable number, like the file size in `ls -h'."
   :type '(list)
   :group 'hlt)
 
