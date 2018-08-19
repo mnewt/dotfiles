@@ -2008,6 +2008,13 @@ Inserted by installing org-mode or when a release is made."
 (use-package org
   :custom
   (org-directory "~/org")
+  ;; Clean view
+  (org-startup-indented t)
+  ;; Smart C-a/e
+  (org-special-ctrl-a/e t)
+  ;; Smart C-k
+  (org-special-ctrl-k t)
+  ;; Customize todo keywords
   (org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WIP(w)" "|" "DONE(d!)")))
   (org-todo-keyword-faces '(("TODO" (:foreground "orange" :weight bold))
                             ("NEXT" (:foreground "red" :weight bold))
@@ -2018,13 +2025,6 @@ Inserted by installing org-mode or when a release is made."
   ("C-c a" . org-agenda)
   ("C-c c" . org-capture)
   ("C-c b" . org-switchb))
-
-;; Clean view
-(setq org-startup-indented t
-      ;; smart C-a/e
-      org-special-ctrl-a/e t
-      ;; smart C-k
-      org-special-ctrl-k t)
 
 ;; Calendar and Journal
 
@@ -2232,48 +2232,49 @@ Inserted by installing org-mode or when a release is made."
   :config
   (company-prescient-mode))
 
+(defun projectile-load-settings (file)
+  "https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-settings.el
+  Load project elisp settings file if they are found in active project root
+  directory, or if in the case of undefined root directory, file is
+  otherwise path resolvable."
+  (interactive "sEnter elisp filename (in project root): ")
+  (let
+      ((p (concat (projectile-project-root) file)))
+    (when (file-exists-p p)
+      (load p)
+      (message "%s" (concat "Loaded project settings from: " file)) nil)))
+
 (use-package projectile
   :init
-  (defun projectile-load-settings (file)
-    "https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-settings.el
-    Load project elisp settings file if they are found in active project root
-    directory, or if in the case of undefined root directory, file is
-    otherwise path resolvable."
-    (interactive "sEnter elisp filename (in project root): ")
-    (let
-        ((p (concat (projectile-project-root) file)))
-      (when (file-exists-p p)
-        (load p)
-        (message "%s" (concat "Loaded project settings from: " file)) nil)))
-  ;; Because it renders the frame title face all fucked up
   (setq projectile-completion-system 'ivy
+        ;; Because it renders the frame title face terribly
         frame-title-format nil)
-  (setq frame-title-format
-        '(""
-          ;; "%b"
-          (:eval
-           (when (fboundp 'projectile-project-name)
-             (let ((project-name (projectile-project-name)))
-               (unless (string= "-" project-name)
-                 (format "[%s]" project-name)))))))
+  ;; (setq frame-title-format
+  ;;       '(""
+  ;;         ;; "%b"
+  ;;         (:eval
+  ;;          (when (fboundp 'projectile-project-name)
+  ;;            (let ((project-name (projectile-project-name)))
+  ;;              (unless (string= "-" project-name)
+  ;;                (format "[%s]" project-name)))))))
   :config
   (projectile-mode)
   :hook
-  ((projectile-switch-project . (lambda () (projectile-load-settings "settings.el"))))
+  ((projectile-switch-project . (lambda () (projectile-load-settings "settings.el")))))
 
-  (use-package counsel-projectile
-    :init
-    (setq counsel-projectile-remove-current-buffer t
-          counsel-projectile-remove-current-project t)
-    :config
-    (counsel-projectile-mode)
-    :bind
-    (:map counsel-projectile-map
-          ("M-s-p" . counsel-projectile-switch-to-buffer)
-          ("s-p" . counsel-projectile)
-          ("s-P" . counsel-projectile-switch-project)
-          ("s-t" . counsel-imenu)
-          ("M-s-f" . counsel-projectile-rg))))
+(use-package counsel-projectile
+  :init
+  (setq counsel-projectile-remove-current-buffer t
+        counsel-projectile-remove-current-project t)
+  :config
+  (counsel-projectile-mode)
+  :bind
+  (:map counsel-projectile-map
+        ("M-s-p" . counsel-projectile-switch-to-buffer)
+        ("s-p" . counsel-projectile)
+        ("s-P" . counsel-projectile-switch-project)
+        ("s-t" . counsel-imenu)
+        ("M-s-f" . counsel-projectile-rg)))
 
 (use-package imenu-anywhere
   :bind
