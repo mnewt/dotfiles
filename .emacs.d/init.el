@@ -2350,18 +2350,19 @@ Inserted by installing org-mode or when a release is made."
                        (getenv "HOME")))
 
 (defun projectile-git-ls-files (&optional dir)
-  "Create a new buffer listing all the tracked files in the git
-repo, optionally specified by DIR."
-  (interactive)
-  (cd (projectile-project-root))
+  "List all the tracked files in the current git repo, optionally
+specified by DIR."
+  (cd (or dir (projectile-project-root)))
   (-filter #'nil-blank-string
            (split-string (shell-command-to-string "git ls-files") "\n")))
 
 (defun projectile-git-ls-files-dired (&optional dir)
+  "Create a dired new buffer listing all the tracked files in the current
+git repo, optionally specified by DIR."
   (interactive)
-  (dired (cons (projectile-project-root)
-               (projectile-git-ls-files (projectile-project-root))))
-  (rename-buffer (format "*git ls-files %s*" (projectile-project-root))))
+  (let ((dir (or dir (projectile-project-root))))
+    (dired (cons dir (projectile-git-ls-files dir)))
+    (rename-buffer (format "*git ls-files %s*" dir))))
 
 (bind-key "C-x G" #'projectile-git-ls-files-dired)
 
