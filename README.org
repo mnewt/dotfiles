@@ -168,7 +168,7 @@ find -L $HOME -maxdepth 3 -type l -exec unlink -- "{}" \;
    #+BEGIN_EXAMPLE
      brew install git ripgrep texinfo
      brew link --force texinfo
-     update-emacs
+     brew install emacs --with-cocoa --with-imagemagick@6 --with-librsvg --with-mailutils
    #+END_EXAMPLE
 
 ** Fish
