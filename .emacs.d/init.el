@@ -773,10 +773,10 @@ When using Homebrew, install it using \"brew install trash\"."
           (select-window first-win)
           (if this-win-2nd (other-window 1))))))
 
-(bind-keys ("<H-up>" . shrink-window)
-           ("<H-down>" . enlarge-window)
-           ("<H-left>" . shrink-window-horizontally)
-           ("<H-right>" . enlarge-window-horizontally)
+(bind-keys ("M-s-<up>" . shrink-window)
+           ("M-s-<down>" . enlarge-window)
+           ("M-s-<left>" . shrink-window-horizontally)
+           ("M-s-<right>" . enlarge-window-horizontally)
            :map ctl-x-4-map
            ("t" . toggle-window-split))
 
@@ -819,10 +819,6 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
    ("C-c ]" . winner-redo)
    ("s-]" . winner-redo)))
 
-(use-package ace-window
-  :bind
-  (("M-o" . ace-window)))
-
 (use-package buffer-move
   :bind
   (("C-H-W" . buf-move-up)
@@ -830,10 +826,31 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
    ("C-H-A" . buf-move-left)
    ("C-H-D" . buf-move-right)))
 
+(use-package ace-window
+  :bind
+  (("M-o" . ace-window)))
+
 (use-package auto-dim-other-buffers
   :config
   (auto-dim-other-buffers-mode t)
   (set-face-attribute 'auto-dim-other-buffers-face nil :background "#1F1F1F"))
+
+(use-package winum
+  :custom
+  (winum-auto-setup-mode-line nil)
+  :config
+  (winum-mode)
+  :bind
+  ("s-1" . winum-select-window-1)
+  ("s-2" . winum-select-window-2)
+  ("s-3" . winum-select-window-3)
+  ("s-4" . winum-select-window-4)
+  ("s-5" . winum-select-window-5)
+  ("s-6" . winum-select-window-6)
+  ("s-7" . winum-select-window-7)
+  ("s-8" . winum-select-window-8)
+  ("s-9" . winum-select-window-9)
+  ("s-0" . winum-select-window-0))
 
 (use-package eyebrowse
   :custom
@@ -842,16 +859,16 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   :config
   (eyebrowse-mode t)
   :bind
-  ("s-1" . eyebrowse-switch-to-window-config-1)
-  ("s-2" . eyebrowse-switch-to-window-config-2)
-  ("s-3" . eyebrowse-switch-to-window-config-3)
-  ("s-4" . eyebrowse-switch-to-window-config-4)
-  ("s-5" . eyebrowse-switch-to-window-config-5)
-  ("s-6" . eyebrowse-switch-to-window-config-6)
-  ("s-7" . eyebrowse-switch-to-window-config-7)
-  ("s-8" . eyebrowse-switch-to-window-config-8)
-  ("s-9" . eyebrowse-switch-to-window-config-9)
-  ("s-0" . eyebrowse-switch-to-window-config-0))
+  ("H-1" . eyebrowse-switch-to-window-config-1)
+  ("H-2" . eyebrowse-switch-to-window-config-2)
+  ("H-3" . eyebrowse-switch-to-window-config-3)
+  ("H-4" . eyebrowse-switch-to-window-config-4)
+  ("H-5" . eyebrowse-switch-to-window-config-5)
+  ("H-6" . eyebrowse-switch-to-window-config-6)
+  ("H-7" . eyebrowse-switch-to-window-config-7)
+  ("H-8" . eyebrowse-switch-to-window-config-8)
+  ("H-9" . eyebrowse-switch-to-window-config-9)
+  ("H-0" . eyebrowse-switch-to-window-config-0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Editing
@@ -932,6 +949,9 @@ the end of each line."
 
 ;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
 (setq executable-prefix-env t)
+
+;; Continue comment on next line (default binding is "C-M-j")
+(bind-key "M-RET" #'indent-new-comment-line)
 
 ;; Automatically fill comments. Wraps on `fill-column' columns
 (defun configure-auto-fill-mode ()
@@ -1405,7 +1425,6 @@ ID, ACTION, CONTEXT."
 
 ;; password-cache
 (setq password-cache-expiry nil)
-;; TODO: Get start ssh-agent and import environment variables
 
 ;; Configure TRAMP to respect the PATH variable on the remote machine (for
 ;; remote eshell sessions)
@@ -1542,10 +1561,6 @@ ID, ACTION, CONTEXT."
 (use-package eterm-256color
   :hook
   (term-mode . eterm-256color-mode))
-
-(defun eshell-colorize-output (string)
-  "Colorize matched strings in command output (STRING).")
-  ;; TODO
 
 (defun eshell-other-window (arg)
   "Opens an eshell in another window. Prefix argument opens a new eshell named for `default-directory'"
@@ -1992,7 +2007,12 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package org
   :custom
-  (org-directory "~/Notes")
+  (org-directory "~/org")
+  (org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WIP(w)" "|" "DONE(d!)")))
+  (org-todo-keyword-faces '(("TODO" (:foreground "orange" :weight bold))
+                            ("NEXT" (:foreground "red" :weight bold))
+                            ("WIP" (:foreground "green" :weight bold))
+                            ("DONE" (:foreground "gray"))))
   :bind
   ("C-c l" . org-store-link)
   ("C-c a" . org-agenda)
@@ -2085,9 +2105,9 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package rg
   :config
-  (progn
-    (rg-enable-default-bindings (kbd "C-r"))
-    (add-hook 'rg-mode-hook 'wgrep-ag-setup)))
+  (rg-enable-default-bindings (kbd "C-r"))
+  :hook
+  (rg-mode . wgrep-ag-setup))
 
 (use-package company
   :custom
@@ -2095,18 +2115,18 @@ Inserted by installing org-mode or when a release is made."
    '(company-capf company-gtags company-css company-elisp company-keywords
                   company-semantic company-yasnippet company-files
                   company-dabbrev-code company-dabbrev company-ispell))
+  (company-backends-remote
+   '((company-shell company-shell-env)
+     company-capf company-css company-elisp company-keywords
+     company-yasnippet company-dabbrev-code company-dabbrev company-ispell))
   (company-idle-delay 0.1)
   (company-dabbrev-ignore-case t)
   (company-frontends
    '(company-pseudo-tooltip-unless-just-one-frontend
      company-echo-metadata-frontend
      company-preview-frontend))
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
-  (setq company-backends-remote
-        '((company-shell company-shell-env)
-          company-capf company-css company-elisp company-keywords
-          company-yasnippet company-dabbrev-code company-dabbrev company-ispell))
+  :hook
+  (after-init . global-company-mode)
   :bind
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
@@ -2184,7 +2204,6 @@ Inserted by installing org-mode or when a release is made."
    ("C-c j" . counsel-git-grep)
    ("C-c o" . counsel-outline)
    ("M-s-v" . counsel-yank-pop)
-   ("M-s-√" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
    ;; ([remap isearch-forward] . counsel-grep-or-swiper)
    ([remap find-file] . counsel-find-file)
@@ -2193,8 +2212,6 @@ Inserted by installing org-mode or when a release is made."
    ;; Stop mac-key-mode from shadowing "s-f"
    :map mac-key-mode-map
    ("s-f" . nil)))
-
-(bind-key "s-f" #'counsel-grep-or-swiper)
 
 (use-package ivy-dired-history
   :config
@@ -2243,22 +2260,20 @@ Inserted by installing org-mode or when a release is made."
   (projectile-mode)
   :hook
   ((projectile-switch-project . (lambda () (projectile-load-settings "settings.el"))))
-  :bind
-  (("M-s-f" . counsel-projectile-rg)
-   ("M-s-ƒ" . counsel-projectile-rg)))
 
-(use-package counsel-projectile
-  :init
-  (setq counsel-projectile-remove-current-buffer t
-        counsel-projectile-remove-current-project t)
-  :config
-  (counsel-projectile-mode)
-  :bind
-  (("M-s-p" . counsel-projectile-switch-to-buffer)
-   ("M-s-π" . counsel-projectile-switch-to-buffer)
-   ("s-p" . counsel-projectile)
-   ("s-P" . counsel-projectile-switch-project)
-   ("s-t" . counsel-imenu)))
+  (use-package counsel-projectile
+    :init
+    (setq counsel-projectile-remove-current-buffer t
+          counsel-projectile-remove-current-project t)
+    :config
+    (counsel-projectile-mode)
+    :bind
+    (:map counsel-projectile-map
+          ("M-s-p" . counsel-projectile-switch-to-buffer)
+          ("s-p" . counsel-projectile)
+          ("s-P" . counsel-projectile-switch-project)
+          ("s-t" . counsel-imenu)
+          ("M-s-f" . counsel-projectile-rg))))
 
 (use-package imenu-anywhere
   :bind
@@ -2908,7 +2923,7 @@ repo, optionally specified by DIR."
 
 (require 'highlight-things)
 
-;; TODO: Get pointhistory to work
+;; ** TODO: Get pointhistory to work
 (require 'm-pointhistory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

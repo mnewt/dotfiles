@@ -93,6 +93,10 @@ Had to do with running HEAD version of org-mode. Stopped that.
 ** DONE "s-n" should create a new scratch buffer
 ** DONE Add git-ls-files command
 https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-ls-files-in-magit#25227438
+** DONE Add to =org-todo-keywords= and =org-todo-keyword-faces=
+- State "DONE"       from "WIP"        [2018-08-19 Sun 08:29]
+*** "WIP"
+*** "NEXT"
 ** TODO Implement =grc= in elisp
 ** TODO Get Eshell/tramp to cache and/or save passwords [2/3]
 Enable logging with =(setq auth-source-debug t)=
@@ -102,6 +106,7 @@ Enable logging with =(setq auth-source-debug t)=
 ** TODO Fix Eshell / tramp tab completion adding a space after the file name
 ** TODO Fix Eshell bouncing shell output up and down
 ** TODO Find and squash causes of unresponsiveness when editing remote files
+** TODO Organize or even get rid of mac-key-mode
 ** TODO term-mode filter out escape sequence
 This happens when running =fish= in =shell-mode=:
 =]0;fish=
