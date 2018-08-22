@@ -59,6 +59,36 @@
 
 (advice-add 'package-installed-p :around 'straight--advice-package-installed-p)
 
+(defun straight-merge-unpinned (&optional from-upstream predicate)
+  "Try to merge all packages from their primary remotes.
+With prefix argument FROM-UPSTREAM, merge not just from primary
+remotes but also from configured upstreams.
+
+Return a list of recipes for packages that were not successfully
+merged. If multiple packages come from the same local
+repository, only one is merged.
+
+PREDICATE, if provided, filters the packages that are merged. It
+is called with the package name as a string, and should return
+non-nil if the package should actually be merged.
+
+PREDICATE is automatically modified so that packages in the list
+`my-pinned-packages' are not merged."
+  (interactive "P")
+  (straight--map-existing-repos-interactively
+   (lambda (package)
+     (straight-merge-package package from-upstream))
+   (lambda (package)
+     (and (not (member package straight-pinned-packages))
+          (or (null predicate) (funcall predicate package))))))
+
+;; Packages in this list do not get updated when `update-packages' runs.
+;; Therefore, they stay at their current version until manually updated in some
+;; way, perhaps with `straight-merge-package'. See
+;; https://github.com/raxod502/straight.el/issues/246#issuecomment-415085772.
+(setq straight-pinned-packages
+      '(clojure-mode org-mode))
+
 ;; use-package is good
 (eval-when-compile
   (require 'use-package)
@@ -69,7 +99,7 @@
   (interactive)
   (straight-normalize-all)
   (straight-fetch-all)
-  (straight-merge-all))
+  (straight-merge-unpinned))
 
 (use-package epkg
   :commands
@@ -1092,24 +1122,6 @@ the end of each line."
         ("M-S-<up>" . move-text-up)
         ("M-S-<down>" . move-text-down)))
 
-;; outline-mode for folding sections
-(use-package outshine
-  :custom
-  (outline-minor-mode-prefix "\M-#")
-  :config
-  ;; Narrowing now works within the headline rather than requiring to be on it
-  (advice-add 'outshine-narrow-to-subtree :before
-              (lambda (&rest args) (unless (outline-on-heading-p t)
-                                     (outline-previous-visible-heading 1))))
-  :hook
-  (outline-minor-mode . outshine-hook-function)
-  (prog-mode . outline-minor-mode)
-  :bind
-  (:map outline-minor-mode-map
-        ;; Don't trample on smarparens or org bindings
-        ("M-<up>" . nil)
-        ("M-<down>" . nil)))
-
 (defun outline-show-current-sublevel ()
   "Show only the current top level section."
   (interactive)
@@ -1136,11 +1148,28 @@ the end of each line."
   (outline-next-visible-heading 1)
   (outline-show-subtree))
 
-(bind-keys ("M-=" . outline-show-current-sublevel)
-           ("M-p" . outline-subtree-previous)
-           ("M-n" . outline-subtree-next))
+;; outline-mode for folding sections (in lisps that is defined by `;;;')
+(use-package outshine
+  :custom
+  (outline-minor-mode-prefix "\M-#")
+  :config
+  ;; Narrowing now works within the headline rather than requiring to be on it
+  (advice-add 'outshine-narrow-to-subtree :before
+              (lambda (&rest args) (unless (outline-on-heading-p t)
+                                     (outline-previous-visible-heading 1))))
+  :hook
+  (prog-mode . outline-minor-mode)
+  (outline-minor-mode . outshine-hook-function)
+  :bind
+  (:map outline-minor-mode-map
+        ;; Don't shadow smarparens or org bindings
+        ("M-<up>" . nil)
+        ("M-<down>" . nil)
+        ("M-=" . outline-show-current-sublevel)
+        ("M-p" . outline-subtree-previous)
+        ("M-n" . outline-subtree-next)))
 
-;; hs-minor-mode for folding all top level forms
+;; hs-minor-mode for folding top level forms
 (use-package hideshow
   :custom
   (hs-hide-comments-when-hiding-all nil)

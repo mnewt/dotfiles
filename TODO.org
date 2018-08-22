@@ -99,10 +99,13 @@ https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-l
 - State "DONE"       from "WIP"        [2018-08-19 Sun 08:29]
 *** "WIP"
 *** "NEXT"
-** TODO How to manage package version pinning in =straight.el=?
-** TODO Package regression: clojure-mode: =end-of-defun= skips two top level forms
-** TODO Package regression: org-mode: easy templates don't expand
-** TODO Implement =grc= in elisp
+** DONE How to manage package version pinning in =straight.el=?
+- State "DONE"       from "TODO"       [2018-08-22 Wed 15:39]
+** DONE Package regression: clojure-mode: =end-of-defun= skips two top level forms
+- State "DONE"       from "DONE"       [2018-08-22 Wed 15:39]
+** DONE Package regression: org-mode: easy templates don't expand
+- State "DONE"       from "TODO"       [2018-08-22 Wed 15:40]
+** WIP Implement =grc= in elisp
 ** TODO Get Eshell/tramp to cache and/or save passwords [2/3]
 Enable logging with =(setq auth-source-debug t)=
 *** DONE For the user
@@ -115,6 +118,7 @@ See:
           'comint-watch-for-password-prompt)
 #+END_SRC
 ** TODO Fix Eshell / tramp tab completion adding a space after the file name
+This is a result of my config. Maybe the Eshell completion packages?
 ** TODO Fix Eshell bouncing shell output up and down
 ** TODO Find and squash causes of unresponsiveness when editing remote files
 ** TODO Organize or even get rid of mac-key-mode
