@@ -1359,8 +1359,8 @@ ID, ACTION, CONTEXT."
 (global-auto-revert-mode 1)
 
 ;; Also auto refresh dired, but be quiet about it
-(setq global-auto-revert-non-file-buffers t)
-(setq auto-revert-verbose nil)
+(setq global-auto-revert-non-file-buffers t
+      auto-revert-verbose nil)
 
 (defun dired-to-default-directory ()
   "Open directory containing the current file."
@@ -1408,6 +1408,10 @@ ID, ACTION, CONTEXT."
   :bind
   (:map dired-mode-map
         ("C-c C-r" . dired-rsync)))
+
+(use-package dired-du
+  :commands
+  (dired-du-mode))
 
 (use-package direx
   :bind
@@ -1521,6 +1525,11 @@ ID, ACTION, CONTEXT."
           (lambda ()
             (bind-keys :map shell-mode-map ("C-d" . comint-delchar-or-eof-or-kill-buffer))
             (bind-keys :map shell-mode-map ("SPC" . comint-magic-space))))
+
+(defun shell-command-exit-code (program &rest args)
+  "Run PROGRAM with ARGS and return the exit code."
+  (with-temp-buffer 
+    (apply 'call-process program nil (current-buffer) nil args)))
 
 ;; dtach (https://github.com/crigler/dtach)
 ;; https://emacs.stackexchange.com/questions/2283/attach-to-running-remote-shell-with-eshell-tramp-dtach
@@ -1653,8 +1662,15 @@ ID, ACTION, CONTEXT."
   "Change directory to host via tramp"
   (eshell/cd (concat "/ssh:" hostname ":")))
 
-(defun eshell/cd-advice (f &optional directory)
-  "Change to DIRECTORY using a path relative to the remote host.
+(defun eshell/e (&optional path)
+  (find-file path))
+
+(defun eshell/ee (&optional path)
+  (find-file-other-window path))
+
+(defun eshell-path-advice (f &optional directory)
+  "Return a DIRECTORY using a path relative to the remote host (if we are on a
+ remote host).
 Examples:
   > cd /etc -> /sshx:host:/etc
   > cd : -> /sshx:host:/home/user"
@@ -1662,25 +1678,25 @@ Examples:
    (if (file-remote-p default-directory)
        (let ((remote-prefix (replace-regexp-in-string ":[^:]*$" ":" default-directory)))
          (cond
-          ;; If `directory' starts with `$HOME' then we assume the
-          ;; original arg started with "~" and we change directory to
-          ;; the remote `$HOME'. We can always use `cd' with no args
-          ;; to return to local `$HOME'.
+          ;; If `directory' starts with `$HOME' then we assume the original arg
+          ;; started with "~" and we change directory to the remote `$HOME'. We
+          ;; can always use `cd' with no args to return to local `$HOME'.
           ((string-prefix-p (getenv "HOME") directory)
            (concat remote-prefix
                    (replace-regexp-in-string (concat (getenv "HOME") "/?")
                                              ""
                                              directory)))
-          ;; If `directory' starts with "/" this it's an absolute path
-          ;; but we want to make it relative to the remote host,
-          ;; rather than localhost.
+          ;; If `directory' starts with "/" then it's an absolute path but we
+          ;; want to make it relative to the remote host, rather than localhost.
           ((string-prefix-p "/" directory)
            (concat remote-prefix directory))
           (t
            directory)))
      directory)))
 
-(advice-add #'eshell/cd :around #'eshell/cd-advice)
+(advice-add #'eshell/cd :around #'eshell-path-advice)
+(advice-add #'eshell/e :around #'eshell-path-advice)
+(advice-add #'eshell/ee :around #'eshell-path-advice)
 
 (defun eshell/really-clear (f &rest args)
   "Call `eshell/clear' with an argument to really clear the buffer."
@@ -1706,6 +1722,13 @@ Examples:
         (let ((node-exists (ignore-errors (Info-menu subject))))
           (if (not node-exists)
               (format "No menu item `%s' in node `(dir)Top'." subject))))))
+
+(defun eshell-create-send (cmd &optional name)
+  "Create an eshell buffer and run a command in it."
+  (let ((eshell-buffer-name (or name cmd)))
+    (eshell))
+  (insert cmd)
+  (eshell-queue-input))
 
 (defun eshell-vertical-create-send (cmd &optional name)
   "Split the window vertically, create an eshell buffer there, and run a command"
@@ -1819,6 +1842,7 @@ initialize the Eshell environment."
 
 (use-package eshell
   :custom
+  (eshell-banner-message "")
   (eshell-buffer-shorthand t)
   (eshell-scroll-to-bottom-on-input 'all)
   (eshell-error-if-no-glob t)
@@ -1975,7 +1999,7 @@ shell is left intact."
 ;; Install Org from git
 ;; https://github.com/raxod502/straight.el#installing-org-with-straightel
 (require 'subr-x)
-(use-package git)
+(straight-use-package 'git)
 
 (defun org-git-version ()
   "The Git version of org-mode.
@@ -2014,6 +2038,8 @@ Inserted by installing org-mode or when a release is made."
   (org-special-ctrl-a/e t)
   ;; Smart C-k
   (org-special-ctrl-k t)
+  ;; Insert a row in tables
+  (org-special-ctrl-o t)
   ;; Customize todo keywords
   (org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WIP(w)" "|" "DONE(d!)")))
   (org-todo-keyword-faces '(("TODO" (:foreground "orange" :weight bold))
@@ -2074,6 +2100,13 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package nov
   :mode "\\.epub\\'")
+
+(use-package pdf-tools
+  :config
+  (pdf-tools-install)
+  :bind
+  (:map pdf-view-mode-map
+        ("s-f" . isearch-forward)))
 
 ;; Doesn't seem to work. Probably API changed?
 ;; (use-package org-wunderlist
@@ -2269,24 +2302,24 @@ Inserted by installing org-mode or when a release is made."
   :config
   (counsel-projectile-mode)
   :bind
-  (:map counsel-projectile-map
-        ("M-s-p" . counsel-projectile-switch-to-buffer)
-        ("s-p" . counsel-projectile)
-        ("s-P" . counsel-projectile-switch-project)
-        ("s-t" . counsel-imenu)
-        ("M-s-f" . counsel-projectile-rg)))
+  ("M-s-p" . counsel-projectile-switch-to-buffer)
+  ("s-p" . counsel-projectile)
+  ("s-P" . counsel-projectile-switch-project)
+  ("s-t" . counsel-imenu)
+  ("M-s-f" . counsel-projectile-rg))
 
 (use-package imenu-anywhere
   :bind
   (("s-r" . ivy-imenu-anywhere)))
 
 (use-package dumb-jump
-  :init
-  (progn
-    (setq dumb-jump-selector 'ivy)
-    (setq dumb-jump-prefer-searcher 'rg))
-  :config
-  (dumb-jump-mode)
+  :custom
+  (dumb-jump-selector 'ivy)
+  (dumb-jump-prefer-searcher 'rg)
+  :hook
+  (prog-mode . dumb-jump-mode)
+  ;; dumb-jump shadows some Eshell key bindings, and is not useful there anyway
+  (eshell-mode . (lambda () (dumb-jump-mode -1)))
   :bind
   (("s-j" . dumb-jump-go-prompt)
    ("s-." . dumb-jump-go)
@@ -2297,8 +2330,8 @@ Inserted by installing org-mode or when a release is made."
 ;;; Version Control
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; git
-(add-to-list 'auto-mode-alist '("\\.gitignore\\'" . conf-mode))
+;; git config files
+(add-to-list 'auto-mode-alist '("\\.git\\(?:config\\|ignore\\).*" . conf-mode))
 
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
@@ -2546,6 +2579,9 @@ git repo, optionally specified by DIR."
 ;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
 (add-to-list 'auto-coding-alist '("\\.nfo\\'" . ibm437))
 
+;; systemd
+(add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))
+
 (use-package quickrun
   :commands
   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
@@ -2555,8 +2591,8 @@ git repo, optionally specified by DIR."
 ;;   (("M-," . goto-last-change)))
 
 (use-package sly
-  :init
-  (setq inferior-lisp-program "/usr/local/bin/sbcl")
+  :custom
+  (inferior-lisp-program "/usr/local/bin/sbcl")
   :bind
   (:map sly-prefix-map
         ("M-h" . sly-documentation-lookup)))
@@ -2687,9 +2723,9 @@ git repo, optionally specified by DIR."
   (defun reinstate-comint-simple-send ()
     (unless inf-clojure-minor-mode
       (setq-local comint-send-input 'comint-simple-send)))
-  :hook
-                                        ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
-  (comint-mode . reinstate-comint-simple-send)
+  ;; :hook
+  ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
+  ;; (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
         ("s-<return>" . inf-clojure-eval-last-sexp)
@@ -2732,8 +2768,8 @@ git repo, optionally specified by DIR."
 
 (use-package markdown-mode
   :mode "\\.md\\|markdown\\'"
-  :init
-  (setq markdown-command "multimarkdown"))
+  :custom
+  (markdown-command "multimarkdown"))
 
 (use-package htmlize
   :bind
@@ -2775,8 +2811,8 @@ git repo, optionally specified by DIR."
 
 (use-package nginx-mode
   :defer 2
-  :config
-  (setq nginx-indent-level tab-width))
+  :custom
+  (nginx-indent-level tab-width))
 
 (use-package yaml-mode
   :mode "\\.ya\?ml\\'")
@@ -2814,14 +2850,13 @@ git repo, optionally specified by DIR."
   (web-mode . m-web-mode-hook))
 
 (use-package js2-mode
-  :init
-  ;; Set tab width for js-mode and json-mode
-  (setq js-indent-level tab-width)
   :mode "\\.js\\'"
-  :hook
-  (js2-mode . js2-imenu-extras-mode)
   :custom
-  (js2-basic-offset tab-width))
+  (js2-basic-offset tab-width)
+  ;; Set tab width for js-mode and json-mode
+  (js-indent-level tab-width)
+  :hook
+  (js2-mode . js2-imenu-extras-mode))
 
 (use-package rjsx-mode
   :mode "\\.jsx\\'")
@@ -2925,7 +2960,6 @@ git repo, optionally specified by DIR."
 
 (require 'highlight-things)
 
-;; ** TODO: Get pointhistory to work
 (require 'm-pointhistory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

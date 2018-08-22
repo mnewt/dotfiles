@@ -63,8 +63,7 @@ Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
 Example:
 pwd: =/sshx:host:/some/path=
 =cd :/other/path= => =/sshx:host:/other/path=
-
-** DONE Fix yank-pop deleting a bunch more than the previous yank       :bug:
+** DONE Fix yank-pop deleting a bunch more than the previous yank      :bug:
 What are repro steps? Does this happen only when there are characters on
 the line after point? 
 
@@ -73,10 +72,8 @@ as normal, then insert it at point.
 
 All that sounded great, but when I removed the kludgey advice I had created,
 everything seemed to work. Not sure what changed but super.
-
 ** DONE Make solarized theme colors work with eshell
-
-** DONE Fix org-mode <s expansion                                       :bug:
+** DONE Fix org-mode <s expansion                                      :bug:
 Had to do with running HEAD version of org-mode. Stopped that.
 ** DONE Improve and unify persistence
 ** DONE Add script to set up new computer
@@ -89,7 +86,12 @@ Had to do with running HEAD version of org-mode. Stopped that.
 ** DONE M-x shell bash completion
 *** https://github.com/szermatt/emacs-bash-completion
 ** DONE outline-minor-mode should not trample on key binding "M-<up>"
-** DONE Advise =eshell/cd= such that paths starting with "/" and "~" are interpreted relative to the remote host
+** DONE Advise =eshell/cd= such that paths starting with "/" and "~" are interpreted relative to the remote host [2/2]
+- State "DONE"       from "WIP"        [2018-08-22 Wed 09:01]
+*** DONE cd
+- State "DONE"       from "TODO"       [2018-08-22 Wed 08:47]
+*** DONE e, ee
+- State "DONE"       from "TODO"       [2018-08-22 Wed 09:01]
 ** DONE "s-n" should create a new scratch buffer
 ** DONE Add git-ls-files command
 https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-ls-files-in-magit#25227438
@@ -97,12 +99,21 @@ https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-l
 - State "DONE"       from "WIP"        [2018-08-19 Sun 08:29]
 *** "WIP"
 *** "NEXT"
+** TODO How to manage package version pinning in =straight.el=?
+** TODO Package regression: clojure-mode: =end-of-defun= skips two top level forms
+** TODO Package regression: org-mode: easy templates don't expand
 ** TODO Implement =grc= in elisp
 ** TODO Get Eshell/tramp to cache and/or save passwords [2/3]
 Enable logging with =(setq auth-source-debug t)=
 *** DONE For the user
 *** DONE For sudo/sudoers - alias for su/sudo?
 *** TODO What about when sudo is called in other ways, such as from a script? It doesn't seem to cache the password then.
+*** TODO How to ignore password prompting for just for a specific command?
+See:
+#+BEGIN_SRC emacs-lisp
+(add-hook 'comint-output-filter-functions
+          'comint-watch-for-password-prompt)
+#+END_SRC
 ** TODO Fix Eshell / tramp tab completion adding a space after the file name
 ** TODO Fix Eshell bouncing shell output up and down
 ** TODO Find and squash causes of unresponsiveness when editing remote files
