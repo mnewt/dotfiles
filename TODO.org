@@ -105,8 +105,19 @@ https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-l
 - State "DONE"       from "DONE"       [2018-08-22 Wed 15:39]
 ** DONE Package regression: org-mode: easy templates don't expand
 - State "DONE"       from "TODO"       [2018-08-22 Wed 15:40]
-** WIP Implement =grc= in elisp
-** TODO Get Eshell/tramp to cache and/or save passwords [2/3]
+** DONE w3m easily view buffer in appropriate mode
+- State "DONE"       from "TODO"       [2018-08-22 Wed 20:53]
+Such as displaying a markdown file in `markdown-mode`. Maybe just copy the buffer to another buffer and change mode based on the original buffer's file name?
+NOTE: This isn't completely done, but =language-detection= does most of what we want.
+** DONE Add indicators to modeline for: [3/3]
+- State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
+*** DONE outline-minor-mode
+- State "DONE"       from "TODO"       [2018-08-23 Thu 11:57]
+*** DONE hs-minor-mode
+- State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
+*** DONE Narrowing
+- State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
+** WIP Get Eshell/tramp to cache and/or save passwords [2/3]
 Enable logging with =(setq auth-source-debug t)=
 *** DONE For the user
 *** DONE For sudo/sudoers - alias for su/sudo?
@@ -117,24 +128,24 @@ See:
 (add-hook 'comint-output-filter-functions
           'comint-watch-for-password-prompt)
 #+END_SRC
+** WIP Implement =grc= in elisp
 ** TODO Fix Eshell / tramp tab completion adding a space after the file name
 This is a result of my config. Maybe the Eshell completion packages?
+** TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
+*** TODO Editing
+*** TODO Eshell
 ** TODO Fix Eshell bouncing shell output up and down
-** TODO Find and squash causes of unresponsiveness when editing remote files
+** TODO =copy-region-other-window= and =move-region-other-window= should also copy the line if no region is selected
+** TODO Get =pointhistory= to work
+Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
+** TODO Desktop should restore eshell buffers
+=desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
 ** TODO Organize or even get rid of mac-key-mode
+** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
+The way I first implemented this is not ideal. It should only back up dirty files.
+** TODO Make Eshell prompt look good with a light theme
 ** TODO term-mode filter out escape sequence
 This happens when running =fish= in =shell-mode=:
 =]0;fish=
 Guessing this is the (remains of the?) xterm sequence to set the title?
-** TODO =copy-region-other-window= and =move-region-other-window= should also copy the line if no region is selected
-** TODO Get =pointhistory= to work
-Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
-** TODO Add indicator to modeline when narrowing
-** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
-The way I first implemented this is not ideal. It should only back up dirty files.
-** TODO Desktop should restore eshell buffers
-=desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
-** TODO w3m easily view buffer in appropriate mode
-Such as displaying a markdown file in `markdown-mode`. Maybe just copy the buffer to another buffer and change mode based on the original buffer's file name?
-** TODO Make Eshell prompt look good with a light theme
 ** TODO Fix modeline sometimes getting stuck on old colors when theme is switched

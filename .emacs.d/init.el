@@ -265,7 +265,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   (defun activate-theme-dracula ()
     (setq face-remapping-alist
           '((m-inactive0 :background "#262834" :foreground "#565861")
-            (m-active0 :background "#565861" :foreground "#E6E7E8")
+            (m-active0 :background "#565861" :foreground "#9E9FA5")
             (m-inactive1 :background "#262834" :foreground "#565861")
             (m-active1 :background "#565861" :foreground "#E6E7E8")
             (m-inactive2 :background "#262834" :foreground "#565861")
@@ -394,6 +394,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (use-package powerline
   :custom
   (powerline-default-separator nil)
+  (powerline-narrowed-indicator "n")
   :init
   (set-face-attribute 'mode-line nil :box nil)
   :config
@@ -408,38 +409,48 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                           (face2 (if active 'm-active2 'm-inactive2))
                           (face3 (if active 'm-active3 'm-inactive3))
                           (face4 (if active 'm-active4 'm-inactive4))
+                          (lhs (list (powerline-raw " " face1)
+                                     (powerline-major-mode face2 'l)
+                                     (powerline-raw " " face2)
+                                     ;; (powerline-vc face1 'r)
+                                     (if (eq major-mode 'term-mode)
+                                         (powerline-raw
+                                          (cond
+                                           ((term-in-char-mode) " (char-mode) ")
+                                           ((term-in-line-mode) " (line-mode) ")
+                                           (t ""))
+                                          face1))))
                           (center (list (powerline-raw "%*" face1 'l)
-                                        (powerline-raw (if (file-remote-p default-directory)
-                                                           (concat " "
-                                                                   (tramp-file-name-host (tramp-dissect-file-name default-directory))
-                                                                   " ")
-                                                         "")
-                                                       face4)
+                                        (powerline-raw
+                                         (if (file-remote-p default-directory)
+                                             (concat " "
+                                                     (tramp-file-name-host
+                                                      (tramp-dissect-file-name
+                                                       default-directory))
+                                                     " ")
+                                           "")
+                                         face4)
                                         (powerline-raw " " face3)
                                         (powerline-raw (buffer-name) face3 'm)
                                         (powerline-raw " " face3)
                                         (powerline-raw "%*" face1 'r)))
                           (rhs (if active
-                                   (list (if (fboundp #'eyebrowse-mode-line-indicator)  (eyebrowse-mode-line-indicator))
+                                   (list (if (and (boundp 'outline-minor-mode)
+                                                  outline-minor-mode)
+                                             (powerline-raw "o" face0))
+                                         (if (and (boundp 'hs-minor-mode)
+                                                  hs-minor-mode)
+                                             (powerline-raw "h" face0))
+                                         (powerline-narrow face0)
+                                         (powerline-raw " " face0)
+                                         (if (fboundp #'eyebrowse-mode-line-indicator)
+                                             (eyebrowse-mode-line-indicator))
                                          (powerline-raw global-mode-string face0 'r)
                                          (powerline-raw " " face0)
-                                         (powerline-raw "%l" face0 'r)
-                                         (powerline-raw ":" face0)
-                                         (powerline-raw "%c" face0 'r)
-                                         (powerline-hud face3 face0))))
-                          (lhs (list (powerline-raw " " face1)
-                                     (powerline-major-mode face2 'l)
-                                     (powerline-raw " " face2)
-                                     (powerline-vc face0 'r)
-                                     (powerline-raw " " face1)
-                                     (powerline-raw (if (eq major-mode 'term-mode)
-                                                        (cond
-                                                         ((term-in-char-mode) " (char-mode)")
-                                                         ((term-in-line-mode) " (line-mode)")
-                                                         (t ""))
-                                                      "")
-                                                    face1)
-                                     (powerline-raw " " face1))))
+                                         (powerline-raw "%l" face1 'r)
+                                         (powerline-raw ":" face1)
+                                         (powerline-raw "%c" face1 'r)
+                                         (powerline-hud face3 face1)))))
                      (concat (powerline-render lhs)
                              (powerline-fill-center face1 (/ (powerline-width center) 2.0))
                              (powerline-render center)
@@ -1067,8 +1078,7 @@ the end of each line."
   (("s-z" . undo-tree-undo)
    ("s-Z" . undo-tree-redo)
    ("s-y" . undo-tree-redo)
-   ("M-s-z" . undo-tree-visualize)
-   ("M-s-ω" . undo-tree-visualize)))
+   ("M-s-z" . undo-tree-visualize)))
 
 (use-package easy-kill
   :bind
@@ -1096,10 +1106,11 @@ the end of each line."
   :bind
   (("C-S-c C-S-c" . mc/edit-lines)
    ("M-s-m" . mc/edit-lines)
-   ("M-s-µ" . mc/edit-lines)
    ("C->" . mc/mark-next-like-this)
-   ("C-<" . mc/mark-previous-like-this)
-   ("C-c C-<" . mc/mark-all-like-this)
+   ("C-<" . mc/unmark-next-like-this)
+   ("C-M-<" . mc/mark-previous-like-this)
+   ("C-M->" . mc/unmark-previous-like-this)
+   ("C-c >" . mc/mark-all-dwim)
    ("C-c C-a"  . mc/mark-all-dwim)))
 
 (use-package mc-extras
