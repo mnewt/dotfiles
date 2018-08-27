@@ -109,7 +109,7 @@ https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-l
 - State "DONE"       from "TODO"       [2018-08-22 Wed 20:53]
 Such as displaying a markdown file in `markdown-mode`. Maybe just copy the buffer to another buffer and change mode based on the original buffer's file name?
 NOTE: This isn't completely done, but =language-detection= does most of what we want.
-** DONE Add indicators to modeline for: [3/3]
+** DONE Add indicators to modeline for: [3/3] 
 - State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
 *** DONE outline-minor-mode
 - State "DONE"       from "TODO"       [2018-08-23 Thu 11:57]
@@ -117,6 +117,17 @@ NOTE: This isn't completely done, but =language-detection= does most of what we 
 - State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
 *** DONE Narrowing
 - State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
+** DONE =ssh= Can't run commands at all
+- State "DONE"       from "TODO"       [2018-08-26 Sun 08:47]
+Error: =Wrong type argument, stringp, nil=
+** TODO Should we implement straigh.el transaction system for init.el?
+** TODO Eshell =rm= hangs when pressing =RET=
+Actually, it is working, it just takes a long time and gives zero feedback. Can we fix this?
+*** Takes too long
+*** Gives zero feedback (doesn't even go to new line when pressing =RET= until it is completely done)
+*** Outputs =t= for each file deleted. It should give the same feedback as =*mv=.
+** TODO Try emacs-geeknote fork
+https://github.com/vxe/emacs-geeknote
 ** WIP Get Eshell/tramp to cache and/or save passwords [2/3]
 Enable logging with =(setq auth-source-debug t)=
 *** DONE For the user
@@ -129,7 +140,9 @@ See:
           'comint-watch-for-password-prompt)
 #+END_SRC
 ** WIP Implement =grc= in elisp
+=highlight-things.el=
 ** TODO Fix Eshell / tramp tab completion adding a space after the file name
+- State "DONE"       from "WIP"        [2018-08-23 Thu 15:16]
 This is a result of my config. Maybe the Eshell completion packages?
 ** TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
 *** TODO Editing

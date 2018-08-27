@@ -12,7 +12,7 @@
 
 ;; Give Emacs 1GB of heap but run gc on idle.
 (setq gc-cons-threshold 1073741824)
-(run-with-idle-timer 3 t (lambda () (garbage-collect)))
+(run-with-idle-timer 30 t (lambda () (garbage-collect)))
 
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
@@ -59,35 +59,24 @@
 
 (advice-add 'package-installed-p :around 'straight--advice-package-installed-p)
 
-(defun straight-merge-unpinned (&optional from-upstream predicate)
+(defun m-straight-merge-all (&optional from-upstream)
   "Try to merge all packages from their primary remotes.
 With prefix argument FROM-UPSTREAM, merge not just from primary
 remotes but also from configured upstreams.
 
-Return a list of recipes for packages that were not successfully
-merged. If multiple packages come from the same local
-repository, only one is merged.
-
-PREDICATE, if provided, filters the packages that are merged. It
-is called with the package name as a string, and should return
-non-nil if the package should actually be merged.
-
-PREDICATE is automatically modified so that packages in the list
-`my-pinned-packages' are not merged."
+Do not merge packages listed in `my-pinned-packages'."
   (interactive "P")
-  (straight--map-existing-repos-interactively
+  (straight-merge-all
+   from-upstream
    (lambda (package)
-     (straight-merge-package package from-upstream))
-   (lambda (package)
-     (and (not (member package straight-pinned-packages))
-          (or (null predicate) (funcall predicate package))))))
+     (not (member package m-straight-pinned-packages)))))
 
 ;; Packages in this list do not get updated when `update-packages' runs.
 ;; Therefore, they stay at their current version until manually updated in some
 ;; way, perhaps with `straight-merge-package'. See
 ;; https://github.com/raxod502/straight.el/issues/246#issuecomment-415085772.
-(setq straight-pinned-packages
-      '(clojure-mode org-mode))
+(setq m-straight-pinned-packages
+      '(org-mode))
 
 ;; use-package is good
 (eval-when-compile
@@ -99,7 +88,7 @@ PREDICATE is automatically modified so that packages in the list
   (interactive)
   (straight-normalize-all)
   (straight-fetch-all)
-  (straight-merge-unpinned))
+  (m-straight-merge-all))
 
 (use-package epkg
   :commands
@@ -123,19 +112,15 @@ PREDICATE is automatically modified so that packages in the list
 (defun source-sh (filename)
   "Update environment variables from a shell source file."
   (interactive "fSource file: ")
-
   (message "Sourcing environment from `%s'..." filename)
   (with-temp-buffer
-
     (shell-command (format "diff -u <(true; export) <(source %s; export)" filename) '(4))
-
     (let ((envvar-re "declare -x \\([^=]+\\)=\\(.*\\)$"))
       ;; Remove environment variables
       (while (search-forward-regexp (concat "^-" envvar-re) nil t)
         (let ((var (match-string 1)))
           (message "%s" (prin1-to-string `(setenv ,var nil)))
           (setenv var nil)))
-
       ;; Update environment variables
       (goto-char (point-min))
       (while (search-forward-regexp (concat "^+" envvar-re) nil t)
@@ -189,8 +174,7 @@ PREDICATE is automatically modified so that packages in the list
 
 ;; eww uses this, among others.
 (set-face-attribute 'variable-pitch nil
-                    :family "Georgia"
-                    :height 1.5)
+                    :family "Georgia")
 
 ;; Base faces for modeline
 (defface m-inactive0 '((t (:inherit mode-line-inactive)))
@@ -528,11 +512,16 @@ When using Homebrew, install it using \"brew install trash\"."
       ;; mouse wheel works horizontally as well
       mouse-wheel-tilt-scroll t)
 
-;; Enable `goto-address-mode' globally
-(define-globalized-minor-mode global-goto-address-mode goto-address-mode
-  (lambda ()
-    (goto-address-mode t)))
-(global-goto-address-mode t)
+(use-package goto-addr
+  :hook ((compilation-mode . goto-address-mode)
+         (prog-mode . goto-address-prog-mode)
+         (eshell-mode . goto-address-mode)
+         (shell-mode . goto-address-mode))
+  :bind (:map goto-address-highlight-keymap
+              ("<RET>" . goto-address-at-point)
+              ("M-<RET>" . newline))
+  :commands (goto-address-prog-mode
+             goto-address-mode))
 
 ;; Enable ido for the few functions that don't have ivy coverage.
 (setq ido-enable-flex-matching t)
@@ -638,6 +627,8 @@ When using Homebrew, install it using \"brew install trash\"."
 (use-package tldr
   :init
   (unbind-key "C-h t")
+  :custom
+  (tldr-enabled-categories '("common" "linux" "osx"))
   :bind
   (("C-h t t" . tldr)
    ("C-h t u" . tldr-update-docs)))
@@ -667,7 +658,6 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; Navigating with mark
 (bind-keys ("M-s-," . pop-to-mark-command)
-           ("M-s-≤" . pop-to-mark-command)
            ("s-," . pop-global-mark))
 
 ;; Quick switch buffers using standard macOS tab movement bindings
@@ -675,14 +665,15 @@ When using Homebrew, install it using \"brew install trash\"."
            ("s-{" . previous-buffer))
 
 ;; scratch
-(setq initial-scratch-message nil)
+(setq initial-scratch-message nil
+      initial-major-mode 'org-mode)
 
 (defun new-scratch-buffer ()
    "Create a scratch buffer."
    (interactive)
    (switch-to-buffer (get-buffer-create "<untitled>"))
    (setq buffer-file-name "untitled")
-   (lisp-interaction-mode))
+   (org-mode))
 
 (bind-key "s-n" #'new-scratch-buffer)
 
@@ -694,7 +685,6 @@ When using Homebrew, install it using \"brew install trash\"."
   (kill-buffer-and-window))
 
 (bind-keys ("M-s-w" . kill-buffer-and-window)
-           ("M-s-∑" . kill-buffer-and-window)
            ("M-s-W" . kill-other-buffer-and-window))
 
 ;; https://www.emacswiki.org/emacs/ToggleWindowSplit
@@ -1512,11 +1502,10 @@ ID, ACTION, CONTEXT."
                   (add-hook 'comint-preoutput-filter-functions
                             'xterm-color-filter nil t))))
 
-;; `devel' branch is needed to support Emacs 27.
-(straight-use-package
- '(eterm-256color :type git :host github :repo "dieggsy/eterm-256color" :branch "devel"))
-
 (use-package eterm-256color
+  ;; `devel' branch is needed to support Emacs 27.
+  :straight
+  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel")
   :hook
   (term-mode . eterm-256color-mode))
 
@@ -2078,6 +2067,11 @@ Inserted by installing org-mode or when a release is made."
 ;;; Search, Completion, Symbols, Project Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(use-package re-builder
+  :custom
+  ;; string syntax means you don't need to double escape things.
+  (reb-re-syntax 'string))
+
 (use-package wgrep
   :bind
   (("C-c C-p" . wgrep-change-to-wgrep-mode)))
@@ -2531,9 +2525,9 @@ git repo, optionally specified by DIR."
 ;; systemd
 (add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))
 
-(use-package quickrun
-  :commands
-  (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
+;; (use-package quickrun
+;;   :commands
+;;   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
 
 ;; (use-package goto-last-change
 ;;   :bind
@@ -2666,14 +2660,14 @@ git repo, optionally specified by DIR."
   :config
   (defun inf-clojure-start-lumo ()
     (interactive)
-    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode
-              (inf-clojure-minor-mode)
-              (inf-clojure "lumo -d")))
-  (defun reinstate-comint-simple-send ()
-    (unless inf-clojure-minor-mode
-      (setq-local comint-send-input 'comint-simple-send)))
+    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
+    (inf-clojure-minor-mode)
+    (inf-clojure "lumo -d"))
+  ;; (defun reinstate-comint-simple-send ()
+  ;;   (unless inf-clojure-minor-mode
+  ;;     (setq-local comint-send-input 'comint-simple-send)))
   ;; :hook
-  ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
+  ;; ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
   ;; (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
@@ -2738,10 +2732,10 @@ git repo, optionally specified by DIR."
 (use-package docker-tramp
   :defer 2)
 
-(use-package bash-completion
-  :init
-  (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
-  :commands bash-completion-dynamic-complete)
+;; (use-package bash-completion
+;;   :init
+;;   (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
+;;   :commands bash-completion-dynamic-complete)
 
 (use-package csv-mode
   :mode "\\.csv\\'")
@@ -2750,13 +2744,13 @@ git repo, optionally specified by DIR."
   :custom (fish-indent-offset tab-width)
   :mode "\\.fish\\'")
 
-(use-package fish-completion
-  :defer 2
-  :custom (fish-completion-fallback-on-bash-p t)
-  :config
-  (when (and (executable-find "fish")
-             (require 'fish-completion nil t)))
-  (global-fish-completion-mode))
+;; (use-package fish-completion
+;;   :defer 2
+;;   :custom (fish-completion-fallback-on-bash-p t)
+;;   :config
+;;   (when (and (executable-find "fish")
+;;              (require 'fish-completion nil t)))
+;;   (global-fish-completion-mode))
 
 (use-package nginx-mode
   :defer 2
