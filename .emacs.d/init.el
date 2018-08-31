@@ -500,18 +500,6 @@ When using Homebrew, install it using \"brew install trash\"."
   ('darwin (config-macos))
   ('windows-nt (config-windows-nt)))
 
-;; slow down mouse wheel scrolling
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil))
-      scroll-margin 1
-      scroll-conservatively 1
-      scroll-up-aggressively 0.01
-      scroll-down-aggressively 0.01
-      mouse-wheel-progressive-speed 1
-      scroll-up-aggressively 0.01
-      scroll-down-aggressively 0.01
-      ;; mouse wheel works horizontally as well
-      mouse-wheel-tilt-scroll t)
-
 (use-package goto-addr
   :hook ((compilation-mode . goto-address-mode)
          (prog-mode . goto-address-prog-mode)
@@ -551,8 +539,8 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; recentf
 (setq recentf-max-saved-items 500
       recentf-max-menu-items 15
-      ;; Disable recentf-cleanup on Emacs start, because it can cause
-      ;; problems with remote files.
+      ;; Disable recentf-cleanup on Emacs start because it can cause problems
+      ;; with remote files.
       recentf-auto-cleanup 'never)
 
 (recentf-mode 1)
@@ -634,7 +622,8 @@ When using Homebrew, install it using \"brew install trash\"."
    ("C-h t u" . tldr-update-docs)))
 
 (use-package info-colors
-  :defer 1
+  :commands
+  (info-colors-fontify-node)
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
@@ -863,7 +852,10 @@ the end of each line."
         (column (current-column)))
     (mark-whole-buffer)
     (replace-string "
-      " "")
+" "")
+    (mark-whole-buffer)
+    (replace-string "" "
+")
     (goto-line line)
     (move-to-column column)))
 
@@ -1436,6 +1428,8 @@ ID, ACTION, CONTEXT."
   (interactive (list (ssh-choose-host)))
   (find-file (concat "/sshx:" host ":")))
 
+()
+
 (use-package ssh
   :custom
   (ssh-directory-tracking-mode 'ftp)
@@ -1504,6 +1498,7 @@ ID, ACTION, CONTEXT."
 
 (use-package eterm-256color
   ;; `devel' branch is needed to support Emacs 27.
+  ;; https://github.com/dieggsy/eterm-256color/pull/9#issuecomment-403229541
   :straight
   (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel")
   :hook
@@ -1764,6 +1759,7 @@ initialize the Eshell environment."
   (add-to-list 'eshell-visual-commands "htop")
   (add-to-list 'eshell-visual-commands "mbsync")
   (add-to-list 'eshell-visual-commands "ncdu")
+  (add-to-list 'eshell-visual-commands "nnn")
   (add-to-list 'eshell-visual-commands "nvim")
   (add-to-list 'eshell-visual-commands "ssh")
   (add-to-list 'eshell-visual-commands "tail")
@@ -1967,6 +1963,11 @@ Inserted by installing org-mode or when a release is made."
 
 (provide 'org-version)
 
+(defun search-org-files ()
+  "Search ~/org"
+  (interactive)
+  (counsel-rg nil "~/org"))
+
 (use-package org
   :custom
   (org-directory "~/org")
@@ -1988,7 +1989,8 @@ Inserted by installing org-mode or when a release is made."
   ("C-c l" . org-store-link)
   ("C-c a" . org-agenda)
   ("C-c c" . org-capture)
-  ("C-c b" . org-switchb))
+  ("C-c b" . org-switchb)
+  ("C-c s" . search-org-files))
 
 ;; Calendar and Journal
 
@@ -2114,10 +2116,10 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package company-shell
   :config
-  (setq-local shell-backends '(company-shell company-shell-env))
-  (if (executable-find "fish")
-      (add-to-list 'shell-backends 'company-fish-shell))
-  (add-to-list 'company-backends shell-backends))
+  (let ((shell-backends '(company-shell company-shell-env)))
+    (if (executable-find "fish")
+        (add-to-list 'shell-backends 'company-fish-shell))
+    (add-to-list 'company-backends shell-backends)))
 
 (use-package pcre2el
   :hook

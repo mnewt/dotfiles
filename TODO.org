@@ -120,7 +120,18 @@ NOTE: This isn't completely done, but =language-detection= does most of what we 
 ** DONE =ssh= Can't run commands at all
 - State "DONE"       from "TODO"       [2018-08-26 Sun 08:47]
 Error: =Wrong type argument, stringp, nil=
-** TODO Should we implement straigh.el transaction system for init.el?
+** DONE Make function to search =~/org=
+- State "DONE"       from "TODO"       [2018-08-30 Thu 11:56]
+"C-c s"
+** DONE Fix tldr.el
+- State "DONE"       from "TODO"       [2018-08-30 Thu 11:58]
+Apparently the issue can be worked around by first running =tldr-update-docs=
+** WIP Fix Eshell/shell/term bouncing shell output up and down [1/3]
+Not sure if these are all the same issue. Fix term first, see if it affects the others.
+*** DONE term - it isn't the same issue. It was the mouse scroll settings that appear to be completely unnecessary anyway. Removed them and it helped term-mode updates a lot. Did not affect shell/eshell bouncing.
+- State "DONE"       from "TODO"       [2018-08-31 Fri 11:03]
+*** TODO shell
+*** TODO eshell
 ** TODO Eshell =rm= hangs when pressing =RET=
 Actually, it is working, it just takes a long time and gives zero feedback. Can we fix this?
 *** Takes too long
@@ -147,7 +158,6 @@ This is a result of my config. Maybe the Eshell completion packages?
 ** TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
 *** TODO Editing
 *** TODO Eshell
-** TODO Fix Eshell bouncing shell output up and down
 ** TODO =copy-region-other-window= and =move-region-other-window= should also copy the line if no region is selected
 ** TODO Get =pointhistory= to work
 Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?

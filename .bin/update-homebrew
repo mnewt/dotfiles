@@ -3,8 +3,8 @@
 
 # Test if $1 contains $2
 contains () {
-  case "$2" in
-    *"$1"*)
+  case "$1" in
+    *"$2"*)
       return 0 ;;
     *)
       return 1 ;;
@@ -20,13 +20,13 @@ if installed brew; then
   brew update
   brew upgrade
   if contains "$*" "--HEAD"; then
+    echo Reinstalling packages which are set at version HEAD...
     brew ls --versions | awk '/HEAD/ {print $1}' | xargs brew reinstall --HEAD
   fi
+  brew cask upgrade
   brew cleanup
   brew prune
   brew doctor
-  brew cask upgrade
-  brew cask cleanup
 else
   echo "Hombrew is not installed, skipping"
 fi
