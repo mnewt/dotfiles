@@ -55,3 +55,4 @@
 --exclude=build
 --exclude=out
 --exclude=package-lock.json
+--exclude=.lumo_cache

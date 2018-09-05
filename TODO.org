@@ -126,6 +126,22 @@ Error: =Wrong type argument, stringp, nil=
 ** DONE Fix tldr.el
 - State "DONE"       from "TODO"       [2018-08-30 Thu 11:58]
 Apparently the issue can be worked around by first running =tldr-update-docs=
+** DONE Fix Eshell / tramp tab completion adding a space after the file name
+- State "DONE"       from "TODO"       [2018-09-05 Wed 13:20]
+- State "DONE"       from "WIP"        [2018-08-23 Thu 15:16]
+This is a result of my config. Maybe the Eshell completion packages?
+It's either:
+*** DONE bash-completion
+- State "DONE"       from "TODO"       [2018-09-05 Wed 13:19]
+*** DONE fish-completion
+- State "DONE"       from "TODO"       [2018-09-05 Wed 13:20]
+Yes, it was fish-completion
+** TODO Automatically create/update =TAGS= file when =xref-find-definitions= is called
+How does =xref-find-definitions decide whether or not to use =TAGS= file? It doesn't seem to use it for elisp.
+** TODO Ugh, broke Windows Emacs again. [/]
+*** TODO sly - Make it compatible or else don't load it on Windows
+*** TODO Remove =mac-key-mode-map= references in main config file. Time to properly clean it up?
+*** TODO Fix Eshell
 ** WIP Fix Eshell/shell/term bouncing shell output up and down [1/3]
 Not sure if these are all the same issue. Fix term first, see if it affects the others.
 *** DONE term - it isn't the same issue. It was the mouse scroll settings that appear to be completely unnecessary anyway. Removed them and it helped term-mode updates a lot. Did not affect shell/eshell bouncing.
@@ -152,9 +168,6 @@ See:
 #+END_SRC
 ** WIP Implement =grc= in elisp
 =highlight-things.el=
-** TODO Fix Eshell / tramp tab completion adding a space after the file name
-- State "DONE"       from "WIP"        [2018-08-23 Thu 15:16]
-This is a result of my config. Maybe the Eshell completion packages?
 ** TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
 *** TODO Editing
 *** TODO Eshell
@@ -171,4 +184,4 @@ The way I first implemented this is not ideal. It should only back up dirty file
 This happens when running =fish= in =shell-mode=:
 =]0;fish=
 Guessing this is the (remains of the?) xterm sequence to set the title?
-** TODO Fix modeline sometimes getting stuck on old colors when theme is switched
+** DONE Fix modeline sometimes getting stuck on old colors when theme is switched

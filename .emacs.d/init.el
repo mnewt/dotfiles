@@ -601,7 +601,6 @@ When using Homebrew, install it using \"brew install trash\"."
    ("C-h v" . helpful-variable)))
 
 (use-package which-key
-  :defer 1
   :config
   (which-key-mode t)
   :bind
@@ -1437,8 +1436,8 @@ ID, ACTION, CONTEXT."
   (ssh-mode . (lambda ()
                 (shell-dirtrack-mode t)
                 (setq dirtrackp nil)))
-  :bind
-  ("C-c C-s" . ssh))
+  :commands
+  (ssh))
 
 (eval-after-load 'sh
   (lambda ()
@@ -2087,6 +2086,22 @@ Inserted by installing org-mode or when a release is made."
   :hook
   (rg-mode . wgrep-ag-setup))
 
+(use-package counsel-etags
+  :custom
+  ;; TODO: Get this working with Clojure (ctags parses namespaces but
+  ;; `counsel-etags-find-tag-at-point' doesn't. Wouldn't this be `clojure-mode's
+  ;; responsibility? I'm pretty sure it keys off of sexp
+  (tags-revert-without-query t)
+  ;; Don't warn when TAGS files are large.
+  (large-file-warning-threshold nil)
+  :hook
+  ;; Incrementally update TAGS file when the file is saved.
+  (prog-mode . (lambda ()
+                 (add-hook 'after-save-hook
+                           'counsel-etags-virtual-update-tags 'append 'local)))
+  :commands
+  (counsel-etags-find-tag-at-point counsel-etags-scan-code counsel-etags-list-tag))
+
 (use-package company
   :custom
   (company-backends
@@ -2210,35 +2225,33 @@ Inserted by installing org-mode or when a release is made."
   :config
   (company-prescient-mode))
 
-(defun projectile-load-settings (file)
+(defun projectile-load-settings (&optional file)
   "https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-settings.el
   Load project elisp settings file if they are found in active project root
   directory, or if in the case of undefined root directory, file is
   otherwise path resolvable."
-  (interactive "sEnter elisp filename (in project root): ")
-  (let
-      ((p (concat (projectile-project-root) file)))
+  (interactive)
+  (let ((p (expand-file-name (or file "settings.el") (projectile-project-root))))
     (when (file-exists-p p)
       (load p)
-      (message "%s" (concat "Loaded project settings from: " file)) nil)))
+      (message "%s" (concat "Loaded project settings from: " p)))))
 
 (use-package projectile
-  :init
-  (setq projectile-completion-system 'ivy
-        ;; Because it renders the frame title face terribly
-        frame-title-format nil)
-  ;; (setq frame-title-format
-  ;;       '(""
-  ;;         ;; "%b"
-  ;;         (:eval
-  ;;          (when (fboundp 'projectile-project-name)
-  ;;            (let ((project-name (projectile-project-name)))
-  ;;              (unless (string= "-" project-name)
-  ;;                (format "[%s]" project-name)))))))
-  :config
-  (projectile-mode)
+  :custom
+  (projectile-completion-system 'ivy)
+  (projectile-project-search-path '("~/code"))
+  ;; We don't set a frame title because it renders the frame title face terribly.
+  (frame-title-format nil)
+  ;; (frame-title-format
+  ;;  '(""
+  ;;    (:eval
+  ;;     (when (fboundp 'projectile-project-name)
+  ;;       (let ((project-name (projectile-project-name)))
+  ;;         (unless (string= "-" project-name)
+  ;;           (format "[%s]" project-name)))))))
   :hook
-  ((projectile-switch-project . (lambda () (projectile-load-settings "settings.el")))))
+  ((after-init . projectile-mode)
+   (projectile-after-switch-project . projectile-load-settings)))
 
 (use-package counsel-projectile
   :init
@@ -2366,10 +2379,12 @@ git repo, optionally specified by DIR."
   (("C-x M-g" . gist-list)))
 
 (use-package git-link
-  :defer 1)
+  :commands
+  (git-link git-link-commit git-link-homepage))
 
 (use-package diff-hl
-  :defer 1
+  :commands
+  (diff-hl-magit-post-refresh diff-hl-mode diff-hl-dired-mode)
   :hook
   (magit-post-refresh . diff-hl-magit-post-refresh)
   ((prog-mode markdown-mode) . diff-hl-mode)
@@ -2531,13 +2546,14 @@ git repo, optionally specified by DIR."
 ;;   :commands
 ;;   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
 
-;; (use-package goto-last-change
-;;   :bind
-;;   (("M-," . goto-last-change)))
+(use-package goto-chg
+  :bind
+  (("C-." . goto-last-change)
+   ("C-;" . goto-last-change-reverse)))
 
 (use-package sly
   :custom
-  (inferior-lisp-program "/usr/local/bin/sbcl")
+  (inferior-lisp-program (executable-find "sbcl"))
   :bind
   (:map sly-prefix-map
         ("M-h" . sly-documentation-lookup)))
@@ -2550,7 +2566,9 @@ git repo, optionally specified by DIR."
 
 (use-package yasnippet
   :config
-  (yas-global-mode 1))
+  (yas-global-mode 1)
+  :bind
+  (("C-c C-s" . yas-insert-snippet)))
 
 (use-package yasnippet-snippets
   :defer 2)
@@ -2649,7 +2667,8 @@ git repo, optionally specified by DIR."
    ("C-c m" . vr/mc-mark)))
 
 (use-package elisp-format
-  :defer 2)
+  :commands
+  (elisp-format-buffer elisp-format-file elisp-format-region))
 
 (use-package cider
   :config
@@ -2665,12 +2684,14 @@ git repo, optionally specified by DIR."
     (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
     (inf-clojure-minor-mode)
     (inf-clojure "lumo -d"))
-  ;; (defun reinstate-comint-simple-send ()
-  ;;   (unless inf-clojure-minor-mode
-  ;;     (setq-local comint-send-input 'comint-simple-send)))
-  ;; :hook
-  ;; ; `inf-clojure' seems to clobber `comint-send-input' on all comint buffers
-  ;; (comint-mode . reinstate-comint-simple-send)
+  (defun reinstate-comint-simple-send ()
+    (unless inf-clojure-minor-mode
+      (setq-local comint-input-sender 'comint-simple-send)))
+  :hook
+  ;; `inf-clojure' clobbers `comint-send-input' on all comint buffers, not just
+  ;; `inf-clojure-mode' ones.
+  ;; https://github.com/clojure-emacs/inf-clojure/issues/154
+  (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
         ("s-<return>" . inf-clojure-eval-last-sexp)
@@ -2707,7 +2728,8 @@ git repo, optionally specified by DIR."
   (turn-on-hes-mode))
 
 (use-package hl-todo
-  :defer 2
+  :commands
+  (global-hl-todo-mode)
   :config
   (global-hl-todo-mode))
 
@@ -2734,10 +2756,10 @@ git repo, optionally specified by DIR."
 (use-package docker-tramp
   :defer 2)
 
-;; (use-package bash-completion
-;;   :init
-;;   (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
-;;   :commands bash-completion-dynamic-complete)
+(use-package bash-completion
+  :init
+  (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
+  :commands bash-completion-dynamic-complete)
 
 (use-package csv-mode
   :mode "\\.csv\\'")
@@ -2747,12 +2769,12 @@ git repo, optionally specified by DIR."
   :mode "\\.fish\\'")
 
 ;; (use-package fish-completion
-;;   :defer 2
-;;   :custom (fish-completion-fallback-on-bash-p t)
+;;   :custom
+;;   (fish-completion-fallback-on-bash-p t)
 ;;   :config
 ;;   (when (and (executable-find "fish")
-;;              (require 'fish-completion nil t)))
-;;   (global-fish-completion-mode))
+;;              (require 'fish-completion nil t))
+;;     (global-fish-completion-mode)))
 
 (use-package nginx-mode
   :defer 2
