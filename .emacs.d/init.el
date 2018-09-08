@@ -172,6 +172,10 @@ Do not merge packages listed in `my-pinned-packages'."
 ;;; Theme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Default frame settings. This is actually maximized, but not full screen.
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(cursor-color . "#F60"))
+
 ;; eww uses this, among others.
 (set-face-attribute 'variable-pitch nil
                     :family "Georgia")
@@ -447,8 +451,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   (interactive)
   (set-frame-parameter nil 'fullscreen (if (frame-parameter nil 'fullscreen) nil 'fullboth)))
 
-(bind-keys ("C-s-f" . fullscreen)
-           ("<C-s-268632070>" . fullscreen))
+(bind-keys ("C-s-f" . fullscreen))
 
 ;; Change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
@@ -827,7 +830,7 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 (add-to-list 'auto-mode-alist '("\\DWfile.*\\'" . sh-mode))
 
 ;; Move by whole words rather than sub-words
-(global-superword-mode)
+;; (global-superword-mode)
 
 (bind-key "RET" #'newline-and-indent)
 
@@ -1739,7 +1742,7 @@ initialize the Eshell environment."
    ("C-d" . eshell-quit-or-delete-char)
    ("<tab>" . completion-at-point)
    ("M-r" . counsel-esh-history)
-   ("C-L" . eshell/clear)
+   ("C-l" . (lambda () (eshell/clear) (funcall eshell-prompt-function)))
    ("C-w" . eshell-kill-previous-output)
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
@@ -2723,8 +2726,10 @@ git repo, optionally specified by DIR."
   ((sass-mode emacs-lisp-mode) . rainbow-mode))
 
 (use-package highlight-escape-sequences
-  :defer 1
+  :commands
+  (hes-mode turn-on-hes-mode)
   :config
+  (add-to-list 'hes-mode-alist `(clojurescript-mode . ,hes-js-escape-sequence-re))
   (turn-on-hes-mode))
 
 (use-package hl-todo
