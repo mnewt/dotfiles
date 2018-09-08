@@ -138,9 +138,10 @@ It's either:
 Yes, it was fish-completion
 ** TODO Automatically create/update =TAGS= file when =xref-find-definitions= is called
 How does =xref-find-definitions decide whether or not to use =TAGS= file? It doesn't seem to use it for elisp.
-** TODO Ugh, broke Windows Emacs again. [/]
+** TODO Ugh, broke Windows Emacs again. [1/3]
 *** TODO sly - Make it compatible or else don't load it on Windows
-*** TODO Remove =mac-key-mode-map= references in main config file. Time to properly clean it up?
+*** DONE Remove =mac-key-mode-map= references in main config file. Time to properly clean it up?
+- State "DONE"       from "TODO"       [2018-09-08 Sat 18:31]
 *** TODO Fix Eshell
 ** WIP Fix Eshell/shell/term bouncing shell output up and down [1/3]
 Not sure if these are all the same issue. Fix term first, see if it affects the others.
@@ -176,7 +177,8 @@ See:
 Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
 ** TODO Desktop should restore eshell buffers
 =desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
-** TODO Organize or even get rid of mac-key-mode
+** DONE Organize or even get rid of mac-key-mode
+- State "DONE"       from "TODO"       [2018-09-08 Sat 18:31]
 ** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
 The way I first implemented this is not ideal. It should only back up dirty files.
 ** TODO Make Eshell prompt look good with a light theme

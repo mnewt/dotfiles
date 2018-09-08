@@ -383,11 +383,12 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                              (with-current-buffer (get-buffer " *Echo Area 0*")
                                (setq-local face-remapping-alist '((default)))))))
 
-;; blinking is NOT OK
+;; Blinking is NOT OK
 (blink-cursor-mode -1)
 
-(setq visible-bell t
-      ring-bell-function #'mode-line-visible-bell)
+;; Beeping is REALLY NOT OK
+(setq visible-bell t)
+      ;; ring-bell-function #'mode-line-visible-bell)
 
 ;; Use the system clipboard
 (setq select-enable-clipboard t
@@ -438,7 +439,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (setq auto-window-vscroll nil)
 
 ;; Enable every deactivated command, because some are handy and why not?
-(setq disabled-command-function nil)
+;; (setq disabled-command-function nil)
 
 ;; Whenever an external process changes a file underneath emacs, and there
 ;; was no unsaved changes in the corresponding buffer, just revert its
@@ -456,6 +457,78 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 ;; Change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+(defun cut-line-or-region ()
+  "Cut current line, or text selection.
+When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
+
+Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
+  (interactive)
+  (if current-prefix-arg
+      (progn ; not using clipboard-kill-region because we don't want to include previous kill
+        (kill-new (buffer-string))
+        (delete-region (point-min) (point-max)))
+    (progn (if (use-region-p)
+               (clipboard-kill-region (region-beginning) (region-end) t)
+             (clipboard-kill-region (line-beginning-position) (line-beginning-position 2))))))
+
+(defun copy-line-or-region ()
+  "Copy current line, or text selection.
+When called repeatedly, append copy subsequent lines.
+When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
+
+Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
+  (interactive)
+  (if current-prefix-arg
+      (progn
+        (kill-ring-save-keep-highlight (point-min) (point-max))
+        (message "All visible buffer text copied"))
+    (if (use-region-p)
+        (progn
+          (kill-ring-save-keep-highlight (region-beginning) (region-end))
+          (message "Active region copied"))
+      (if (eq last-command this-command)
+          (if (eobp)
+              (progn (message "empty line at end of buffer."))
+            (progn
+              (kill-append "\n" nil)
+              (kill-append
+               (buffer-substring-no-properties (line-beginning-position) (line-end-position))
+               nil)
+              (message "Line copy appended")
+              (progn
+                (end-of-line)
+                (forward-char))))
+        (if (eobp)
+            (if (eq (char-before) 10)
+                (progn (message "empty line at end of buffer."))
+              (progn
+                (kill-ring-save-keep-highlight (line-beginning-position) (line-end-position))
+                (end-of-line)
+                (message "line copied")))
+          (progn
+            (kill-ring-save-keep-highlight (line-beginning-position) (line-end-position))
+            (end-of-line)
+            (forward-char)
+            (message "line copied")))))))
+
+(defun comment-toggle ()
+  "Toggles comments for the region. If no region is selected, toggles comments
+  for the line"
+  (interactive)
+  (let ((start (line-beginning-position))
+        (end (line-end-position)))
+    (when (or (not transient-mark-mode) (region-active-p))
+      (setq start (save-excursion
+                    (goto-char (region-beginning))
+                    (beginning-of-line)
+                    (point))
+            end (save-excursion
+                  (goto-char (region-end))
+                  (end-of-line)
+                  (point))))
+    (comment-or-uncomment-region start end))
+  (if (bound-and-true-p parinfer-mode) (parinfer--invoke-parinfer)))
+
 (defun config-macos ()
   "Configure Emacs for macOS."
   (setq ns-alternate-modifier 'meta
@@ -464,18 +537,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
         ns-right-command-modifier 'left
         ns-control-modifier 'control
         ns-right-control-modifier 'left
-        ns-function-modifier 'hyper
-        mac-key-advanced-setting t)
+        ns-function-modifier 'hyper)
   (when window-system (menu-bar-mode +1))
-  (add-hook 'mac-key-mode-hook (lambda ()
-                                 (interactive)
-                                 (when mac-key-mode
-                                   (setq mac-function-modifier 'hyper
-                                         mac-option-modifier 'meta
-                                         mac-command-modifier 'super))))
-  (bind-key "H-<backspace>" 'delete-char)
-  (require 'mac-key-mode)
-  (mac-key-mode +1)
   (set-face-font 'default "Monaco-13")
   (set-face-attribute 'default nil
                       :weight 'light)
@@ -487,7 +550,11 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 When using Homebrew, install it using \"brew install trash\"."
     (call-process (executable-find "trash")
                   nil 0 nil
-                  file)))
+                  file))
+
+  (use-package reveal-in-osx-finder
+    :bind
+    ("s-i" . reveal-in-osx-finder)))
 
 (defun config-windows-nt ()
   "Configure Emacs for Windows NT."
@@ -497,7 +564,32 @@ When using Homebrew, install it using \"brew install trash\"."
         w32-lwindow-modifier 'super
         w32-rwindow-modifier 'super)
   (set-face-font 'default "Lucida Console-12"))
-  
+
+;; Key bindings to make moving between Emacs and other appliations a bit less
+;; jarring. These are mostly based on macOS defaults but many work on Windows
+;; and Linux. They can be overridden by the OS specific configurations below.
+(bind-keys
+ ("s-o" . find-file)
+ ("s-O" . find-file-other-window)
+ ("s-s" . save-buffer)
+ ("s-S" . write-file)
+ ("s-q" . save-buffers-kill-emacs)
+ ("s-z" . undo)
+ ("s-x" . cut-line-or-region)
+ ("s-c" . copy-line-or-region)
+ ("s-v" . yank)
+ ("s-a" . mark-whole-buffer)
+ ("s-g" . isearch-repeat-forward)
+ ("s-G" . isearch-repeat-backward)
+ ("s-l" . select-current-line)
+ ("s-\`" . other-frame)
+ ("s-N" . make-frame-command)
+ ("s-w" . kill-buffer)
+ ("s-W" . delete-frame)
+ ("s-/" . comment-toggle)
+ ("s-h" . ns-do-hide-emacs)
+ ("s-H" . ns-do-hide-others))
+
 ;; OS specific configuration
 (pcase system-type
   ('darwin (config-macos))
@@ -633,7 +725,7 @@ When using Homebrew, install it using \"brew install trash\"."
 ;;; Buffer Navigation and Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(bind-key "C-x C-b" 'ibuffer)
+(bind-key "C-x C-b" #'ibuffer)
 
 (setq windmove-wrap-around t)
 (bind-keys ("H-a" . windmove-left)
@@ -660,11 +752,11 @@ When using Homebrew, install it using \"brew install trash\"."
       initial-major-mode 'org-mode)
 
 (defun new-scratch-buffer ()
-   "Create a scratch buffer."
-   (interactive)
-   (switch-to-buffer (get-buffer-create "<untitled>"))
-   (setq buffer-file-name "untitled")
-   (org-mode))
+  "Create or go to a scratch buffer."
+  (interactive)
+  (switch-to-buffer (get-buffer-create "<untitled>"))
+  (setq buffer-file-name "untitled")
+  (org-mode))
 
 (bind-key "s-n" #'new-scratch-buffer)
 
@@ -675,7 +767,8 @@ When using Homebrew, install it using \"brew install trash\"."
   (select-window (next-window))
   (kill-buffer-and-window))
 
-(bind-keys ("M-s-w" . kill-buffer-and-window)
+(bind-keys ("C-s-w" . delete-window)
+           ("M-s-w" . kill-buffer-and-window)
            ("M-s-W" . kill-other-buffer-and-window))
 
 ;; https://www.emacswiki.org/emacs/ToggleWindowSplit
@@ -1269,8 +1362,6 @@ ID, ACTION, CONTEXT."
         ("C-," . parinfer-toggle-mode)
         ;; Don't interfere with smartparens quote handling
         ("\"" . nil)
-        ;; Override mac-key-mode
-        ("s-v" . parinfer-smart-yank:yank)
         :map parinfer-region-mode-map
         ("C-i" . indent-for-tab-command)
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -1730,11 +1821,6 @@ initialize the Eshell environment."
   (setenv "PAGER" "cat")
   (setenv "MANPAGER" "cat")
 
-  ;; Kill the `mac-key-mode' binding so it doesn't shadow the `eshell-mode'
-  ;; binding. Note `eshell-mode-map' is a buffer local variable so it doesn't
-  ;; appear in `minor-mode-map-alist'.
-  (local-set-minor-mode-key 'mac-key-mode (kbd "s-v") nil)
-  
   (bind-keys
    ("M-P" . eshell-send-previous-input)
    :map eshell-mode-map
@@ -2204,10 +2290,7 @@ Inserted by installing org-mode or when a release is made."
    ;; ([remap isearch-forward] . counsel-grep-or-swiper)
    ([remap find-file] . counsel-find-file)
    :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line-and-call)
-   ;; Stop mac-key-mode from shadowing "s-f"
-   :map mac-key-mode-map
-   ("s-f" . nil)))
+   ("M-y" . ivy-next-line-and-call)))
 
 (use-package ivy-dired-history
   :config
