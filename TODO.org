@@ -138,11 +138,14 @@ It's either:
 Yes, it was fish-completion
 ** TODO Automatically create/update =TAGS= file when =xref-find-definitions= is called
 How does =xref-find-definitions decide whether or not to use =TAGS= file? It doesn't seem to use it for elisp.
-** TODO Ugh, broke Windows Emacs again. [1/3]
-*** TODO sly - Make it compatible or else don't load it on Windows
+** TODO Ugh, broke Windows Emacs again. [3/4]
+*** DONE sly - Make it compatible or else don't load it on Windows
+- State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
 *** DONE Remove =mac-key-mode-map= references in main config file. Time to properly clean it up?
 - State "DONE"       from "TODO"       [2018-09-08 Sat 18:31]
-*** TODO Fix Eshell
+*** DONE Fix Eshell
+- State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
+*** TODO Make super key bindings work with Windows
 ** WIP Fix Eshell/shell/term bouncing shell output up and down [1/3]
 Not sure if these are all the same issue. Fix term first, see if it affects the others.
 *** DONE term - it isn't the same issue. It was the mouse scroll settings that appear to be completely unnecessary anyway. Removed them and it helped term-mode updates a lot. Did not affect shell/eshell bouncing.

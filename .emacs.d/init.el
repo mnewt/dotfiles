@@ -457,6 +457,13 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 ;; Change yes/no prompts to y/n
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+(defun clipboard-yank-and-indent ()
+  "Yank and then indent the newly formed region according to mode."
+  (interactive)
+  (if (and delete-selection-mode (use-region-p)) (delete-active-region))
+  (clipboard-yank)
+  (call-interactively 'indent-region))
+
 (defun cut-line-or-region ()
   "Cut current line, or text selection.
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
@@ -532,20 +539,22 @@ Version 2017-12-04"
 (bind-keys
  ("s-o" . find-file)
  ("s-O" . find-file-other-window)
+ ("C-c C-f" . ffap)
  ("s-s" . save-buffer)
  ("s-S" . write-file)
  ("s-q" . save-buffers-kill-emacs)
  ("s-z" . undo)
+ ("C-z" . undo)
  ("s-x" . cut-line-or-region)
  ("s-c" . copy-line-or-region)
- ("s-v" . yank)
+ ("s-v" . clipboard-yank-and-indent)
  ("s-a" . mark-whole-buffer)
  ("s-g" . isearch-repeat-forward)
  ("s-G" . isearch-repeat-backward)
  ("s-l" . select-current-line)
  ("s-\`" . other-frame)
  ("s-N" . make-frame-command)
- ("s-w" . kill-buffer)
+ ("s-w" . delete-window)
  ("s-W" . delete-frame)
  ("s-/" . comment-toggle)
  ("s-h" . ns-do-hide-emacs)
@@ -594,8 +603,24 @@ When using Homebrew, install it using \"brew install trash\"."
   (setq w32-pass-lwindow-to-system nil
         w32-pass-rwindow-to-system nil
         w32-lwindow-modifier 'super
-        w32-rwindow-modifier 'super)
-  (set-face-font 'default "Lucida Console-12"))
+        w32-rwindow-modifier 'super
+        directory-free-space-program nil)
+  (set-face-font 'default "Lucida Console-12")
+
+  (defun os-open-file (file)
+    (interactive)
+    (message "Opening %s..." file)
+    ;; (call-process "explorer" nil 0 nil file)
+    (w32-shell-execute 1 file))
+
+  (defun reveal-in-windows-explorer ()
+    "Reveal the current file in Windows Explorer."
+    (interactive)
+    (os-open-file (str "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
+
+  (bind-keys ("C-<tab>" . other-frame
+              ("C-c i" . reveal-in-windows-explorer))))
+             
 
 ;; OS specific configuration
 (pcase system-type
@@ -776,8 +801,7 @@ When using Homebrew, install it using \"brew install trash\"."
   (select-window (next-window))
   (kill-buffer-and-window))
 
-(bind-keys ("C-s-w" . delete-window)
-           ("M-s-w" . kill-buffer-and-window)
+(bind-keys ("M-s-w" . kill-buffer-and-window)
            ("M-s-W" . kill-other-buffer-and-window))
 
 ;; https://www.emacswiki.org/emacs/ToggleWindowSplit
@@ -1418,7 +1442,7 @@ ID, ACTION, CONTEXT."
   (interactive)
   (let* ((file (dired-get-filename nil t)))
     (message "Opening %s..." file)
-    (call-process "open" nil 0 nil file)))
+    (os-open-file file)))
 
 (setq dired-recursive-deletes 'always
       dired-recursive-copies 'always
@@ -1539,8 +1563,6 @@ ID, ACTION, CONTEXT."
   "Choose an ssh host and then open it with dired."
   (interactive (list (ssh-choose-host)))
   (find-file (concat "/sshx:" host ":")))
-
-()
 
 (use-package ssh
   :custom
