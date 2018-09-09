@@ -461,55 +461,52 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   "Cut current line, or text selection.
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
 
-Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2015-06-10"
   (interactive)
   (if current-prefix-arg
-      (progn ; not using clipboard-kill-region because we don't want to include previous kill
+      (progn ; not using kill-region because we don't want to include previous kill
         (kill-new (buffer-string))
         (delete-region (point-min) (point-max)))
     (progn (if (use-region-p)
-               (clipboard-kill-region (region-beginning) (region-end) t)
-             (clipboard-kill-region (line-beginning-position) (line-beginning-position 2))))))
+               (kill-region (region-beginning) (region-end) t)
+             (kill-region (line-beginning-position) (line-beginning-position 2))))))
 
 (defun copy-line-or-region ()
   "Copy current line, or text selection.
 When called repeatedly, append copy subsequent lines.
 When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
 
-Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
+URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
+Version 2017-12-04"
   (interactive)
   (if current-prefix-arg
       (progn
-        (kill-ring-save-keep-highlight (point-min) (point-max))
-        (message "All visible buffer text copied"))
+        (kill-ring-save (point-min) (point-max)))
     (if (use-region-p)
         (progn
-          (kill-ring-save-keep-highlight (region-beginning) (region-end))
-          (message "Active region copied"))
+          (kill-ring-save (region-beginning) (region-end)))
       (if (eq last-command this-command)
           (if (eobp)
-              (progn (message "empty line at end of buffer."))
+              (progn)
             (progn
               (kill-append "\n" nil)
               (kill-append
                (buffer-substring-no-properties (line-beginning-position) (line-end-position))
                nil)
-              (message "Line copy appended")
               (progn
                 (end-of-line)
                 (forward-char))))
         (if (eobp)
             (if (eq (char-before) 10)
-                (progn (message "empty line at end of buffer."))
+                (progn)
               (progn
-                (kill-ring-save-keep-highlight (line-beginning-position) (line-end-position))
-                (end-of-line)
-                (message "line copied")))
+                (kill-ring-save (line-beginning-position) (line-end-position))
+                (end-of-line)))
           (progn
-            (kill-ring-save-keep-highlight (line-beginning-position) (line-end-position))
+            (kill-ring-save (line-beginning-position) (line-end-position))
             (end-of-line)
-            (forward-char)
-            (message "line copied")))))))
+            (forward-char)))))))
 
 (defun comment-toggle ()
   "Toggles comments for the region. If no region is selected, toggles comments
@@ -528,42 +525,6 @@ Adapted from: `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'"
                   (point))))
     (comment-or-uncomment-region start end))
   (if (bound-and-true-p parinfer-mode) (parinfer--invoke-parinfer)))
-
-(defun config-macos ()
-  "Configure Emacs for macOS."
-  (setq ns-alternate-modifier 'meta
-        ns-right-alternate-modifier 'none
-        ns-command-modifier 'super
-        ns-right-command-modifier 'left
-        ns-control-modifier 'control
-        ns-right-control-modifier 'left
-        ns-function-modifier 'hyper)
-  (when window-system (menu-bar-mode +1))
-  (set-face-font 'default "Monaco-13")
-  (set-face-attribute 'default nil
-                      :weight 'light)
-  ;; Use system trash
-  (setq delete-by-moving-to-trash t
-        trash-directory "~/.Trash")
-  (defun system-move-file-to-trash (file)
-    "Use \"trash\" to move FILE to the system trash.
-When using Homebrew, install it using \"brew install trash\"."
-    (call-process (executable-find "trash")
-                  nil 0 nil
-                  file))
-
-  (use-package reveal-in-osx-finder
-    :bind
-    ("s-i" . reveal-in-osx-finder)))
-
-(defun config-windows-nt ()
-  "Configure Emacs for Windows NT."
-  (menu-bar-mode -1)
-  (setq w32-pass-lwindow-to-system nil
-        w32-pass-rwindow-to-system nil
-        w32-lwindow-modifier 'super
-        w32-rwindow-modifier 'super)
-  (set-face-font 'default "Lucida Console-12"))
 
 ;; Key bindings to make moving between Emacs and other appliations a bit less
 ;; jarring. These are mostly based on macOS defaults but many work on Windows
@@ -590,10 +551,58 @@ When using Homebrew, install it using \"brew install trash\"."
  ("s-h" . ns-do-hide-emacs)
  ("s-H" . ns-do-hide-others))
 
+(defun config-unix ()
+  "Configure Emacs for common Unix (Linux and macOS) settings."
+  ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
+  (setq-default shell-file-name (executable-find "bash")))
+
+(defun config-linux ()
+  "Configure Emacs for Linux."
+  (config-unix))
+
+(defun config-macos ()
+  "Configure Emacs for macOS."
+  (config-unix)
+  (setq ns-alternate-modifier 'meta
+        ns-right-alternate-modifier 'none
+        ns-command-modifier 'super
+        ns-right-command-modifier 'left
+        ns-control-modifier 'control
+        ns-right-control-modifier 'left
+        ns-function-modifier 'hyper)
+  (when window-system (menu-bar-mode +1))
+  (set-face-font 'default "Monaco-13")
+  (set-face-attribute 'default nil
+                      :weight 'light)
+  ;; Use system trash
+  (setq delete-by-moving-to-trash t
+        trash-directory "~/.Trash")
+  (defun system-move-file-to-trash (file)
+    "Use \"trash\" to move FILE to the system trash.
+When using Homebrew, install it using \"brew install trash\"."
+    (call-process (executable-find "trash")
+                  nil 0 nil
+                  file))
+
+  (use-package reveal-in-osx-finder
+    :bind
+    ("s-i" . reveal-in-osx-finder)))
+
+(defun config-windows ()
+  "Configure Emacs for Windows."
+  (menu-bar-mode -1)
+  (setq w32-pass-lwindow-to-system nil
+        w32-pass-rwindow-to-system nil
+        w32-lwindow-modifier 'super
+        w32-rwindow-modifier 'super)
+  (set-face-font 'default "Lucida Console-12"))
+
 ;; OS specific configuration
 (pcase system-type
   ('darwin (config-macos))
-  ('windows-nt (config-windows-nt)))
+  ('gnu/linux (config-linux))
+  ('windows-nt (config-windows))
+  ('cygwin (config-windows)))
 
 (use-package goto-addr
   :hook ((compilation-mode . goto-address-mode)
@@ -937,22 +946,35 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   (interactive)
   (join-line -1))
 
-(bind-key "M-J" #'join-line-previous)
+;; It's the reverse of `delete-indentation'.
+(bind-key "C-^" #'join-line-previous)
+
+;; (defun dos2unix ()
+;;   "Convert a DOS formatted buffer to Unix by removing the ^M at
+;; the end of each line."
+;;   (interactive)
+;;   (let ((line (line-number-at-pos))
+;;         (column (current-column)))
+;;     (mark-whole-buffer)
+;;     (replace-string "
+;; " "")
+;;     (mark-whole-buffer)
+;;     (replace-string "" "
+;; ")
+;;     (goto-line line)
+;;     (move-to-column column)))
 
 (defun dos2unix ()
-  "Convert DOS aformatted buffer to Unix by removing the ^M at
-the end of each line."
+  "Convert Dos encoded buffer to Unix encoding.
+https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
   (interactive)
-  (let ((line (line-number-at-pos))
-        (column (current-column)))
-    (mark-whole-buffer)
-    (replace-string "
-" "")
-    (mark-whole-buffer)
-    (replace-string "" "
-")
-    (goto-line line)
-    (move-to-column column)))
+  (set-buffer-file-coding-system 'unix))
+
+(defun unix2dos ()
+  "Convert Unix encoded buffer to DOS encoding.
+https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
+  (interactive)
+  (set-buffer-file-coding-system 'dos))
 
 (defun touch (cmd)
   "Run touch in `default-directory'."
@@ -1446,9 +1468,6 @@ ID, ACTION, CONTEXT."
 ;;; Shell, SSH, Tramp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; The default is /bin/bash. On macOS, brew installs bash to /usr/local/bin.
-(setq-default shell-file-name (executable-find "bash"))
-
 (require 'tramp)
 
 ;; password-cache
@@ -1883,12 +1902,12 @@ initialize the Eshell environment."
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
 
-;; ElDoc and topical help in Eshell
+;; ElDoc and topical help in Eshell.
 (use-package esh-help
   :config
   (setup-esh-help-eldoc))
 
-;; Fish-like autosuggestions
+;; Fish-like autosuggestions.
 (use-package esh-autosuggest
   :hook
   (eshell-mode . esh-autosuggest-mode)
