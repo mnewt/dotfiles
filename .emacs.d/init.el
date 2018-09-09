@@ -1754,7 +1754,7 @@ Examples:
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
   (interactive)
-  (if-let (remote (file-remote-p default-directory))
+  (if-let* (remote (file-remote-p default-directory))
       (insert remote)))
 
 (bind-key "C-c f" #'tramp-insert-remote-part)
@@ -3034,7 +3034,7 @@ git repo, optionally specified by DIR."
 
 (require 'highlight-things)
 
-(require 'm-pointhistory)
+;; (require 'm-pointhistory)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Private
