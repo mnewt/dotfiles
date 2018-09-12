@@ -172,11 +172,15 @@ Do not merge packages listed in `my-pinned-packages'."
 ;;; Theme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; We don't set a frame title because Emacs on macOS renders the frame title
+;; face terribly. 
+(setq frame-title-format nil)
+
 ;; Default frame settings. This is actually maximized, but not full screen.
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (add-to-list 'default-frame-alist '(cursor-color . "#F60"))
 
-;; eww uses this, among others.
+;; eww uses this as its default font, among others.
 (set-face-attribute 'variable-pitch nil
                     :family "Georgia")
 
@@ -618,10 +622,9 @@ When using Homebrew, install it using \"brew install trash\"."
     (interactive)
     (os-open-file (str "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
 
-  (bind-keys ("C-<tab>" . other-frame
-              ("C-c i" . reveal-in-windows-explorer))))
+  (bind-keys ("h-<tab>" . other-frame)
+             ("C-c i" . reveal-in-windows-explorer)))
              
-
 ;; OS specific configuration
 (pcase system-type
   ('darwin (config-macos))
@@ -712,9 +715,7 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; Whenever the listed commands are used, ElDoc will automatically refresh the
 ;; minibuffer.
-(eldoc-add-command
- 'paredit-backward-delete
- 'paredit-close-round)
+(eldoc-add-command 'paredit-backward-delete 'paredit-close-round)
 
 (use-package help-fns+)
 
@@ -958,7 +959,8 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;; Move by whole words rather than sub-words
 ;; (global-superword-mode)
 
-(bind-key "RET" #'newline-and-indent)
+;; Automatically indent after RET
+(electric-indent-mode +1)
 
 (defun indent-buffer ()
   (interactive)
@@ -971,28 +973,26 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   (join-line -1))
 
 ;; It's the reverse of `delete-indentation'.
-(bind-key "C-^" #'join-line-previous)
-
-;; (defun dos2unix ()
-;;   "Convert a DOS formatted buffer to Unix by removing the ^M at
-;; the end of each line."
-;;   (interactive)
-;;   (let ((line (line-number-at-pos))
-;;         (column (current-column)))
-;;     (mark-whole-buffer)
-;;     (replace-string "
-;; " "")
-;;     (mark-whole-buffer)
-;;     (replace-string "" "
-;; ")
-;;     (goto-line line)
-;;     (move-to-column column)))
+;; (bind-key "C-^" #'join-line-previous)
 
 (defun dos2unix ()
-  "Convert Dos encoded buffer to Unix encoding.
-https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
+  "Convert a DOS formatted buffer to Unix by removing the ^M at
+the end of each line."
   (interactive)
-  (set-buffer-file-coding-system 'unix))
+  (let ((line (line-number-at-pos))
+        (column (current-column)))
+    (mark-whole-buffer)
+    (replace-string "
+" "")
+    (mark-whole-buffer)
+    (replace-string "" "
+")
+    (goto-line line)
+    (move-to-column column)))
+
+;; (defun dos2unix () "Convert Dos encoded buffer to Unix encoding.
+;;   https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
+;;   (interactive) (set-buffer-file-coding-system 'unix))
 
 (defun unix2dos ()
   "Convert Unix encoded buffer to DOS encoding.
@@ -1869,7 +1869,7 @@ initialize the Eshell environment."
    ("C-d" . eshell-quit-or-delete-char)
    ("<tab>" . completion-at-point)
    ("M-r" . counsel-esh-history)
-   ("C-l" . (lambda () (eshell/clear) (funcall eshell-prompt-function)))
+   ("C-l" . eshell/really-clear)
    ("C-w" . eshell-kill-previous-output)
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
@@ -2365,10 +2365,9 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package projectile
   :custom
+  (projectile-keymap-prefix (kbd "C-c p"))
   (projectile-completion-system 'ivy)
   (projectile-project-search-path '("~/code"))
-  ;; We don't set a frame title because it renders the frame title face terribly.
-  (frame-title-format nil)
   ;; (frame-title-format
   ;;  '(""
   ;;    (:eval
@@ -2376,9 +2375,10 @@ Inserted by installing org-mode or when a release is made."
   ;;       (let ((project-name (projectile-project-name)))
   ;;         (unless (string= "-" project-name)
   ;;           (format "[%s]" project-name)))))))
+  :config
+  (projectile-mode +1)
   :hook
-  ((after-init . projectile-mode)
-   (projectile-after-switch-project . projectile-load-settings)))
+  ((projectile-after-switch-project . projectile-load-settings)))
 
 (use-package counsel-projectile
   :init
@@ -2483,6 +2483,10 @@ git repo, optionally specified by DIR."
     (rename-buffer (format "*git ls-files %s*" dir))))
 
 (bind-key "C-x G" #'projectile-git-ls-files-dired)
+
+;; Magit dependencies
+(use-package graphql)
+(use-package treepy)
 
 (use-package magit
   :custom
@@ -2886,9 +2890,13 @@ git repo, optionally specified by DIR."
   :defer 2)
 
 (use-package bash-completion
+  :custom
+  ;; So that it doesn't sometimes insert a space ('\ ') after the file name.
+  (bash-completion-nospace t)
   :init
   (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
-  :commands bash-completion-dynamic-complete)
+  :commands
+  (bash-completion-dynamic-complete))
 
 (use-package csv-mode
   :mode "\\.csv\\'")
@@ -2897,16 +2905,14 @@ git repo, optionally specified by DIR."
   :custom (fish-indent-offset tab-width)
   :mode "\\.fish\\'")
 
-;; (use-package fish-completion
-;;   :custom
-;;   (fish-completion-fallback-on-bash-p t)
-;;   :config
-;;   (when (and (executable-find "fish")
-;;              (require 'fish-completion nil t))
-;;     (global-fish-completion-mode)))
+(use-package fish-completion
+  :custom
+  (fish-completion-fallback-on-bash-p t)
+  :config
+  (global-fish-completion-mode))
 
 (use-package nginx-mode
-  :defer 2
+  :mode "\\`Caddyfile\\'"
   :custom
   (nginx-indent-level tab-width))
 
@@ -3048,7 +3054,8 @@ git repo, optionally specified by DIR."
                            "Truckee CA"
                            "Moon"))
   (wttrin-default-accept-language '("Accept-Language" . "en-US"))
-  :commands (wttrin))
+  :bind
+  ("C-c w" . wttrin))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Other Packages
