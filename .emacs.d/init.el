@@ -756,6 +756,21 @@ When using Homebrew, install it using \"brew install trash\"."
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
+(use-package dash-at-point
+  :config
+  (progn
+    (add-to-list 'dash-at-point-mode-alist '(clojure-mode . "clojuredocs"))
+    (add-to-list 'dash-at-point-mode-alist '(clojurec-mode . "clojuredocs"))
+    (add-to-list 'dash-at-point-mode-alist '(clojurescript-mode . "clojuredocs"))
+    (add-to-list 'dash-at-point-mode-alist '(sh-mode . "bash"))
+    (add-to-list 'dash-at-point-mode-alist '(fish-mode . "fish"))
+    (add-to-list 'dash-at-point-mode-alist '(lisp-mode . "lisp"))
+    (add-to-list 'dash-at-point-mode-alist '(slime-repl-mode . "lisp"))
+    (add-to-list 'dash-at-point-mode-alist '(lisp-interaction-mode . "elisp"))
+    (add-to-list 'dash-at-point-mode-alist '(inferior-emacs-lisp-mode . "elisp")))
+  :bind
+  ("M-s-." . dash-at-point))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Buffer Navigation and Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1225,6 +1240,43 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   :bind
   ("M-q" . unfill-toggle))
 
+(use-package goto-chg
+  :bind
+  (("C-." . goto-last-change)
+   ("C-;" . goto-last-change-reverse)))
+
+(use-package visual-regexp-steroids
+  :bind
+  (("C-c r" . vr/replace)
+   ("C-c q" . vr/query-replace)
+   ("C-c m" . vr/mc-mark)))
+
+(use-package rainbow-mode
+  :hook
+  ((sass-mode emacs-lisp-mode) . rainbow-mode))
+
+(use-package highlight-escape-sequences
+  :commands
+  (hes-mode turn-on-hes-mode)
+  :config
+  (add-to-list 'hes-mode-alist `(clojurescript-mode . ,hes-js-escape-sequence-re))
+  (turn-on-hes-mode))
+
+(use-package hl-todo
+  :commands
+  (global-hl-todo-mode)
+  :config
+  (global-hl-todo-mode))
+
+(use-package yasnippet
+  :config
+  (yas-global-mode 1)
+  :bind
+  (("C-c C-s" . yas-insert-snippet)))
+
+(use-package yasnippet-snippets
+  :defer 2)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; S-Expressions, Parentheses, Brackets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1622,6 +1674,25 @@ ID, ACTION, CONTEXT."
   (xterm-color-apply-on-minibuffer))
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
+
+(use-package bash-completion
+  :custom
+  ;; So that it doesn't sometimes insert a space ('\ ') after the file name.
+  (bash-completion-nospace t)
+  :init
+  (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
+  :commands
+  (bash-completion-dynamic-complete))
+
+(use-package fish-mode
+  :custom (fish-indent-offset tab-width)
+  :mode "\\.fish\\'")
+
+(use-package fish-completion
+  :custom
+  (fish-completion-fallback-on-bash-p t)
+  :config
+  (global-fish-completion-mode))
 
 ;; xterm colors
 (use-package xterm-color
@@ -2114,6 +2185,7 @@ Inserted by installing org-mode or when a release is made."
                             ("NEXT" (:foreground "red" :weight bold))
                             ("WIP" (:foreground "green" :weight bold))
                             ("DONE" (:foreground "gray"))))
+  (org-agenda-files '("~/TODO.org"))
   :bind
   ("C-c l" . org-store-link)
   ("C-c a" . org-agenda)
@@ -2484,11 +2556,14 @@ git repo, optionally specified by DIR."
 
 (bind-key "C-x G" #'projectile-git-ls-files-dired)
 
-;; Magit dependencies
+;; Magit dependencies. Unless these are included here, they don't get loaded.
+;; Haven't investigated why.
 (use-package graphql)
 (use-package treepy)
 
 (use-package magit
+  :requires
+  (graphql treepy)
   :custom
   (magit-completing-read-function 'ivy-completing-read)
   :bind
@@ -2523,65 +2598,6 @@ git repo, optionally specified by DIR."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Network and System Utilities
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(use-package w3m
-  :custom
-  (w3m-search-default-engine "duckduckgo")
-  :commands
-  (w3m w3m-download w3m-goto-url w3m-search))
-
-(straight-register-package
- '(vkill :repo "https://github.com/emacsattic/vkill.git"))
-
-(use-package vkill
-  :bind
-  (("C-c t" . vkill)))
-
-(use-package proc-net
-  :bind
-  (("C-c n" . list-network-processes)))
-
-(defun public-ip ()
-  "Display the local host's apparent public IP address."
-  (interactive)
-  (message
-   (with-current-buffer (url-retrieve-synchronously "https://diagnostic.opendns.com/myip")
-     (goto-char (point-min))
-     (re-search-forward "^$")
-     (delete-char 1)
-     (delete-region (point) (point-min))
-     (buffer-string))))
-
-(defun df ()
-  "Display the local host's disk usage in human readable form"
-  (interactive)
-  (print (shell-command-to-string "df -h")))
-
-(defun dis (hostname)
-  "Resolve an IP address."
-  (interactive "MHostname: ")
-  (message (shell-command-to-string
-            (concat "drill "
-                    hostname
-                    " | awk '/;; ANSWER SECTION:/{flag=1;next}/;;/{flag=0}flag'"))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Emacs Lisp
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(bind-keys :map emacs-lisp-mode-map
-           ("s-<return>" . eval-last-sexp)
-           ("C-c C-k" . eval-buffer)
-           ("C-x e" . macrostep-expand)
-           :map lisp-interaction-mode-map
-           ("s-<return>" . eval-last-sexp)
-           ("C-c C-k" . eval-buffer))
-
-(add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Other File Modes and Formats
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; language detection
@@ -2666,43 +2682,68 @@ git repo, optionally specified by DIR."
   :commands
   (language-detection-buffer language-detection-string))
 
-;; display nfo files in all their glory
-;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
-(add-to-list 'auto-coding-alist '("\\.nfo\\'" . ibm437))
-
-;; systemd
-(add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))
-
-;; (use-package quickrun
-;;   :commands
-;;   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
-
-(use-package goto-chg
-  :bind
-  (("C-." . goto-last-change)
-   ("C-;" . goto-last-change-reverse)))
-
-(use-package sly
+(use-package w3m
   :custom
-  (inferior-lisp-program (executable-find "sbcl"))
+  (w3m-search-default-engine "duckduckgo")
+  :commands
+  (w3m w3m-download w3m-goto-url w3m-search))
+
+(straight-register-package
+ '(vkill :repo "https://github.com/emacsattic/vkill.git"))
+
+(use-package vkill
   :bind
-  (:map sly-prefix-map
-        ("M-h" . sly-documentation-lookup)))
+  (("C-c t" . vkill)))
 
-(use-package sly-company
-  :hook
-  (sly-mode . sly-company-mode)
-  :config
-  (add-to-list 'company-backends 'sly-company))
-
-(use-package yasnippet
-  :config
-  (yas-global-mode 1)
+(use-package proc-net
   :bind
-  (("C-c C-s" . yas-insert-snippet)))
+  (("C-c n" . list-network-processes)))
 
-(use-package yasnippet-snippets
-  :defer 2)
+(defun public-ip ()
+  "Display the local host's apparent public IP address."
+  (interactive)
+  (message
+   (with-current-buffer (url-retrieve-synchronously "https://diagnostic.opendns.com/myip")
+     (goto-char (point-min))
+     (re-search-forward "^$")
+     (delete-char 1)
+     (delete-region (point) (point-min))
+     (buffer-string))))
+
+(defun df ()
+  "Display the local host's disk usage in human readable form"
+  (interactive)
+  (print (shell-command-to-string "df -h")))
+
+(defun dis (hostname)
+  "Resolve an IP address."
+  (interactive "MHostname: ")
+  (message (shell-command-to-string
+            (concat "drill "
+                    hostname
+                    " | awk '/;; ANSWER SECTION:/{flag=1;next}/;;/{flag=0}flag'"))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Emacs Lisp
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(bind-keys :map emacs-lisp-mode-map
+           ("s-<return>" . eval-last-sexp)
+           ("C-c C-k" . eval-buffer)
+           ("C-x e" . macrostep-expand)
+           :map lisp-interaction-mode-map
+           ("s-<return>" . eval-last-sexp)
+           ("C-c C-k" . eval-buffer))
+
+(add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
+
+(use-package elisp-format
+  :commands
+  (elisp-format-buffer elisp-format-file elisp-format-region))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Clojure
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package clojure-mode
   :mode (("\\.edn$" . clojure-mode))
@@ -2776,31 +2817,6 @@ git repo, optionally specified by DIR."
 (use-package clojure-mode-extra-font-locking
   :defer 1)
 
-(use-package dash-at-point
-  :config
-  (progn
-    (add-to-list 'dash-at-point-mode-alist '(clojure-mode . "clojuredocs"))
-    (add-to-list 'dash-at-point-mode-alist '(clojurec-mode . "clojuredocs"))
-    (add-to-list 'dash-at-point-mode-alist '(clojurescript-mode . "clojuredocs"))
-    (add-to-list 'dash-at-point-mode-alist '(sh-mode . "bash"))
-    (add-to-list 'dash-at-point-mode-alist '(fish-mode . "fish"))
-    (add-to-list 'dash-at-point-mode-alist '(lisp-mode . "lisp"))
-    (add-to-list 'dash-at-point-mode-alist '(slime-repl-mode . "lisp"))
-    (add-to-list 'dash-at-point-mode-alist '(lisp-interaction-mode . "elisp"))
-    (add-to-list 'dash-at-point-mode-alist '(inferior-emacs-lisp-mode . "elisp")))
-  :bind
-  ("M-s-." . dash-at-point))
-
-(use-package visual-regexp-steroids
-  :bind
-  (("C-c r" . vr/replace)
-   ("C-c q" . vr/query-replace)
-   ("C-c m" . vr/mc-mark)))
-
-(use-package elisp-format
-  :commands
-  (elisp-format-buffer elisp-format-file elisp-format-region))
-
 (use-package cider
   :config
   (add-hook 'cider-repl-mode-hook (lambda () (company-mode nil)))
@@ -2828,6 +2844,34 @@ git repo, optionally specified by DIR."
         ("s-<return>" . inf-clojure-eval-last-sexp)
         ("C-c C-k" . inf-clojure-eval-buffer)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Other File Modes and Formats
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; display nfo files in all their glory
+;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
+(add-to-list 'auto-coding-alist '("\\.nfo\\'" . ibm437))
+
+;; systemd
+(add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))
+
+;; (use-package quickrun
+;;   :commands
+;;   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
+
+(use-package sly
+  :custom
+  (inferior-lisp-program (executable-find "sbcl"))
+  :bind
+  (:map sly-prefix-map
+        ("M-h" . sly-documentation-lookup)))
+
+(use-package sly-company
+  :hook
+  (sly-mode . sly-company-mode)
+  :config
+  (add-to-list 'company-backends 'sly-company))
+
 ;; Configured to use CHICKEN Scheme
 (use-package geiser
   :custom
@@ -2848,23 +2892,6 @@ git repo, optionally specified by DIR."
   (put 'match 'scheme-indent-function 1)
   :commands
   (geiser run-geiser run-chicken))
-
-(use-package rainbow-mode
-  :hook
-  ((sass-mode emacs-lisp-mode) . rainbow-mode))
-
-(use-package highlight-escape-sequences
-  :commands
-  (hes-mode turn-on-hes-mode)
-  :config
-  (add-to-list 'hes-mode-alist `(clojurescript-mode . ,hes-js-escape-sequence-re))
-  (turn-on-hes-mode))
-
-(use-package hl-todo
-  :commands
-  (global-hl-todo-mode)
-  :config
-  (global-hl-todo-mode))
 
 (use-package markdown-mode
   :mode "\\.md\\|markdown\\'"
@@ -2889,27 +2916,8 @@ git repo, optionally specified by DIR."
 (use-package docker-tramp
   :defer 2)
 
-(use-package bash-completion
-  :custom
-  ;; So that it doesn't sometimes insert a space ('\ ') after the file name.
-  (bash-completion-nospace t)
-  :init
-  (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
-  :commands
-  (bash-completion-dynamic-complete))
-
 (use-package csv-mode
   :mode "\\.csv\\'")
-
-(use-package fish-mode
-  :custom (fish-indent-offset tab-width)
-  :mode "\\.fish\\'")
-
-(use-package fish-completion
-  :custom
-  (fish-completion-fallback-on-bash-p t)
-  :config
-  (global-fish-completion-mode))
 
 (use-package nginx-mode
   :mode "\\`Caddyfile\\'"
@@ -3039,6 +3047,10 @@ git repo, optionally specified by DIR."
    sh-mode-map
    ("s-<return>" . eir-eval-in-shell)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Other Packages
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun advice-delete-other-windows (&rest _)
   "Advice that will delete other windows."
   (delete-other-windows))
@@ -3056,10 +3068,6 @@ git repo, optionally specified by DIR."
   (wttrin-default-accept-language '("Accept-Language" . "en-US"))
   :bind
   ("C-c w" . wttrin))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Other Packages
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'highlight-things)
 
