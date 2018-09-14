@@ -2489,8 +2489,9 @@ Inserted by installing org-mode or when a release is made."
 (defun dired-git-add ()
   "Run `git add' on the selected files in a dired buffer"
   (interactive)
-  (dired-do-shell-command "git add" nil (dired-get-marked-files))
-  (message "Finished running git add on files: %s" (dired-get-marked-files)))
+  (let ((files (dired-get-marked-files)))
+    (dired-do-shell-command "git add" nil files)
+    (message "Finished running git add on files: %s" files)))
 
 (bind-key ";" #'dired-git-add dired-mode-map)
 
