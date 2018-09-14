@@ -2486,6 +2486,14 @@ Inserted by installing org-mode or when a release is made."
 ;; git config files
 (add-to-list 'auto-mode-alist '("\\.git\\(?:config\\|ignore\\).*" . conf-mode))
 
+(defun dired-git-add ()
+  "Run `git add' on the selected files in a dired buffer"
+  (interactive)
+  (dired-do-shell-command "git add" nil (dired-get-marked-files))
+  (message "Finished running git add on files: %s" (dired-get-marked-files)))
+
+(bind-key ";" #'dired-git-add dired-mode-map)
+
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
   (require 'magit)
