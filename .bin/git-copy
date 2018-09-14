@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Copy files in repo dir $1 to dir $2
+
+# Halt execution if anything fails
+set -e
+
+test $# -eq 2
+
+repo="$(cd "$1" && pwd)"
+worktree="$(git --git-dir="$repo" config --get core.worktree)"
+# If worktree doesn't begin with "/" then it should be relative to the repo
+[ ${worktree:0:1} = "/" ] || worktree="$repo/$worktree"
+worktree="$(cd "$worktree" && pwd)"
+cd "$worktree"
+
+destination="$2/$(basename repo)"
+echo $destination
+branch="$(git --git-dir="$repo" branch | awk '/\*/{print $2}')"
+
+echo git --git-dir="$repo" ls-tree -r "$branch" --name-only "$worktree"
+while IFS= read -r file; do
+  echo mkdir -p "$destination/$(dirname "$file")"
+  echo cp "$file" "$destination/$file"
+done < <( git --git-dir="$repo" ls-tree -r "$branch" --name-only "$worktree" )

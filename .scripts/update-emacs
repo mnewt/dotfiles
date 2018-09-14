@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+brew reinstall emacs --with-cocoa --with-imagemagick@6 --with-librsvg --HEAD

@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+echo -n | openssl s_client -connect "$1" 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | openssl x509 -text -noout

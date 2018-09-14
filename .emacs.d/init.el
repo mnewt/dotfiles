@@ -1836,13 +1836,9 @@ Examples:
 (advice-add #'eshell/e :around #'eshell-path-advice)
 (advice-add #'eshell/ee :around #'eshell-path-advice)
 
-(defun eshell/really-clear (f &rest args)
+(defun eshell/really-clear (&rest args)
   "Call `eshell/clear' with an argument to really clear the buffer."
-  (if args
-      (apply f args)
-    (funcall f 1)))
-
-(advice-add #'eshell/clear :around #'eshell/really-clear)
+  (eshell/clear 1))
 
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
@@ -2851,6 +2847,9 @@ git repo, optionally specified by DIR."
 ;; display nfo files in all their glory
 ;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
 (add-to-list 'auto-coding-alist '("\\.nfo\\'" . ibm437))
+
+;; perl
+(setq perl-indent-level tab-width)
 
 ;; systemd
 (add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))

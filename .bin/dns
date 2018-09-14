@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+case $(uname) in
+  Linux)
+    cat /etc/resolv.conf
+    ;;
+  Darwin)
+    scutil --dns | awk '/^(DNS|resolver|  (search|nameserver|domain))/'
+    ;;
+  CYGWIN*)
+    ipconfig | grep DNS
+    ;;
+esac

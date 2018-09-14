@@ -152,6 +152,8 @@ Not sure if these are all the same issue. Fix term first, see if it affects the 
 - State "DONE"       from "TODO"       [2018-08-31 Fri 11:03]
 *** TODO shell
 *** TODO eshell
+** TODO Make ssh with =dtach= actually work
+See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
 ** TODO Eshell =rm= hangs when pressing =RET=
 Actually, it is working, it just takes a long time and gives zero feedback. Can we fix this?
 *** Takes too long

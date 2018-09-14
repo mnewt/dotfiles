@@ -13,8 +13,7 @@ if [ -e '/etc/arch-release' ]; then
   sudo pacman -Syyu --noconfirm
   sudo pacman -Qtdq > /dev/null && \
     sudo pacman --noconfirm -Rns $(pacman -Qtdq)
-  sudo paccache -r
-  sudo paccache -ruk0
+  sudo paccache -ruk1
 else
   echo "Not running Arch Linux, skipping"
 fi

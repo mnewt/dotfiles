@@ -4,7 +4,13 @@
 # OS Specific
 case "$(uname)" in
   Linux)
-    # Linux doesn't cache DNS unless a DNS server is installed
+    # There is no standard Linux DNS caching mechanism so we have to figure out
+    # which resolver we are using.
+    config="$(grep "hosts:" /etc/nsswitch.conf)"
+    case "$config" in
+      *resolve*)
+        pkill -SIGUSR2 systemd-resolved ;;
+    esac
     ;;
   Darwin)
   	# before OSX 10.10.4

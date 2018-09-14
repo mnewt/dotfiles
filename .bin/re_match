@@ -1,13 +1,10 @@
-#!/usr/bin/env bash
-# Return the first match for regular expression ($2) in string ($1)
-# Based on (https://stackoverflow.com/a/22539067)
+#!/usr/bin/env ruby
+# Return the first match for regular expression (ARGV[0]) in string (rest of ARGV)
 
-typeset ec
-unset -v re_match # initialize output variable
-[[ $1 =~ $2 ]] # perform the regex test
-ec=$? # save exit code
-if [[ $ec -eq 0 ]]; then # copy result to output variable
-  [[ -n $BASH_VERSION ]] && re_match=( "${BASH_REMATCH[@]}" )
-  [[ -n $ZSH_VERSION ]]  && re_match=( "${match[@]}" )
-fi
-exit $ec
+m = ARGV[1..-1].join("").scan(/#{ARGV[0]}/)
+
+exit 1 if m.empty?
+
+m.each do |e|
+  puts e
+end
