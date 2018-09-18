@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-# open man page in Preview
+# open file in QuickLook
 
 qlmanage -p "${1}" 2>1 >/dev/null

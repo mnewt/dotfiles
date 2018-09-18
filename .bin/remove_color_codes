@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Remove ANSI Color Escape Sequences. requires `shopt -s extglob`
+# Remove ANSI Color Escape Sequences.
 
 shopt -s extglob
 

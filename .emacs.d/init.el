@@ -1836,13 +1836,9 @@ Examples:
 (advice-add #'eshell/e :around #'eshell-path-advice)
 (advice-add #'eshell/ee :around #'eshell-path-advice)
 
-(defun eshell/really-clear (f &rest args)
+(defun eshell/really-clear (&rest args)
   "Call `eshell/clear' with an argument to really clear the buffer."
-  (if args
-      (apply f args)
-    (funcall f 1)))
-
-(advice-add #'eshell/clear :around #'eshell/really-clear)
+  (eshell/clear 1))
 
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
@@ -2490,6 +2486,15 @@ Inserted by installing org-mode or when a release is made."
 ;; git config files
 (add-to-list 'auto-mode-alist '("\\.git\\(?:config\\|ignore\\).*" . conf-mode))
 
+(defun dired-git-add ()
+  "Run `git add' on the selected files in a dired buffer"
+  (interactive)
+  (let ((files (dired-get-marked-files)))
+    (dired-do-shell-command "git add" nil files)
+    (message "Finished running git add on files: %s" files)))
+
+(bind-key ";" #'dired-git-add dired-mode-map)
+
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
   (require 'magit)
@@ -2851,6 +2856,9 @@ git repo, optionally specified by DIR."
 ;; display nfo files in all their glory
 ;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)
 (add-to-list 'auto-coding-alist '("\\.nfo\\'" . ibm437))
+
+;; perl
+(setq perl-indent-level tab-width)
 
 ;; systemd
 (add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))

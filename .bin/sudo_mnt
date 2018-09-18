@@ -1,0 +1,131 @@
+#!/bin/bash
+# Mount an smb share, optionally through and ssh tunnel
+#
+# Expects to find environment variables:
+#
+# $1 - optional - config file to source
+#
+# type - one of:
+#      - smb
+#      - smb-over-ssh
+#
+# user - username
+# password - password
+# sudo_password - local user's password for sudo to root
+# sshhost - first hop ssh host (bastion) hostname or IP address
+# sshport - first hop ssh host (bastion) port
+# ssh_identity_file - ~/.ssh/id_* file to authenticate to ssh host
+# fileserver - hostname or IP address of second hop smb server
+# path - share path on smb server
+# mountpoint - local directory mount point
+#
+# localhost - optional - local IP address to bind forwarded ports to
+# port_forward_string - optional - goes after `ssh -L`
+# url - optional - constructed mount_smbfs url
+# socket - optional - local socket to use for ssh command control
+#
+# logfile - optional - if set, log activity to this file
+
+# Pull in variables
+[ "$1" ] && [ -e "$1" ] && . "$1"
+
+log () {
+  # Log to file or stdout
+  echo "$@"
+  [ "$logfile" ] && echo "$(date) - $(basename $0) - $@" >> "$logfile"
+}
+
+exe () {
+	# Display and execute the command
+  log 2>&1 "\$ $*"
+  "$@" 2>&1
+}
+
+# https://gist.github.com/jaytaylor/6527607
+timeout() {
+  # kill the command if not finished in $1 seconds
+  perl -e 'alarm shift; exec @ARGV' "$@";
+}
+
+# https://stackoverflow.com/questions/296536/how-to-urlencode-data-for-curl-command
+rawurlencode() {
+  # URL-encode a string
+  local string="${1}"
+  local strlen=${#string}
+  local encoded=""
+  local pos c o
+
+  for (( pos=0 ; pos<strlen ; pos++ )); do
+     c=${string:$pos:1}
+     case "$c" in
+        [-_.~a-zA-Z0-9] ) o="${c}" ;;
+        * )               printf -v o '%%%02x' "'$c"
+     esac
+     encoded+="${o}"
+  done
+  echo "${encoded}"    # You can either set a return variable (FASTER)
+  # REPLY="${encoded}"   #+or echo the result (EASIER)... or both... :p
+}
+
+mnt_smb () {
+  # Mount a share via smb
+  password="$(rawurlencode "${password}")"
+  url="${url:-//${user}:${password}@${server}/${path}}"
+
+  mount | grep -q "$mountpoint" || \
+    for i in {1..20}; do
+      if ping -c 1 "${server}"; then
+        mkdir -p "${mountpoint}"
+        log "Attempting to mount (${server}/${share}) at (${mountpoint})..."
+        log mount_smbfs "//${user}:********@${server}/${path}" "${mountpoint}"
+        mount_smbfs "${url}" "${mountpoint}"
+        log "Return code: $?"
+        break
+      fi
+      [ $i = 20 ] && exit 1
+    done
+}
+
+mnt_smb_ssh () {
+  # Mount a share via smb through an ssh tunnel
+  localhost="${localhost:-127.0.0.2}"
+  port_forward_string="${port_forward_string:-${localhost}:445:${fileserver}:445}"
+  url="//${user}@${localhost}/${path}"
+  socket="${socket:-/tmp/mnt_smb_ssh.sock}"
+  
+  . "$HOME/.bin/start-ssh-agent"
+
+  password="$(rawurlencode "${password}")"
+
+  if mount | grep -q "${mountpoint}"; then
+    echo "A volume is already mounted at (${mountpoint})"
+    exit 0
+  else
+    log "Attempting to mount (${fileserver}/${path}) via ssh tunnel at (${mountpoint})..."
+    for i in {1..20}; do
+      if timeout 1 bash -c "echo > /dev/tcp/${sshhost}/${sshport}" >/dev/null 2>&1; then
+        exe sudo ifconfig lo0 ${localhost} alias up
+        log "Return code: $?"
+        sleep 1
+        log sudo ssh -fNM -i ${ssh_identity_file} -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
+        sudo ssh -fNM -i ${ssh_identity_file} -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
+        log "Return code: $?"
+        log mount_smbfs "//${user}:********@${localhost}/${path}" "${mountpoint}"
+        mount_smbfs "//${user}:${password}@${localhost}/${path}" "${mountpoint}"
+        err=$?
+        log "Return code: $err"
+        exit $err
+      else
+        log "Waiting for ${sshhost} to become available on ${sshport}"
+      fi
+    done
+    log "failed."
+    exit ${sshport}
+  fi
+}
+
+case $type in
+  smb) mnt_smb ;;
+  smb-over-ssh) mnt_smb_ssh ;;
+  *) echo "Error. Unsupported type. See comments in `mnt` for details"
+esac
