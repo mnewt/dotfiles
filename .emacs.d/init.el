@@ -982,6 +982,10 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   (indent-region (point-min) (point-max))
   (message "Buffer indented."))
 
+;; Guess the indentation of the file and continue to use that.
+(use-package dtrt-indent
+  :hook (prog-mode text-mode))
+
 ;; http://whattheemacsd.com/key-bindings.el-03.html
 (defun join-line-previous ()
   (interactive)
@@ -3003,14 +3007,22 @@ git repo, optionally specified by DIR."
   :config
   (add-to-list 'company-backends 'company-restclient))
 
-;; (use-package robe
-;;   :hook ruby-mode
-;;   :config
-;;   (eval-after-load 'company
-;;     '(push 'company-robe company-backends)))
+(use-package enh-ruby-mode
+  :mode "\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'")
 
-;; (use-package inf-ruby
-;;   :defer 1)
+(use-package inf-ruby
+  :hook enh-ruby-mode
+  :commands
+  (inf-ruby inf-ruby-console-auto)
+  :bind
+  (:map inf-ruby-minor-mode-map
+        ("s-<return>" . ruby-send-definition)))
+
+(use-package robe
+  :hook enh-ruby-mode
+  :config
+  (eval-after-load 'company
+    '(push 'company-robe company-backends)))
 
 (use-package lua-mode
   :mode "\\.lua\\'")
