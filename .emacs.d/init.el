@@ -1539,10 +1539,17 @@ ID, ACTION, CONTEXT."
   :commands
   (dired-du-mode))
 
-(use-package direx
+(use-package dired-sidebar
+  :init
+  (add-hook 'dired-sidebar-mode-hook
+            (lambda ()
+              (unless (file-remote-p default-directory)
+                (auto-revert-mode))))
+  :config
+  (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
+  (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
   :bind
-  (("C-x j" . direx:jump-to-directory)
-   ("C-x C-j" . direx-project:jump-to-project-root)))
+  (("C-x C-j" . dired-sidebar-toggle-sidebar)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell, SSH, Tramp
