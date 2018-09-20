@@ -984,7 +984,8 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 
 ;; Guess the indentation of the file and continue to use that.
 (use-package dtrt-indent
-  :hook (prog-mode text-mode))
+  :hook
+  ((prog-mode text-mode) . dtrt-indent-mode))
 
 ;; http://whattheemacsd.com/key-bindings.el-03.html
 (defun join-line-previous ()
@@ -1440,7 +1441,7 @@ ID, ACTION, CONTEXT."
                      :post-handlers '(sp-sh-block-post-handler))))
 
   :hook
-  ((conf-mode eshell-mode markdown-mode prog-mode text-mode) . turn-on-smartparens-mode)
+  ((conf-mode eshell-mode markdown-mode prog-mode text-mode powershell-mode) . turn-on-smartparens-mode)
   :bind
   ("C-M-(" . sp-backward-slurp-into-previous-sexp))
 
