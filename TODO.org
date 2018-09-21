@@ -159,6 +159,10 @@ See:
 =highlight-things.el=
 ** TODO Automatically create/update =TAGS= file when =xref-find-definitions= is called
 How does =xref-find-definitions decide whether or not to use =TAGS= file? It doesn't seem to use it for elisp.
+** TODO Create binding for =org-todo= -> TODO
+** TODO Backup changes to saved files and restore them with a diff view
+See comments from NateEag and github-alphapapa in this thread:
+https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
 ** TODO Ugh, broke Windows Emacs again. [3/4]
 *** DONE sly - Make it compatible or else don't load it on Windows
 - State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]

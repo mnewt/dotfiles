@@ -2176,6 +2176,11 @@ Inserted by installing org-mode or when a release is made."
   (interactive)
   (counsel-rg nil "~/org"))
 
+(defun org-todo-todo ()
+  "Create org update Org todo entry to TODO status"
+  (interactive)
+  (org-todo "TODO"))
+
 (use-package org
   :custom
   (org-directory "~/org")
@@ -2199,7 +2204,8 @@ Inserted by installing org-mode or when a release is made."
   ("C-c a" . org-agenda)
   ("C-c c" . org-capture)
   ("C-c b" . org-switchb)
-  ("C-c s" . search-org-files))
+  ("C-c s" . search-org-files)
+  ("s-;" . org-todo-todo))
 
 ;; Calendar and Journal
 
