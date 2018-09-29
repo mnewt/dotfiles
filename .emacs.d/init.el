@@ -378,9 +378,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   "Run when Emacs has finished starting."
   (message "Emacs has finished starting up."))
 
-;; A more pleasant bell. No sound. Simply flash the echo area.
-(defun mode-line-visible-bell ()
-  "A friendlier visual bell effect."
+(defun echo-area-visible-bell ()
+  "A more pleasant bell. No sound. Simply flash the echo area."
   (with-current-buffer (get-buffer " *Echo Area 0*")
     (setq-local face-remapping-alist '((default highlight))))
   (run-with-timer 0.15 nil (lambda ()
@@ -391,8 +390,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (blink-cursor-mode -1)
 
 ;; Beeping is REALLY NOT OK
-(setq visible-bell t)
-      ;; ring-bell-function #'mode-line-visible-bell)
+(setq visible-bell t
+      ring-bell-function 'echo-area-visible-bell)
 
 ;; Use the system clipboard
 (setq select-enable-clipboard t
