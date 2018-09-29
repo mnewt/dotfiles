@@ -64,7 +64,7 @@
 With prefix argument FROM-UPSTREAM, merge not just from primary
 remotes but also from configured upstreams.
 
-Do not merge packages listed in `my-pinned-packages'."
+Do not merge packages listed in `m-pinned-packages'."
   (interactive "P")
   (straight-merge-all
    from-upstream
@@ -2207,6 +2207,11 @@ Inserted by installing org-mode or when a release is made."
   ("C-c s" . search-org-files)
   ("s-;" . org-todo-todo))
 
+(use-package ox-hugo
+  :after ox
+  :config
+  (require 'ox-hugo-auto-export))
+
 ;; Calendar and Journal
 
 (require 'calendar)
@@ -2454,6 +2459,9 @@ Inserted by installing org-mode or when a release is made."
   (projectile-keymap-prefix (kbd "C-c p"))
   (projectile-completion-system 'ivy)
   (projectile-project-search-path '("~/code"))
+  ;; Exclude untracked files because we use git workdirs in $HOME. Listing all
+  ;; files takes too long.
+  (projectile-git-command "git ls-files -zc --exclude-standard")
   ;; (frame-title-format
   ;;  '(""
   ;;    (:eval

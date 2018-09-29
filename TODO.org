@@ -157,13 +157,10 @@ See:
 #+END_SRC
 ** WIP Implement =grc= in elisp
 =highlight-things.el=
-** TODO Automatically create/update =TAGS= file when =xref-find-definitions= is called
+** WIP Create binding for =org-todo= -> TODO
+** WIP Automatically create/update =TAGS= file when =xref-find-definitions= is called
 How does =xref-find-definitions decide whether or not to use =TAGS= file? It doesn't seem to use it for elisp.
-** TODO Create binding for =org-todo= -> TODO
-** TODO Backup changes to saved files and restore them with a diff view
-See comments from NateEag and github-alphapapa in this thread:
-https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
-** TODO Ugh, broke Windows Emacs again. [3/4]
+** WIP Ugh, broke Windows Emacs again. [3/4]
 *** DONE sly - Make it compatible or else don't load it on Windows
 - State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
 *** DONE Remove =mac-key-mode-map= references in main config file. Time to properly clean it up?
@@ -171,6 +168,9 @@ https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_chang
 *** DONE Fix Eshell
 - State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
 *** TODO Make super key bindings work with Windows
+** TODO Backup changes to saved files and restore them with a diff view
+See comments from NateEag and github-alphapapa in this thread:
+https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
 ** TODO Make ssh with =dtach= actually work
 See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
 ** TODO Eshell =rm= hangs when pressing =RET=
