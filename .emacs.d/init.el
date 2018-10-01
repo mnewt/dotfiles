@@ -437,12 +437,11 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
  ("C-S-p" . previous-line-4)
  ("C-S-n" . next-line-4))
 
-;; Reduce scrolling lag
-;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
-(setq auto-window-vscroll nil)
-
-;; Enable every deactivated command, because some are handy and why not?
-;; (setq disabled-command-function nil)
+;; Scroll one line at a time.
+(setq scroll-conservatively 10000
+      ;; Reduce scrolling lag
+      ;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
+      auto-window-vscroll nil)
 
 ;; Whenever an external process changes a file underneath emacs, and there
 ;; was no unsaved changes in the corresponding buffer, just revert its
@@ -535,6 +534,12 @@ Version 2017-12-04"
                   (point))))
     (comment-or-uncomment-region start end))
   (if (bound-and-true-p parinfer-mode) (parinfer--invoke-parinfer)))
+
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (beginning-of-line)
+  (set-mark (line-end-position)))
 
 ;; Key bindings to make moving between Emacs and other appliations a bit less
 ;; jarring. These are mostly based on macOS defaults but many work on Windows
@@ -1381,8 +1386,10 @@ ID, ACTION, CONTEXT."
 (defun sp-backward-slurp-into-previous-sexp (&optional arg)
   "Add the sexp at point into the preceeding list."
   (interactive)
-  (sp-backward-symbol)
-  (sp-forward-slurp-sexp))
+  (save-excursion
+    (sp-down-sexp)
+    (sp-backward-symbol)
+    (sp-forward-slurp-sexp)))
 
 ;; https://github.com/Fuco1/smartparens/issues/80
 (defun sp-create-newline-and-enter-sexp (&rest _ignored)
@@ -1394,50 +1401,49 @@ ID, ACTION, CONTEXT."
 
 (use-package smartparens
   :config
-  (progn
-    (require 'smartparens-config)
-    (setq sp-base-key-bindings 'paredit)
-    (setq sp-hybrid-kill-entire-symbol nil)
-    ;; Enable some default keybindings for Smartparens.
-    (sp-use-paredit-bindings)
-    ;; Highlight matching delimiters.
-    (show-smartparens-global-mode +1)
-    ;; Disable Smartparens in Org-related modes, since the keybindings conflict.
-    (with-eval-after-load 'org (add-to-list 'sp-ignore-modes-list #'org-mode))
-    (with-eval-after-load 'org-agenda (add-to-list 'sp-ignore-modes-list #'org-agenda-mode))
-    
-    (sp-with-modes
-        '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
-                 python-mode java-mode sh-mode web-mode)
-      (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-      (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  (require 'smartparens-config)
+  (setq sp-base-key-bindings 'paredit)
+  (setq sp-hybrid-kill-entire-symbol nil)
+  ;; Enable some default keybindings for Smartparens.
+  (sp-use-paredit-bindings)
+  ;; Highlight matching delimiters.
+  (show-smartparens-global-mode +1)
+  ;; Disable Smartparens in Org-related modes, since the keybindings conflict.
+  (with-eval-after-load 'org (add-to-list 'sp-ignore-modes-list #'org-mode))
+  (with-eval-after-load 'org-agenda (add-to-list 'sp-ignore-modes-list #'org-agenda-mode))
+  
+  (sp-with-modes
+      '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
+               python-mode java-mode sh-mode web-mode)
+    (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
 
-    (sp-with-modes
-        '(Python-Mode sh-mode)
-      (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-      (sp-local-pair "\"\"\"" "\"\"\""
-                     :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  (sp-with-modes
+      '(python-mode sh-mode)
+    (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "\"\"\"" "\"\"\""
+                   :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
 
-    (sp-with-modes
-        '(sh-mode)
-      (sp-local-pair "do" "done"
-                     :when '(("SPC" "RET"))
-                     :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                     :actions '(insert navigate)
-                     :pre-handlers '(sp-sh-pre-handler)
-                     :post-handlers '(sp-sh-block-post-handler))
-      (sp-local-pair "then" "fi"
-                     :when '(("SPC" "RET"))
-                     :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                     :actions '(insert navigate)
-                     :pre-handlers '(sp-sh-pre-handler)
-                     :post-handlers '(sp-sh-block-post-handler))
-      (sp-local-pair "case" "esac"
-                     :when '(("SPC" "RET"))
-                     :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                     :actions '(insert navigate)
-                     :pre-handlers '(sp-sh-pre-handler)
-                     :post-handlers '(sp-sh-block-post-handler))))
+  (sp-with-modes
+      '(sh-mode)
+    (sp-local-pair "do" "done"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler))
+    (sp-local-pair "then" "fi"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler))
+    (sp-local-pair "case" "esac"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler)))
 
   :hook
   ((conf-mode eshell-mode markdown-mode prog-mode text-mode powershell-mode) . turn-on-smartparens-mode)
@@ -2133,7 +2139,7 @@ shell is left intact."
 ;;; Notes, Journal, and Documentation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(add-hook 'text-mode-hook #'turn-on-visual-line-mode)
+;; (add-hook 'text-mode-hook #'turn-on-visual-line-mode)
 
 ;; Org-mode
 
@@ -2176,9 +2182,30 @@ Inserted by installing org-mode or when a release is made."
   (counsel-rg nil "~/org"))
 
 (defun org-todo-todo ()
-  "Create org update Org todo entry to TODO status"
+  "Create or update Org todo entry to TODO status"
   (interactive)
   (org-todo "TODO"))
+
+(defun org-todo-to-int (todo)
+  (first (-non-nil
+          (mapcar (lambda (keywords)
+                    (let ((todo-seq
+                           (-map (lambda (x) (first (split-string  x "(")))
+                                 (rest keywords)))) 
+                      (cl-position-if (lambda (x) (string= x todo)) todo-seq)))
+                  org-todo-keywords))))
+
+(defun org-sort-entries--todo-status-key ()
+  (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
+         (todo (org-entry-get (point) "TODO"))
+         (todo-int (if todo (org-todo-to-int todo) todo-max))
+         (priority (org-entry-get (point) "PRIORITY"))
+         (priority-int (if priority (string-to-char priority) org-default-priority)))
+    (format "%03d %03d" todo-int priority-int)))
+
+(defun org-sort-entries-by-todo-status ()
+  (interactive)
+  (org-sort-entries nil ?f #'org-sort-entries--todo-status-key))
 
 (use-package org
   :custom
@@ -2367,15 +2394,10 @@ Inserted by installing org-mode or when a release is made."
   :config
   (ivy-mode 1)
   :bind
-  (("C-c C-r" . ivy-resume)
-   ("s-b" . ivy-switch-buffer)
-   ("s-B" . ivy-switch-buffer-other-window)
-   :map ivy-switch-buffer-map
-   ("C-k" . (lambda ()
-              (interactive)
-              (ivy-set-action 'kill-buffer)
-              (ivy-done)
-              (ivy-resume)))))
+  (:map ivy-mode-map
+        ("C-c C-r" . ivy-resume)
+        ("s-b" . ivy-switch-buffer)
+        ("s-B" . ivy-switch-buffer-other-window)))
 
 (use-package swiper
   :init
@@ -2402,11 +2424,39 @@ Inserted by installing org-mode or when a release is made."
 ;; :map ivy-minibuffer-map
 ;; ("s-5" . ivy--replace-regexp-entire-buffer)))
 
+(defun reloading (cmd)
+  (lambda (x)
+    (funcall cmd x)
+    (ivy--reset-state ivy-last)))
+
+(defun given-file (cmd prompt) ; needs lexical-binding
+  (lambda (source)
+    (let ((target
+           (let ((enable-recursive-minibuffers t))
+             (read-file-name
+              (format "%s %s to:" prompt source)))))
+      (funcall cmd source target 1))))
+
+(defun confirm-delete-file (x)
+  (dired-delete-file x 'confirm-each-subdirectory))
+
 (use-package counsel
   :custom
+  (counsel-find-file-at-point t)
   (counsel-grep-base-command "rg -i -M 120 --no-heading --line-number --color never '%s' %s")
+  :config
+  (ivy-add-actions
+   'counsel-find-file
+   `(("c" ,(given-file #'copy-file "Copy") "copy")
+     ("m" ,(reloading (given-file #'rename-file "Move")) "move")))
+  (ivy-add-actions
+   'counsel-projectile-find-file
+   `(("c" ,(given-file #'copy-file "Copy") "copy")
+     ("m" ,(reloading (given-file #'rename-file "Move")) "move")
+     ("b" counsel-find-file-cd-bookmark-action "cd bookmark")))
   :bind
-  (("s-F" . counsel-rg)
+  (("C-h C-b" . counsel-descbinds)
+   ("s-F" . counsel-rg)
    ("s-f" . counsel-grep-or-swiper)
    ("M-x" . counsel-M-x)
    ("C-x C-f" . counsel-find-file)
@@ -2760,10 +2810,12 @@ git repo, optionally specified by DIR."
 (bind-keys :map emacs-lisp-mode-map
            ("s-<return>" . eval-last-sexp)
            ("C-c C-k" . eval-buffer)
+           ("C-x C-r" . eval-region)
            ("C-x e" . macrostep-expand)
            :map lisp-interaction-mode-map
            ("s-<return>" . eval-last-sexp)
-           ("C-c C-k" . eval-buffer))
+           ("C-c C-k" . eval-buffer)
+           ("C-x C-r" . eval-region))
 
 (add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
 
