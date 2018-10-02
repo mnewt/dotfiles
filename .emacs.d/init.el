@@ -1095,11 +1095,10 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 
 (bind-key [remap goto-line] #'goto-line-with-feedback)
 
-(use-package diff
-  :bind
-  (:map diff-mode-map
-        ("M-p" . diff-hunk-prev)
-        ("M-n" . diff-hunk-next)))
+(with-eval-after-load 'diff
+  (bind-keys :map diff-mode-map
+             ("M-p" . diff-hunk-prev)
+             ("M-n" . diff-hunk-next)))
 
 ;; One key binding to move/copy text from current other window
 ;; https://emacs.stackexchange.com/questions/3743/how-to-move-region-to-other-window
