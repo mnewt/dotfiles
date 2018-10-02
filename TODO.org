@@ -1,7 +1,4 @@
 * Dotfiles TODO List
-** TODO Try ivy features [0/2]
-*** TODO ivy-hydra
-*** TODO ivy-overlay
 ** TODO Backup changes to saved files and restore them with a diff view
 See comments from NateEag and github-alphapapa in this thread:
 https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
@@ -69,6 +66,12 @@ How does =xref-find-definitions decide whether or not to use =TAGS= file? It doe
 *** DONE Fix Eshell
 - State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
 *** TODO Make super key bindings work with Windows
+** DONE Try ivy features [2/2]
+- State "DONE"       from "TODO"       [2018-10-02 Tue 02:08]
+*** DONE ivy-hydra
+- State "DONE"       from "WIP"        [2018-10-02 Tue 01:54]
+*** DONE ivy-overlay
+- State "DONE"       from "WIP"        [2018-10-02 Tue 02:08]
 ** DONE fix rubygems-update issue
 ** DONE Migrate fish plugin manager to fisher
 ** DONE aliases: move to ~ and make compatible with fish, bash, zsh so

@@ -626,7 +626,7 @@ When using Homebrew, install it using \"brew install trash\"."
     (interactive)
     (os-open-file (str "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
 
-  (bind-keys ("h-<tab>" . other-frame)
+  (bind-keys ("H-<tab>" . other-frame)
              ("C-c i" . reveal-in-windows-explorer)))
              
 ;; OS specific configuration
@@ -692,9 +692,15 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; Store all backup and autosave files in their own directory.
 (setq backup-directory-alist '((".*" . "~/.emacs.d/backup"))
+      ;; Don't clobber symlinks.
+      backup-by-copying t
+      ;; Don't break multiple hardlinks.
+      backup-by-copying-when-linked t
+      ;; Use version numbers for backup files.
       version-control t
+      ;; Backup even if file is in vc.
       vc-make-backup-files t
-      ;; Always save old versions of backup files, don't prompt
+      ;; Keep all versions forever.
       delete-old-versions -1
       auto-save-list-file-prefix "~/.emacs.d/autosave/"
       auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
@@ -951,6 +957,15 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;;; Editing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Work with auto-save and backup files
+(use-package backup-walker
+  :commands
+  (backup-walker-start))
+
+(use-package backups-mode
+  :config
+  (backups-minor-mode))
+
 ;; Wrap text
 (setq-default fill-column 80)
 
@@ -970,7 +985,26 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 
 ;; sh-mode
 (setq sh-basic-offset tab-width
-      sh-indentation tab-width)
+      sh-indentation tab-width
+      ;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
+      executable-prefix-env t)
+
+;; Make a shell script executable automatically on save
+(add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p)
+
+(defun maybe-reset-major-mode ()
+  "Reset the buffer's major-mode if a different mode seems like a better fit.
+Mostly useful as a before-save-hook, to guess mode when saving a
+new file for the first time.
+https://github.com/NateEag/.emacs.d/blob/9d4a2ec9b5c22fca3c80783a24323388fe1d1647/init.el#L137"
+
+  (when (and
+         ;; The buffer's visited file does not exist.
+         (eq (file-exists-p (buffer-file-name)) nil)
+         (eq major-mode 'fundamental-mode))
+    (normal-mode)))
+
+(add-hook 'before-save-hook #'maybe-reset-major-mode)
 
 ;; dw (https://gitlab.com/mnewt/dw)
 (add-to-list 'auto-mode-alist '("\\DWfile.*\\'" . sh-mode))
@@ -1039,13 +1073,6 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 
 ;; Just set up 3 windows, no fancy frames or whatever
 (setq ediff-window-setup-function #'ediff-setup-windows-plain)
-
-;; Make a shell script executable automatically on save
-(add-hook 'after-save-hook
-          #'executable-make-buffer-file-executable-if-script-p)
-
-;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
-(setq executable-prefix-env t)
 
 ;; Continue comment on next line (default binding is "C-M-j")
 (bind-key "M-RET" #'indent-new-comment-line)
@@ -2759,7 +2786,9 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
    ;; ([remap isearch-forward] . counsel-grep-or-swiper)
    ([remap find-file] . counsel-find-file)
    :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line-and-call)))
+   ("M-y" . ivy-next-line-and-call)
+   :map minibuffer-local-map
+   ("C-r" . counsel-minibuffer-history)))
 
 (use-package ivy-dired-history
   :config
