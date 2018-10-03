@@ -610,9 +610,7 @@ When using Homebrew, install it using \"brew install trash\"."
 (defun config-windows ()
   "Configure Emacs for Windows."
   (menu-bar-mode -1)
-  (setq w32-pass-lwindow-to-system nil
-        w32-pass-rwindow-to-system nil
-        w32-lwindow-modifier 'super
+  (setq w32-lwindow-modifier 'super
         w32-rwindow-modifier 'super
         directory-free-space-program nil)
   (set-face-font 'default "Lucida Console-12")
