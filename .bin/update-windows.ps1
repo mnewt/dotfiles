@@ -1,2 +1,0 @@
-choco upgrade all -y
-

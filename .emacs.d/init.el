@@ -3454,7 +3454,7 @@ git repo, optionally specified by DIR."
   :bind
   (("C-c ! !" . flycheck-mode)))
 
-(use-package powershell-mode
+(use-package powershell
   :mode "\\.ps1\\'"
   :custom
   (powershell-indent tab-width)
