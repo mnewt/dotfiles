@@ -2059,7 +2059,9 @@ initialize the Eshell environment."
                              (setq xterm-color-preserve-properties t))))
   :bind
   (("s-e" . eshell)
+   ("C-c e" . eshell)
    ("s-E" . eshell-other-window)
+   ("C-c E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
 
