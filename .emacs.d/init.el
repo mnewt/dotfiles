@@ -560,7 +560,9 @@ Version 2017-12-04"
  ("s-g" . isearch-repeat-forward)
  ("s-G" . isearch-repeat-backward)
  ("s-l" . select-current-line)
+ ("C-S-L" . select-current-line)
  ("s-\`" . other-frame)
+ ("C-\`" . other-frame)
  ("s-N" . make-frame-command)
  ("s-w" . delete-window)
  ("s-W" . delete-frame)
@@ -618,16 +620,14 @@ When using Homebrew, install it using \"brew install trash\"."
   (defun os-open-file (file)
     (interactive)
     (message "Opening %s..." file)
-    ;; (call-process "explorer" nil 0 nil file)
-    (w32-shell-execute 1 file))
+    (call-process "explorer" nil 0 nil file))
 
   (defun reveal-in-windows-explorer ()
     "Reveal the current file in Windows Explorer."
     (interactive)
-    (os-open-file (str "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
+    (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
 
-  (bind-keys ("H-<tab>" . other-frame)
-             ("C-c i" . reveal-in-windows-explorer)))
+  (bind-key "C-c i" #'reveal-in-windows-explorer))
              
 ;; OS specific configuration
 (pcase system-type
@@ -637,15 +637,18 @@ When using Homebrew, install it using \"brew install trash\"."
   ('cygwin (config-windows)))
 
 (use-package goto-addr
-  :hook ((compilation-mode . goto-address-mode)
-         (prog-mode . goto-address-prog-mode)
-         (eshell-mode . goto-address-mode)
-         (shell-mode . goto-address-mode))
-  :bind (:map goto-address-highlight-keymap
-              ("<RET>" . goto-address-at-point)
-              ("M-<RET>" . newline))
-  :commands (goto-address-prog-mode
-             goto-address-mode))
+  :hook
+  ((compilation-mode . goto-address-mode)
+   (prog-mode . goto-address-prog-mode)
+   (eshell-mode . goto-address-mode)
+   (shell-mode . goto-address-mode))
+  :bind
+  (:map goto-address-highlight-keymap
+        ("<RET>" . goto-address-at-point)
+        ("M-<RET>" . newline))
+  :commands
+  (goto-address-prog-mode
+   goto-address-mode))
 
 ;; Enable ido for the few functions that don't have ivy coverage.
 (setq ido-enable-flex-matching t)
@@ -801,11 +804,15 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; Navigating with mark
 (bind-keys ("M-s-," . pop-to-mark-command)
-           ("s-," . pop-global-mark))
+           ("C-c ," . pop-to-mark-command)
+           ("s-," . pop-global-mark)
+           ("C-c C-," . pop-global-mark))
 
-;; Quick switch buffers using standard macOS tab movement bindings
+;; Quick switch buffers
 (bind-keys ("s-}" . next-buffer)
-           ("s-{" . previous-buffer))
+           ("C-c }" . next-buffer)
+           ("s-{" . previous-buffer)
+           ("C-c {" . previous-buffer))
 
 ;; scratch
 (setq initial-scratch-message nil
@@ -818,7 +825,8 @@ When using Homebrew, install it using \"brew install trash\"."
   (setq buffer-file-name "untitled")
   (org-mode))
 
-(bind-key "s-n" #'new-scratch-buffer)
+(bind-keys ("s-n" . new-scratch-buffer)
+           ("C-c C-n . new-scratch-buffer"))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -864,7 +872,8 @@ When using Homebrew, install it using \"brew install trash\"."
            ("t" . toggle-window-split))
 
 ;; Tags
-(bind-key "s-R" #'xref-find-definitions-other-window)
+(bind-keys ("s-R" . #'xref-find-definitions-other-window)
+           ("C-c M-r" . #'xref-find-definitions-other-window))
 
 ;; Create friendly names for buffers with the same name
 (setq uniquify-buffer-name-style 'forward
@@ -925,15 +934,25 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   (winum-mode)
   :bind
   ("s-1" . winum-select-window-1)
+  ("C-c 1" . winum-select-window-1)
   ("s-2" . winum-select-window-2)
+  ("C-c 2" . winum-select-window-2)
   ("s-3" . winum-select-window-3)
+  ("C-c 3" . winum-select-window-3)
   ("s-4" . winum-select-window-4)
+  ("C-c 4" . winum-select-window-4)
   ("s-5" . winum-select-window-5)
+  ("C-c 5" . winum-select-window-5)
   ("s-6" . winum-select-window-6)
+  ("C-c 6" . winum-select-window-6)
   ("s-7" . winum-select-window-7)
+  ("C-c 7" . winum-select-window-7)
   ("s-8" . winum-select-window-8)
+  ("C-c 8" . winum-select-window-8)
   ("s-9" . winum-select-window-9)
-  ("s-0" . winum-select-window-0))
+  ("C-c 9" . winum-select-window-9)
+  ("s-0" . winum-select-window-0)
+  ("C-c 0" . winum-select-window-0))
 
 (use-package eyebrowse
   :custom
@@ -943,15 +962,25 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   (eyebrowse-mode t)
   :bind
   ("H-1" . eyebrowse-switch-to-window-config-1)
+  ("C-c C-1" . eyebrowse-switch-to-window-config-1)
   ("H-2" . eyebrowse-switch-to-window-config-2)
+  ("C-c C-2" . eyebrowse-switch-to-window-config-2)
   ("H-3" . eyebrowse-switch-to-window-config-3)
+  ("C-c C-3" . eyebrowse-switch-to-window-config-3)
   ("H-4" . eyebrowse-switch-to-window-config-4)
+  ("C-c C-4" . eyebrowse-switch-to-window-config-4)
   ("H-5" . eyebrowse-switch-to-window-config-5)
+  ("C-c C-5" . eyebrowse-switch-to-window-config-5)
   ("H-6" . eyebrowse-switch-to-window-config-6)
+  ("C-c C-6" . eyebrowse-switch-to-window-config-6)
   ("H-7" . eyebrowse-switch-to-window-config-7)
+  ("C-c C-7" . eyebrowse-switch-to-window-config-7)
   ("H-8" . eyebrowse-switch-to-window-config-8)
+  ("C-c C-8" . eyebrowse-switch-to-window-config-8)
   ("H-9" . eyebrowse-switch-to-window-config-9)
-  ("H-0" . eyebrowse-switch-to-window-config-0))
+  ("C-c C-9" . eyebrowse-switch-to-window-config-9)
+  ("H-0" . eyebrowse-switch-to-window-config-0)
+  ("C-c C-0" . eyebrowse-switch-to-window-config-0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Editing
@@ -1177,7 +1206,9 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   (setq expand-region-fast-keys-enabled nil)
   :bind
   (("s-d" . er/expand-region)
-   ("s-D" . er/contract-region)))
+   ("C-=" . er/expand-region)
+   ("s-D" . er/contract-region)
+   ("C-M-=" . er/contract-region)))
 
 (use-package multiple-cursors
   :bind
@@ -2028,7 +2059,9 @@ initialize the Eshell environment."
                              (setq xterm-color-preserve-properties t))))
   :bind
   (("s-e" . eshell)
+   ("C-c e" . eshell)
    ("s-E" . eshell-other-window)
+   ("C-c E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
 
@@ -2048,7 +2081,7 @@ initialize the Eshell environment."
 (use-package pinentry
   :config
   (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
-  ;; Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
+  ;; TODO: Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
   (if (not (eq system-type 'windows-nt))
       (pinentry-start)))
 
@@ -3122,7 +3155,6 @@ git repo, optionally specified by DIR."
            ("s-<return>" . eval-last-sexp)
            ("C-c C-k" . eval-buffer)
            ("C-x C-r" . eval-region)
-           ("C-x e" . macrostep-expand)
            :map lisp-interaction-mode-map
            ("s-<return>" . eval-last-sexp)
            ("C-c C-k" . eval-buffer)
@@ -3256,6 +3288,8 @@ git repo, optionally specified by DIR."
 ;;   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
 
 (use-package sly
+  ;; There are some problems building sly with straight.el in Windows
+  :unless (eq system-type 'windows-nt)
   :custom
   (inferior-lisp-program (executable-find "sbcl"))
   :bind
