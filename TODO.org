@@ -1,7 +1,4 @@
 * Dotfiles TODO List
-** TODO Backup changes to saved files and restore them with a diff view
-See comments from NateEag and github-alphapapa in this thread:
-https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
 ** TODO Make ssh with =dtach= actually work
 See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
 ** TODO Eshell =rm= hangs when pressing =RET=
@@ -19,21 +16,23 @@ https://github.com/vxe/emacs-geeknote
 Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
 ** TODO Desktop should restore eshell buffers
 =desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
-** TODO Implement quick dotfiles backup script (for when I want it backed up but don't want to bother with a git commit)
-The way I first implemented this is not ideal. It should only back up dirty files.
 ** TODO Make Eshell prompt look good with a light theme
 ** TODO term-mode filter out escape sequence
 This happens when running =fish= in =shell-mode=:
 =]0;fish=
 Guessing this is the (remains of the?) xterm sequence to set the title?
-** TODO Fix modeline sometimes getting stuck on old colors when theme is switched
-** TODO Make =C-k= in =ivy-switch-buffer= kill the buffer, refresh the list, and stay in =ivy-switch-buffer=.
-** TODO Org sorting
+** DONE Fix modeline sometimes getting stuck on old colors when theme is switched
+- State "DONE"       from "WIP"        [2018-10-02 Tue 21:45]
+** DONE Org sorting
+- State "DONE"       from "WIP"        [2018-10-02 Tue 21:44]
 Read all suggestions
 https://emacs.stackexchange.com/questions/9585/org-how-to-sort-headings-by-todo-and-then-by-priority
-** NEXT Mojave issues [0/4]
-*** TODO Re-compile with new changes
+** TODO Figure out magit wip modes
+** NEXT Mojave issues [1/4]
+*** DONE Re-compile with new changes
+- State "DONE"       from "WIP"        [2018-10-02 Tue 21:33]
 *** TODO Inserting characters is slow (try holding down a key--it doesn't keep up with repeat rate)
+This seems to be fixed for most buffers but Org buffers are still terrible
 *** TODO Scrolling is slow
 *** TODO Parinfer is slow
 ** WIP Fix Eshell/shell/term bouncing shell output up and down [1/3]
@@ -66,6 +65,13 @@ How does =xref-find-definitions decide whether or not to use =TAGS= file? It doe
 *** DONE Fix Eshell
 - State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
 *** TODO Make super key bindings work with Windows
+** DONE Backup changes to saved files and restore them with a diff view
+- State "DONE"       from "TODO"       [2018-10-02 Tue 21:35]
+See comments from NateEag and github-alphapapa in this thread:
+https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
+** DONE Make =C-k= in =ivy-switch-buffer= kill the buffer, refresh the list, and stay in =ivy-switch-buffer=.
+- State "DONE"       from "TODO"       [2018-10-02 Tue 21:40]
+Can't seem to get this to work but the workaround is to use =C-o a k=
 ** DONE Try ivy features [2/2]
 - State "DONE"       from "TODO"       [2018-10-02 Tue 02:08]
 *** DONE ivy-hydra
