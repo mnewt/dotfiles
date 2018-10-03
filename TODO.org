@@ -6,8 +6,6 @@ Actually, it is working, it just takes a long time and gives zero feedback. Can 
 *** Takes too long
 *** Gives zero feedback (doesn't even go to new line when pressing =RET= until it is completely done)
 *** Outputs =t= for each file deleted. It should give the same feedback as =*mv=.
-** TODO Try emacs-geeknote fork
-https://github.com/vxe/emacs-geeknote
 ** TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
 *** TODO Editing
 *** TODO Eshell
@@ -21,12 +19,6 @@ Right now it jumps around in a way I don't understand. Maybe something to do wit
 This happens when running =fish= in =shell-mode=:
 =]0;fish=
 Guessing this is the (remains of the?) xterm sequence to set the title?
-** DONE Fix modeline sometimes getting stuck on old colors when theme is switched
-- State "DONE"       from "WIP"        [2018-10-02 Tue 21:45]
-** DONE Org sorting
-- State "DONE"       from "WIP"        [2018-10-02 Tue 21:44]
-Read all suggestions
-https://emacs.stackexchange.com/questions/9585/org-how-to-sort-headings-by-todo-and-then-by-priority
 ** TODO Figure out magit wip modes
 ** NEXT Mojave issues [1/4]
 *** DONE Re-compile with new changes
@@ -41,7 +33,7 @@ Not sure if these are all the same issue. Fix term first, see if it affects the 
 - State "DONE"       from "TODO"       [2018-08-31 Fri 11:03]
 *** TODO shell
 *** TODO eshell
-** WIP Get Eshell/tramp to cache and/or save passwords [2/3]
+** WIP Get Eshell/tramp to cache and/or save passwords [2/4]
 Enable logging with =(setq auth-source-debug t)=
 *** DONE For the user
 *** DONE For sudo/sudoers - alias for su/sudo?
@@ -55,172 +47,3 @@ See:
 This is already added. do we have to do something else?
 ** WIP Implement =grc= in elisp
 =highlight-things.el=
-** WIP Automatically create/update =TAGS= file when =xref-find-definitions= is called
-How does =xref-find-definitions decide whether or not to use =TAGS= file? It doesn't seem to use it for elisp.
-** WIP Ugh, broke Windows Emacs again. [3/4]
-*** DONE sly - Make it compatible or else don't load it on Windows
-- State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
-*** DONE Remove =mac-key-mode-map= references in main config file. Time to properly clean it up?
-- State "DONE"       from "TODO"       [2018-09-08 Sat 18:31]
-*** DONE Fix Eshell
-- State "DONE"       from "TODO"       [2018-09-08 Sat 22:57]
-*** TODO Make super key bindings work with Windows
-** DONE Backup changes to saved files and restore them with a diff view
-- State "DONE"       from "TODO"       [2018-10-02 Tue 21:35]
-See comments from NateEag and github-alphapapa in this thread:
-https://www.reddit.com/r/emacs/comments/9hfo51/idea_periodically_save_file_changes_to_cache_file/
-** DONE Make =C-k= in =ivy-switch-buffer= kill the buffer, refresh the list, and stay in =ivy-switch-buffer=.
-- State "DONE"       from "TODO"       [2018-10-02 Tue 21:40]
-Can't seem to get this to work but the workaround is to use =C-o a k=
-** DONE Try ivy features [2/2]
-- State "DONE"       from "TODO"       [2018-10-02 Tue 02:08]
-*** DONE ivy-hydra
-- State "DONE"       from "WIP"        [2018-10-02 Tue 01:54]
-*** DONE ivy-overlay
-- State "DONE"       from "WIP"        [2018-10-02 Tue 02:08]
-** DONE fix rubygems-update issue
-** DONE Migrate fish plugin manager to fisher
-** DONE aliases: move to ~ and make compatible with fish, bash, zsh so
-they all use the same aliases file
-** DONE do the same for private.fish
-** DONE fix arch sed error
-** DONE install.sh: colorize output
-** DONE Fix bash_prompt
-** DONE Migrate zlogin to bash aliases
-** DONE Port start-ssh-agent.fish to bash and zsh
-** DONE Vim and Emacs updates shouldn't make repo dirty -- don't store packages themselves in repo
-** DONE Catch-22 for running =fisher= for first time: It both requires and installs =bass=
-** DONE Fix tmux line length bug in =fish_prompt= -- probably not stripping all control characters out when measuring the line length
-(=bash_prompt= does not have this problem)
-** DONE prompt - direnv
-** DONE bash prompt sometimes exibits weird behavior
-Moving the start of the prompt to the middle of the line or even the previous line. Guessing there are special characters not being printed properly, or maybe the normal escape sequence isn't clearing everything
-** DONE Make tmux status bar more like vim's
-(https://github.com/edkolev/tmuxline.vim)
-** DONE Finish emacs tmuxline-ification
-** DONE Make =PS1= fallback look like =bash_prompt=
-** DONE Only update packages lists if =--save= flag is set so that repo stays clean after =update= [3/3]
-- [X] Move all fish config to plugin
-- [X] =update-fish=: problematic because fisher updates
-  ~/.config/fish/functions/*
-- [X] All the rest
-** DONE Better manage vim and nvim configs
-** DONE BUG: Is =./install -f= removing dirs during =link_children=?
-** DONE Remove noise from atom status bar
-** DONE Get rid of =basic.vim=? No, it has some nice settings.
-** DONE with_color escape sequences sometimes dont' work over ssh/tmux. should also be way faster
-** DONE BUG: update-python on arch overwrites packages that are managed by pacman, causing pacman updates to fail
-** DONE BUG: On interactive login:
-=set: Tried to change the read-only variable '_'= Has something to dowith adding "/usr/local/opt/coreutils/libexec/gnubin" to PATH
-** DONE BUG: Error message is displayed from prompt when tmux is not in path
-** DONE Move prompt to its own plugin/repo - teleprompt
-** DONE BUG: =install=: Don't create files with literal name of '*' in created directories (=link-children=) - only happens when specifying source path on command line?
-** DONE BUG: Why does it always link .parinfer-file-extentions.txt?
-** DONE BUG: =inf-clojure= sets =comint-send-input= on every shell
-** DONE BUG: dired+ often doesn't work or doesn't work completely (details not hidden and/or highlighting not working)
-** DONE Emacs: macos proced doesn't show all columns
-** DONE Get =diff-hl= to work
-** DONE Get =gist= to work
-** DONE tramp: add hostname to mode-line when connected via tramp
-** DONE Re-enable company-mode in tramp and optimize
-** DONE Move any requires in =init.el= to use-package
-** DONE Add =eless= to aliases
-** DONE Move =path.fish= to =env=
-** DONE install / install.settings should use arrays, not lists, for variables
-** DONE BUG: =ignore= in =install.settings= is getting ignored
-** DONE Move to bare git repo
-(https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/)
-** DONE Talk about eshell in README
-** DONE Move README to org format
-** DONE Finish source
-** DONE Make bare repo setup compatible with magit and projectile. Could use a `link' and `unlink' function to create a temporary $HOME/.git file. See example: https://github.com/magit/magit/issues/460#issuecomment-36139308 and https://gitorious.org/magit/skangas-detached-worktree#more
-** DONE Make yanking indentation work on a newline inside a form in parinfer (mac-key-mode's =clipboard-yank-and-indent= needs to work with parinfer's =parinfer-smart-yank:yank=. 
-Maybe advise the latter? Could turn on parinfer-paren-mode while yanking)
-** DONE Update readme with new non-bare repo setup
-** DONE Fix Windows problems
-** DONE eshell should have a way to cd relative to tramp path
-Example:
-pwd: =/sshx:host:/some/path=
-=cd :/other/path= => =/sshx:host:/other/path=
-** DONE Fix yank-pop deleting a bunch more than the previous yank      :bug:
-What are repro steps? Does this happen only when there are characters on
-the line after point? 
-
-Thinking we should use a temp buffer to build the yanked text using parinfer
-as normal, then insert it at point. 
-
-All that sounded great, but when I removed the kludgey advice I had created,
-everything seemed to work. Not sure what changed but super.
-** DONE Make solarized theme colors work with eshell
-** DONE Fix org-mode <s expansion                                      :bug:
-Had to do with running HEAD version of org-mode. Stopped that.
-** DONE Improve and unify persistence
-** DONE Add script to set up new computer
-** DONE Eshell copy and kill output
-** DONE =find= in eshell runs elisp function find. It should run the system =find= utility.
-** DONE use org/outline to fold top level sections
-** DONE Fix search in Notes
-** DONE Eshell read-only prompt
-** DONE Eshell import aliases from bash
-** DONE M-x shell bash completion
-*** https://github.com/szermatt/emacs-bash-completion
-** DONE outline-minor-mode should not trample on key binding "M-<up>"
-** DONE Advise =eshell/cd= such that paths starting with "/" and "~" are interpreted relative to the remote host [2/2]
-- State "DONE"       from "WIP"        [2018-08-22 Wed 09:01]
-*** DONE cd
-- State "DONE"       from "TODO"       [2018-08-22 Wed 08:47]
-*** DONE e, ee
-- State "DONE"       from "TODO"       [2018-08-22 Wed 09:01]
-** DONE "s-n" should create a new scratch buffer
-** DONE Add git-ls-files command
-https://stackoverflow.com/questions/24993868/how-do-you-list-tracked-files-git-ls-files-in-magit#25227438
-** DONE Add to =org-todo-keywords= and =org-todo-keyword-faces=
-- State "DONE"       from "WIP"        [2018-08-19 Sun 08:29]
-*** "WIP"
-*** "NEXT"
-** DONE How to manage package version pinning in =straight.el=?
-- State "DONE"       from "TODO"       [2018-08-22 Wed 15:39]
-** DONE Package regression: clojure-mode: =end-of-defun= skips two top level forms
-- State "DONE"       from "DONE"       [2018-08-22 Wed 15:39]
-** DONE Package regression: org-mode: easy templates don't expand
-- State "DONE"       from "TODO"       [2018-08-22 Wed 15:40]
-** DONE w3m easily view buffer in appropriate mode
-- State "DONE"       from "TODO"       [2018-08-22 Wed 20:53]
-Such as displaying a markdown file in `markdown-mode`. Maybe just copy the buffer to another buffer and change mode based on the original buffer's file name?
-NOTE: This isn't completely done, but =language-detection= does most of what we want.
-** DONE Add indicators to modeline for: [3/3] 
-- State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
-*** DONE outline-minor-mode
-- State "DONE"       from "TODO"       [2018-08-23 Thu 11:57]
-*** DONE hs-minor-mode
-- State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
-*** DONE Narrowing
-- State "DONE"       from "TODO"       [2018-08-23 Thu 12:56]
-** DONE =ssh= Can't run commands at all
-- State "DONE"       from "TODO"       [2018-08-26 Sun 08:47]
-Error: =Wrong type argument, stringp, nil=
-** DONE Make function to search =~/org=
-- State "DONE"       from "TODO"       [2018-08-30 Thu 11:56]
-"C-c s"
-** DONE Fix tldr.el
-- State "DONE"       from "TODO"       [2018-08-30 Thu 11:58]
-Apparently the issue can be worked around by first running =tldr-update-docs=
-** DONE Fix Eshell / tramp tab completion adding a space after the file name
-- State "DONE"       from "TODO"       [2018-09-05 Wed 13:20]
-- State "DONE"       from "WIP"        [2018-08-23 Thu 15:16]
-This is a result of my config. Maybe the Eshell completion packages?
-It's either:
-*** DONE bash-completion
-- State "DONE"       from "TODO"       [2018-09-05 Wed 13:19]
-*** DONE fish-completion
-- State "DONE"       from "TODO"       [2018-09-05 Wed 13:20]
-Yes, it was fish-completion
-** DONE Organize or even get rid of mac-key-mode
-- State "DONE"       from "TODO"       [2018-09-08 Sat 18:31]
-** DONE Finish =org-todo-cycle=
-- State "DONE"       from "TODO"       [2018-10-01 Mon 03:49]
-This is =org=shiftleft=
-** DONE Create binding for =org-todo= -> TODO
-- State "DONE"       from "WIP"        [2018-10-01 Mon 03:44]
-** DONE Try moody
-- State "DONE"       from "TODO"       [2018-10-01 Mon 03:21]
