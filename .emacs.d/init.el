@@ -268,7 +268,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
             (m-active4 :background "#00e5e5" :foreground "#262834")))
     (set-cursor-color "#F60")
     (set-mouse-color "white")
-    (set-background-color "#2A2A2A")
+    (set-background-color "#282828")
     (set-face-attribute 'mode-line-emphasis nil :foreground "orange"))
   (add-to-list 'm-themes '(dracula . activate-theme-dracula))
   (activate-theme 'dracula))
@@ -1467,10 +1467,8 @@ ID, ACTION, CONTEXT."
                    :actions '(insert navigate)
                    :pre-handlers '(sp-sh-pre-handler)
                    :post-handlers '(sp-sh-block-post-handler)))
-
-  :hook
-  (smartparens-mode-list . turn-on-smartparens-mode)
-  (smartparens-mode-list . turn-on-show-smartparens-mode)
+  (smartparens-global-mode)
+  (show-smartparens-global-mode)
   :bind
   ("C-M-(" . sp-backward-slurp-into-previous-sexp))
 
