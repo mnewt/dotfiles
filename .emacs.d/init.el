@@ -1470,15 +1470,17 @@ ID, ACTION, CONTEXT."
   (smartparens-global-mode)
   (show-smartparens-global-mode)
   :bind
-  ("C-M-(" . sp-backward-slurp-into-previous-sexp))
+  (:map smartparens-mode-map
+        ("RET" . sp-newline)
+        ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
 (use-package parinfer
   :custom
   (parinfer-extensions 
-   '(defaults         ; should be included.
-     pretty-parens    ; different paren styles for different modes.
-     smart-tab        ; C-b & C-f jump positions and smart shift with tab & S-tab.
-     smart-yank))     ; Yank behavior depends on mode.
+   '(defaults       ; should be included.
+      pretty-parens ; different paren styles for different modes.
+      smart-tab     ; C-b & C-f jump positions and smart shift with tab & S-tab.
+      smart-yank))  ; Yank behavior depends on mode.
   :config
   (parinfer-strategy-add 'default 'newline-and-indent)
   :hook
