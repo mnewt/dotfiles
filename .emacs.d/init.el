@@ -80,8 +80,8 @@ Do not merge packages listed in `m-pinned-packages'."
 
 ;; use-package is good
 (eval-when-compile
-  (require 'use-package)
-  (require 'bind-key))
+  (require 'use-package))
+(require 'bind-key)
 
 (defun update-packages ()
   "Use straight.el to update all packages."
@@ -1275,8 +1275,10 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
               (lambda (&rest args) (unless (outline-on-heading-p t)
                                      (outline-previous-visible-heading 1))))
   :hook
-  (prog-mode . outline-minor-mode)
-  (outline-minor-mode . outshine-hook-function)
+  ((prog-mode . outline-minor-mode)
+   (outline-minor-mode . outshine-hook-function))
+  :commands
+  (outshine-hook-function)
   :bind
   (:map outline-minor-mode-map
         ;; Don't shadow smarparens or org bindings
@@ -1907,8 +1909,11 @@ Examples:
 (advice-add #'eshell/ee :around #'eshell-path-advice)
 
 (defun eshell/really-clear (&rest args)
-  "Call `eshell/clear' with an argument to really clear the buffer."
-  (eshell/clear 1))
+  "Call `eshell/clear' with an argument to really clear the
+buffer, then a second time to print the prompt."
+  (interactive)
+  (eshell/clear 1)
+  (eshell/clear))
 
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
@@ -2006,14 +2011,16 @@ initialize the Eshell environment."
    ("C-d" . eshell-quit-or-delete-char)
    ("<tab>" . completion-at-point)
    ("M-r" . counsel-esh-history)
-   ("C-l" . eshell/really-clear)
+   ("C-L" . eshell/really-clear)
    ("C-w" . eshell-kill-previous-output)
    ("C-M-w" . eshell-kill-previous-output-to-buffer)
    ("M-w" . eshell-copy-previous-output)
    ("s-v" . clipboard-yank)
    ("C-S-<backspace>" . eshell-kill-input)
-   ("C-M-p" . eshell-previous-prompt)
-   ("C-M-n" . eshell-next-prompt)
+   ("C-M-S-p" . eshell-previous-prompt)
+   ("M-<up>" . eshell-previous-prompt)
+   ("C-M-S-n" . eshell-next-prompt)
+   ("M-<down>" . eshell-next-prompt)
    ("C-h C-e" . esh-help-run-help))
 
   ;; xterm colors
@@ -3503,7 +3510,7 @@ git repo, optionally specified by DIR."
                            "Moon"))
   (wttrin-default-accept-language '("Accept-Language" . "en-US"))
   :bind
-  ("C-c w" . wttrin))
+  ("C-c C-w" . wttrin))
 
 (require 'highlight-things)
 
@@ -3513,10 +3520,8 @@ git repo, optionally specified by DIR."
 ;;; Private
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Load private stuff
-(let ((f "~/.emacs.d/elisp/private.el"))
-  (when (file-exists-p f)
-    (load-file f)))
+;; Load private stuff if it exists
+(require 'm-private nil 'noerror)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Custom

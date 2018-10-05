@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if installed port; then
+  echo "Updating macports..."
+  sudo port -v selfupdate
+  sudo port upgrade -R outdated
+  sudo port uninstall inactive
+  sudo port uninstall rleaves
+  port reclaim
+  port diagnose --quiet
+fi

@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+sudo port install -N recoll aspell-dict-en py27-libxslt py27-libxml2 poppler tesseract tesseract-eng exiftool antiword catdoc chmlib py27-chm
+pip install epub
