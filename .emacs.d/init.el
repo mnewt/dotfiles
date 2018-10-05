@@ -2350,7 +2350,13 @@ Inserted by installing org-mode or when a release is made."
           (yas-expand)))))
 
 (use-package nov
-  :mode "\\.epub\\'")
+  :mode ("\\.epub\\'" . nov-mode))
+
+(use-package writeroom-mode
+  :custom
+  (writeroom-width 100)
+  :commands
+  (writeroom-mode))
 
 (use-package pdf-tools
   :config
