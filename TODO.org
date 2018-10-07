@@ -1,3 +1,5 @@
+* DONE =shell= doesn't output anything!
+- State "DONE"       from "NEXT"       [2018-10-06 Sat 18:04]
 * TODO Make ssh with =dtach= actually work
 See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
 * WIP Emacs recoll
@@ -7,7 +9,7 @@ https://opensourceprojects.eu/p/recoll1/tickets/61/
 Actually, it is working, it just takes a long time and gives zero feedback. Can we fix this?
 ** Takes too long
 ** Gives zero feedback (doesn't even go to new line when pressing =RET= until it is completely done)
-** Outputs =t= for each file deleted. It should give the same feedback as =*mv=.
+** Outputs =t= for each file deleted. It should give the same feedback as =*rm=.
 * TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
 ** TODO Editing
 ** TODO Eshell

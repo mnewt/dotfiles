@@ -10,11 +10,9 @@
 ;;; Top Level
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Give Emacs 1GB of heap but run gc on idle.
+;; Give Emacs 1GB of heap and run gc on idle.
 (setq gc-cons-threshold 1073741824)
 (run-with-idle-timer 30 t (lambda () (garbage-collect)))
-
-(add-to-list 'load-path "~/.emacs.d/elisp/")
 
 (setq tls-checktrust t
       network-security-level 'high
@@ -78,11 +76,6 @@ Do not merge packages listed in `m-pinned-packages'."
 (setq m-straight-pinned-packages
       '(org-mode))
 
-;; use-package is good
-(eval-when-compile
-  (require 'use-package))
-(require 'bind-key)
-
 (defun update-packages ()
   "Use straight.el to update all packages."
   (interactive)
@@ -94,10 +87,25 @@ Do not merge packages listed in `m-pinned-packages'."
   :commands
   (epkg epkg-describe-package epkg-list-packages))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Libraries
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; cl is assumed to be present in this config and some packages too.
+(require 'cl)
+
+;; All external packages and many built in ones are configured using use-package. 
+(eval-when-compile
+  (require 'use-package))
+(require 'bind-key)
+
 ;; dash.el is required by many things, firstly the Environment section.
 (use-package dash
   :config
   (dash-enable-font-lock))
+
+;; Packages go here.
+(add-to-list 'load-path "~/.emacs.d/elisp/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Environment
@@ -119,14 +127,14 @@ Do not merge packages listed in `m-pinned-packages'."
       ;; Remove environment variables
       (while (search-forward-regexp (concat "^-" envvar-re) nil t)
         (let ((var (match-string 1)))
-          (message "%s" (prin1-to-string `(setenv ,var nil)))
+          ;; (message "%s" (prin1-to-string `(setenv ,var nil)))
           (setenv var nil)))
       ;; Update environment variables
       (goto-char (point-min))
       (while (search-forward-regexp (concat "^+" envvar-re) nil t)
         (let ((var (match-string 1))
               (value (read (match-string 2))))
-          (message "%s" (prin1-to-string `(setenv ,var ,value)))
+          ;; (message "%s" (prin1-to-string `(setenv ,var ,value)))
           (setenv var value)))))
   (message "Sourcing environment from `%s'... done." filename))
 
@@ -287,7 +295,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
             (m-inactive3 :background "#EDE8D7" :foreground "#9E9FA5")
             (m-active3 :background "#A863C9" :foreground "#FFFFFF")
             (m-inactive4 :background "#EDE8D7" :foreground "#9E9FA5")
-            (m-active4 :background "#00E5E5" :foreground "#262834")))
+            (m-active4 :background "#00E5E5" :foreground "#262834")
+            (default :foreground "#60767E")))
     (set-mouse-color "black"))
 
   (add-to-list 'm-themes '(solarized-light . activate-theme-solarized-light)))
@@ -1453,9 +1462,6 @@ ID, ACTION, CONTEXT."
 
 (use-package smartparens
   :custom
-  (smartparens-mode-list '(conf-mode eshell-mode markdown-mode
-                                     prog-mode text-mode
-                                     powershell-mode))
   (sp-base-key-bindings 'paredit)
   (sp-hybrid-kill-entire-symbol nil)
   :config
@@ -1918,7 +1924,7 @@ buffer, then a second time to print the prompt."
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
   (interactive)
-  (if-let* (remote (file-remote-p default-directory))
+  (if-let* ((remote (file-remote-p default-directory)))
       (insert remote)))
 
 (bind-key "C-c f" #'tramp-insert-remote-part)
@@ -2202,7 +2208,7 @@ shell is left intact."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; visual-line-mode
-  ;; Don't shadow mwim and org-mode binding
+;; Don't shadow mwim and org-mode bindings
 (bind-key [remap move-beginning-of-line] nil visual-line-mode-map)
 (add-hook 'text-mode-hook #'turn-on-visual-line-mode)
 
@@ -2676,10 +2682,9 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   :bind
   (("C-c C-p" . wgrep-change-to-wgrep-mode)))
 
-;; some rg features require this
-(use-package wgrep-ag)
-
 (use-package rg
+  :requires
+  (wgrep-ag)
   :config
   (rg-enable-default-bindings (kbd "C-r"))
   :hook
@@ -3518,7 +3523,7 @@ git repo, optionally specified by DIR."
   :bind
   ("C-c C-w" . wttrin))
 
-(require 'highlight-things)
+;; (require 'highlight-things)
 
 ;; (require 'm-pointhistory)
 
