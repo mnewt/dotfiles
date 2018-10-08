@@ -107,6 +107,25 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; Packages go here.
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
+;; Function composition
+(defsubst curry (function &rest arguments)
+  (lexical-let ((function function)
+                (arguments arguments))
+    (lambda (&rest more) (apply function (append arguments more)))))
+
+(defsubst rcurry (function &rest arguments)
+  (lexical-let ((function function)
+                (arguments arguments))
+    (lambda (&rest more) (apply function (append more arguments)))))
+
+(defsubst compose (function &rest more-functions)
+  (cl-reduce (lambda (f g)
+               (lexical-let ((f f) (g g))
+                 (lambda (&rest arguments)
+                   (funcall f (apply g arguments)))))
+             more-functions
+             :initial-value function))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Environment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -134,7 +153,7 @@ Do not merge packages listed in `m-pinned-packages'."
       (while (search-forward-regexp (concat "^+" envvar-re) nil t)
         (let ((var (match-string 1))
               (value (read (match-string 2))))
-          ;; (message "%s" (prin1-to-string `(setenv ,var ,value)))
+          (message "%s" (prin1-to-string `(setenv ,var ,value)))
           (setenv var value)))))
   (message "Sourcing environment from `%s'... done." filename))
 
@@ -1452,7 +1471,7 @@ ID, ACTION, CONTEXT."
     (sp-backward-symbol)
     (sp-forward-slurp-sexp)))
 
-;; https://github.com/Fuco1/smartparens/issues/80
+;; See https://github.com/Fuco1/smartparens/issues/80
 (defun sp-create-newline-and-enter-sexp (&rest _ignored)
   "Open a new brace or bracket expression, with relevant newlines and indent. "
   (newline)
@@ -1461,26 +1480,43 @@ ID, ACTION, CONTEXT."
   (indent-according-to-mode))
 
 (use-package smartparens
+  :demand t
   :custom
   (sp-base-key-bindings 'paredit)
   (sp-hybrid-kill-entire-symbol nil)
+  ;; Don't disable autoskip when point moves backwards. (This lets you
+  ;; open a sexp, type some things, delete some things, etc., and then
+  ;; type over the closing delimiter as long as you didn't leave the
+  ;; sexp entirely.)
+  (sp-cancel-autoskip-on-backward-movement nil)
   :config
+  ;; Load the default pair definitions for Smartparens.
   (require 'smartparens-config)
+  ;; Enable Smartparens functionality in all buffers.
+  (smartparens-global-mode +1)
   ;; Enable some default keybindings for Smartparens.
   (sp-use-paredit-bindings)
-  ;; Disable Smartparens in Org-related modes, since the keybindings conflict.
-  (with-eval-after-load 'org (add-to-list 'sp-ignore-modes-list #'org-mode))
-  (with-eval-after-load 'org-agenda (add-to-list 'sp-ignore-modes-list #'org-agenda-mode))
+  ;; Highlight matching delimiters.
+  (show-smartparens-global-mode +1)
+  ;; Disable Smartparens in Org-related modes, since the keybindings
+  ;; conflict.
+  (add-to-list 'sp-ignore-modes-list #'org-mode)
+  (add-to-list 'sp-ignore-modes-list #'org-agenda-mode)
+
+  ;; Make C-k kill the sexp following point in Lisp modes, instead of
+  ;; just the current line.
+  (bind-key [remap kill-line] #'sp-kill-hybrid-sexp smartparens-mode-map
+            (apply #'derived-mode-p sp-lisp-modes))
   
   (sp-with-modes
       '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
                python-mode java-mode sh-mode web-mode)
     (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-    (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+    (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
 
   (sp-with-modes
-      '(python-mode sh-mode)
-    (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+      '(python-mode)
     (sp-local-pair "\"\"\"" "\"\"\""
                    :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
 
@@ -1504,8 +1540,6 @@ ID, ACTION, CONTEXT."
                    :actions '(insert navigate)
                    :pre-handlers '(sp-sh-pre-handler)
                    :post-handlers '(sp-sh-block-post-handler)))
-  (smartparens-global-mode)
-  (show-smartparens-global-mode)
   :bind
   (:map smartparens-mode-map
         ("RET" . sp-newline)
@@ -1753,6 +1787,36 @@ ID, ACTION, CONTEXT."
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
 
+;; xterm colors
+(use-package xterm-color
+  :custom
+  (comint-output-filter-functions
+   (remove 'ansi-color-process-output comint-output-filter-functions))
+  :config
+  (setenv "TERM" "xterm-256color")
+  :hook
+  (shell-mode . (lambda () (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
+  (compilation-start-hook . (lambda (proc)
+                              ;; We need to differentiate between compilation-mode buffers
+                              ;; and running as part of comint (which at this point we assume
+                              ;; has been configured separately for xterm-color)
+                              (when (eq (process-filter proc) 'compilation-filter)
+                                ;; This is a process associated with a compilation-mode buffer.
+                                ;; We may call `xterm-color-filter' before its own filter function.
+                                (set-process-filter
+                                 proc
+                                 (lambda (proc string)
+                                   (funcall 'compilation-filter proc
+                                            (xterm-color-filter string))))))))
+
+(use-package eterm-256color
+  ;; `devel' branch is needed to support Emacs 27.
+  ;; https://github.com/dieggsy/eterm-256color/pull/9#issuecomment-403229541
+  :straight
+  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel")
+  :hook
+  (term-mode . eterm-256color-mode))
+
 (use-package bash-completion
   :custom
   ;; So that it doesn't sometimes insert a space ('\ ') after the file name.
@@ -1771,21 +1835,6 @@ ID, ACTION, CONTEXT."
   (fish-completion-fallback-on-bash-p t)
   :config
   (global-fish-completion-mode))
-
-;; xterm colors
-(use-package xterm-color
-  :hook
-  (shell-mode . (lambda ()
-                  (add-hook 'comint-preoutput-filter-functions
-                            'xterm-color-filter nil t))))
-
-(use-package eterm-256color
-  ;; `devel' branch is needed to support Emacs 27.
-  ;; https://github.com/dieggsy/eterm-256color/pull/9#issuecomment-403229541
-  :straight
-  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel")
-  :hook
-  (term-mode . eterm-256color-mode))
 
 (defun eshell-other-window (arg)
   "Opens an eshell in another window. Prefix argument opens a new eshell named for `default-directory'"
@@ -2034,20 +2083,12 @@ initialize the Eshell environment."
   (setq eshell-output-filter-functions
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
 
-  ;; Commands that use curses
-  (add-to-list 'eshell-visual-commands "htop")
-  (add-to-list 'eshell-visual-commands "mbsync")
-  (add-to-list 'eshell-visual-commands "ncdu")
-  (add-to-list 'eshell-visual-commands "nnn")
-  (add-to-list 'eshell-visual-commands "nvim")
-  (add-to-list 'eshell-visual-commands "ssh")
-  (add-to-list 'eshell-visual-commands "tail")
-  (add-to-list 'eshell-visual-commands "tmux")
-  (add-to-list 'eshell-visual-commands "top")
-  (add-to-list 'eshell-visual-commands "vim")
-  (add-to-list 'eshell-visual-commands "w3m")
-  (add-to-list 'eshell-visual-subcommands '("git" "log" "diff" "show"))
-  (add-to-list 'eshell-visual-subcommands '("dw" "log"))
+  ;; Commands that use curses get launched in their own `term' buffer
+  (seq-do (curry #'add-to-list 'eshell-visual-commands)
+          '("htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux" "top" "vim" "w3m"))
+  (seq-do (curry #'add-to-list 'eshell-visual-subcommands)
+          '(("git" "log" "diff" "show")
+            ("dw" "log")))
 
   ;; Load the Eshell versions of `su' and `sudo'
   (require 'em-tramp)
@@ -2066,6 +2107,7 @@ initialize the Eshell environment."
   (eshell-highlight-prompt nil)
   :hook
   ((eshell-mode . eshell/init)
+   ;; For using xterm-256color properties in the prompt
    (eshell-before-prompt . (lambda ()
                              (setq xterm-color-preserve-properties t))))
   :bind
