@@ -269,9 +269,8 @@ Do not merge packages listed in `m-pinned-packages'."
       (error "Problem loading theme %s" x))))
 
 (defun choose-theme ()
-  "Forward to `load-theme'.))))
-Usable with `ivy-resume', `ivy-next-line-and-call' and
-`ivy-previous-line-and-call'."
+  "Forward to `load-theme'. Usable with `ivy-resume',
+`ivy-next-line-and-call' and `ivy-previous-line-and-call'."
   (interactive)
   (ivy-read "Load custom theme: "
             (mapcar 'car m-themes)
