@@ -5,7 +5,7 @@ $repo_dir = "$HOME/.config/repos"
 $repo_temp = "$HOME/.config/repos/temp"
 
 New-Item -ItemType Directory "$repo_dir"
-Remove-Item -Force -Recurse "$HOME/.git"
+if (Test-Path "$HOME/.git") { Remove-Item -Force -Recurse "$HOME/.git" }
 git clone --separate-git-dir "$repo_dir/dotfiles" "$repo_remote" --no-checkout "$repo_temp"
 Move-Item "$repo_temp/.git" "$HOME"
 Remove-Item -Force -Recurse "$repo_temp"

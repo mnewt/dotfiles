@@ -6,7 +6,7 @@ repo_dir=$HOME/.config/repos
 repo_temp=$HOME/.config/repos/temp
 
 mkdir -p $repo_dir
-rm -rf $HOME/.git
+[ -e $HOME/.git ] && rm -rf $HOME/.git
 git clone --separate-git-dir $repo_dir/dotfiles $repo_remote --no-checkout $repo_temp
 mv $repo_temp/.git $HOME
 rm -rf $repo_temp
