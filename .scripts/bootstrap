@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# Bootstrap the dotfiles repo on a new computer
+
+repo_remote=https://gitlab.com/mnewt/dotfiles.git
+repo_dir=$HOME/.config/repos
+repo_temp=$HOME/.config/repos/temp
+
+mkdir -p $repo_dir
+rm -rf $HOME/.git
+git clone --separate-git-dir $repo_dir/dotfiles $repo_remote --no-checkout $repo_temp
+mv $repo_temp/.git $HOME
+rm -rf $repo_temp
+git fetch
+git reset --hard HEAD
+git config --local status.showUntrackedFiles no

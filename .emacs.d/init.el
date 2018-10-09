@@ -2363,6 +2363,10 @@ Inserted by installing org-mode or when a release is made."
   ("C-c s" . search-org-files)
   ("s-;" . org-shiftright))
 
+(use-package org-preview-html
+  :commands
+  (org-preview-html-mode))
+
 (use-package ox-hugo
   :after ox
   :config
@@ -3224,6 +3228,10 @@ git repo, optionally specified by DIR."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Network and System Utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package eww
+  :hook
+  (eww-mode . (lambda () (setq-local buffer-face-mode-face '(:height 15)))))
 
 ;; language detection
 
