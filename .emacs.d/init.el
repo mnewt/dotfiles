@@ -418,7 +418,9 @@ Do not merge packages listed in `m-pinned-packages'."
 
 ;; Beeping is REALLY NOT OK
 (setq visible-bell t
-      ring-bell-function 'echo-area-visible-bell)
+      ring-bell-function 'echo-area-visible-bell
+      ; Show keystrokes right away, don't show the message in the scratch buffer
+      echo-keystrokes 0.1)
 
 ;; Use the system clipboard
 (setq select-enable-clipboard t
@@ -464,11 +466,16 @@ Do not merge packages listed in `m-pinned-packages'."
  ("C-S-p" . previous-line-4)
  ("C-S-n" . next-line-4))
 
-;; Scroll one line at a time.
-(setq scroll-conservatively 10000
+;; Smoother and nicer scrolling
+(setq scroll-margin 6
+      scroll-step 1
+      scroll-conservatively 10000
       ;; Reduce scrolling lag
       ;; https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746
-      auto-window-vscroll nil)
+      scroll-preserve-screen-position 1
+      auto-window-vscroll nil
+      mouse-wheel-follow-mouse 't
+      mouse-wheel-scroll-amount '(1 ((shift) . 1)))
 
 ;; Whenever an external process changes a file underneath emacs, and there
 ;; was no unsaved changes in the corresponding buffer, just revert its
@@ -741,7 +748,9 @@ When using Homebrew, install it using \"brew install trash\"."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq suggest-key-bindings 5
-      apropos-do-all t)
+      apropos-do-all t
+      ;; Select help window so it's easy to quit it with `q'
+      help-window-select t)
 
 ;; About Emacs is not useful so replace binding with `apropos'
 ;; (bind-keys ("C-h C-a" . apropos))
@@ -1020,11 +1029,14 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   :config
   (backups-minor-mode))
 
-;; Wrap text
+;; Wrap text.
 (setq-default fill-column 80)
 
-;; Newline at end of file
-(setq require-final-newline t)
+;; Newline at end of file.
+(setq require-final-newline t
+      ;; Sentences end with one space.
+      sentence-end-double-space nil)
+
 
 ;; Delete selection on insert or yank
 (delete-selection-mode 1)
@@ -1203,6 +1215,8 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   :custom
   (undo-tree-auto-save-history t)
   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
+  (undo-tree-visualizer-timestamps t)
+  (undo-tree-visualizer-diff t)
   :config
   (global-undo-tree-mode)
   :bind
@@ -2330,13 +2344,17 @@ Inserted by installing org-mode or when a release is made."
   (org-special-ctrl-k t)
   ;; Insert a row in tables
   (org-special-ctrl-o t)
+  ;; Tab in source blocks should act like in major mode
+  (org-src-tab-acts-natively t)
+  ;; Code highlighting in code blocks
+  (org-src-fontify-natively t)
   ;; Customize todo keywords
   (org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WIP(w)" "|" "DONE(d!)")))
   (org-todo-keyword-faces '(("TODO" (:foreground "orange" :weight bold))
                             ("NEXT" (:foreground "red" :weight bold))
                             ("WIP" (:foreground "green" :weight bold))
                             ("DONE" (:foreground "gray"))))
-  (org-agenda-files '("~/TODO.org"))
+  (org-agenda-files '("~/org" "~/TODO.org"))
   :bind
   ("C-c l" . org-store-link)
   ("C-c a" . org-agenda)
@@ -2769,8 +2787,10 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
         :map company-active-map
-        ;; ("C-n" . company-select-next)
-        ;; ("C-p" . company-select-previous)
+        ;; * TODO: The inconsistency between C-n and M-n to select company
+        ;; completion in different contexts (e.g `emacs-lisp-mode' and
+        ;; `eshell-mode') is aggravating. Not sure about the solution though.
+        ;; ("C-n" . company-select-next) ("C-p" . company-select-previous)
         ("C-d" . company-show-doc-buffer)
         ("M-." . company-show-location)))
 
@@ -2799,7 +2819,7 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   :defer 1)
 
 (defun replace-regexp-entire-buffer (pattern replacement)
-  "Perform regular-expression replacement throughout buffer."
+  "Perform regular-expression replacement immedately throughout the buffer."
   (interactive
    (let ((args (query-replace-read-args "Replace in entire buffer" t)))
      (setcdr (cdr args) nil)    ; remove third value returned from query---args
@@ -3506,8 +3526,6 @@ git repo, optionally specified by DIR."
   :mode "\\.sa?c?ss\\'")
 
 (use-package flycheck
-  :custom
-  (sentence-end-double-space nil)
   :bind
   (("C-c ! !" . flycheck-mode)))
 
