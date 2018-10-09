@@ -2453,6 +2453,128 @@ Inserted by installing org-mode or when a release is made."
 
 (use-package hydra)
 
+(defhydra hydra-straight-helper (:hint nil)
+  "
+_c_heck all       |_f_etch all     |_m_erge all      |_n_ormalize all   |p_u_sh all
+_C_heck package   |_F_etch package |_M_erge package  |_N_ormlize package|p_U_sh package
+----------------^^+--------------^^+---------------^^+----------------^^+------------||_q_uit||
+_r_ebuild all     |_p_ull all      |_v_ersions freeze|_w_atcher start   |_g_et recipe
+_R_ebuild package |_P_ull package  |_V_ersions thaw  |_W_atcher quit    |pru_n_e build"
+  ("c" straight-check-all)
+  ("C" straight-check-package)
+  ("r" straight-rebuild-all)
+  ("R" straight-rebuild-package)
+  ("f" straight-fetch-all)
+  ("F" straight-fetch-package)
+  ("p" straight-pull-all)
+  ("P" straight-pull-package)
+  ("m" straight-merge-all)
+  ("M" straight-merge-package)
+  ("n" straight-normalize-all)
+  ("N" straight-normalize-package)
+  ("u" straight-push-all)
+  ("U" straight-push-package)
+  ("v" straight-freeze-versions)
+  ("V" straight-thaw-versions)
+  ("w" straight-watcher-start)
+  ("W" straight-watcher-quit)
+  ("g" straight-get-recipe)
+  ("n" straight-prune-build)
+  ("q" nil))
+
+(defun hydra-move-splitter-left (arg)
+  "Move window splitter left."
+  (interactive "p")
+  (if (let ((windmove-wrap-around))
+        (windmove-find-other-window 'right))
+      (shrink-window-horizontally arg)
+    (enlarge-window-horizontally arg)))
+
+(defun hydra-move-splitter-right (arg)
+  "Move window splitter right."
+  (interactive "p")
+  (if (let ((windmove-wrap-around))
+        (windmove-find-other-window 'right))
+      (enlarge-window-horizontally arg)
+    (shrink-window-horizontally arg)))
+
+(defun hydra-move-splitter-up (arg)
+  "Move window splitter up."
+  (interactive "p")
+  (if (let ((windmove-wrap-around))
+        (windmove-find-other-window 'up))
+      (enlarge-window arg)
+    (shrink-window arg)))
+
+(defun hydra-move-splitter-down (arg)
+  "Move window splitter down."
+  (interactive "p")
+  (if (let ((windmove-wrap-around))
+        (windmove-find-other-window 'up))
+      (shrink-window arg)
+    (enlarge-window arg)))
+
+(defhydra hydra-window ()
+  "
+Movement^^        ^Split^         ^Switch^		^Resize^
+----------------------------------------------------------------
+_h_ ←       	_v_ertical    	_b_uffer		_q_ X←
+_j_ ↓        	_x_ horizontal	_f_ind files	_w_ X↓
+_k_ ↑        	_z_ undo      	_a_ce 1		_e_ X↑
+_l_ →        	_Z_ reset      	_s_wap		_r_ X→
+_F_ollow		_D_lt Other   	_S_ave		max_i_mize
+_SPC_ cancel	_o_nly this   	_d_elete	
+"
+  ("h" windmove-left)
+  ("j" windmove-down)
+  ("k" windmove-up)
+  ("l" windmove-right)
+  ("q" hydra-move-splitter-left)
+  ("w" hydra-move-splitter-down)
+  ("e" hydra-move-splitter-up)
+  ("r" hydra-move-splitter-right)
+  ("b" helm-mini)
+  ("f" helm-find-files)
+  ("F" follow-mode)
+  ("a" (lambda ()
+         (interactive)
+         (ace-window 1)
+         (add-hook 'ace-window-end-once-hook
+                   'hydra-window/body)))
+   
+  ("v" (lambda ()
+         (interactive)
+         (split-window-right)
+         (windmove-right)))
+   
+  ("x" (lambda ()
+         (interactive)
+         (split-window-below)
+         (windmove-down)))
+   
+  ("s" (lambda ()
+         (interactive)
+         (ace-window 4)
+         (add-hook 'ace-window-end-once-hook
+                   'hydra-window/body)))
+  ("S" save-buffer)
+  ("d" delete-window)
+  ("D" (lambda ()
+         (interactive)
+         (ace-window 16)
+         (add-hook 'ace-window-end-once-hook
+                   'hydra-window/body)))
+   
+  ("o" delete-other-windows)
+  ("i" ace-maximize-window)
+  ("z" (progn
+         (winner-undo)
+         (setq this-command 'winner-undo)))
+   
+  ("Z" winner-redo)
+  ("SPC" nil))
+  
+
 (defhydra hydra-multiple-cursors (:hint nil)
   "
      ^Up^            ^Down^        ^Other^
@@ -2719,7 +2841,9 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
 
 (require 'ibuffer)
 
-(bind-keys ("C-c C-m" . hydra-multiple-cursors/body)
+(bind-keys ("C-c C-h" . hydra-straight-helper/body)
+           ("C-c C-w" . hydra-window/body)
+           ("C-c C-m" . hydra-multiple-cursors/body)
            ("C-c #" . hydra-outline/body)
            ("C-c @" . hydra-hs/body)
            ("C-c C-o" . hydra-occur-dwim/body)
@@ -2728,7 +2852,7 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
            :map ibuffer-mode-map
            ("." . hydra-ibuffer-main/body))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Search, Completion, Symbols, Project Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3580,7 +3704,7 @@ git repo, optionally specified by DIR."
                            "Moon"))
   (wttrin-default-accept-language '("Accept-Language" . "en-US"))
   :bind
-  ("C-c C-w" . wttrin))
+  ("C-c M-w" . wttrin))
 
 ;; (require 'highlight-things)
 
