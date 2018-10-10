@@ -179,8 +179,8 @@ Do not merge packages listed in `m-pinned-packages'."
 (set-path)
 
 (setq m-code-directory "~/code")
-(if (not (file-directory-p m-code-directory)
-         (make-directory m-code-directory)))
+(if (not (file-directory-p m-code-directory))
+    (make-directory m-code-directory))
 
 (defun expand-environment-variable ()
   "Insert contents of an envionment variable at point."
@@ -1519,6 +1519,7 @@ ID, ACTION, CONTEXT."
   ;; conflict.
   (add-to-list 'sp-ignore-modes-list #'org-mode)
   (add-to-list 'sp-ignore-modes-list #'org-agenda-mode)
+  (add-to-list 'sp-ignore-modes-list #'shell-mode)
 
   ;; Make C-k kill the sexp following point in Lisp modes, instead of
   ;; just the current line.
@@ -1950,6 +1951,12 @@ ID, ACTION, CONTEXT."
 (defun eshell/ee (&optional path)
   (find-file-other-window path))
 
+(defun eshell/d (&optional path)
+  (dired path))
+
+(defun eshell/do (&optional path)
+  (dired-other-window path))
+
 (defun eshell-path-advice (f &optional directory)
   "Return a DIRECTORY using a path relative to the remote host (if we are on a
  remote host).
@@ -1957,28 +1964,30 @@ Examples:
   > cd /etc -> /sshx:host:/etc
   > cd : -> /sshx:host:/home/user"
   (funcall f
-   (if (file-remote-p default-directory)
-       (let ((remote-prefix (replace-regexp-in-string ":[^:]*$" ":" default-directory)))
-         (cond
-          ;; If `directory' starts with `$HOME' then we assume the original arg
-          ;; started with "~" and we change directory to the remote `$HOME'. We
-          ;; can always use `cd' with no args to return to local `$HOME'.
-          ((string-prefix-p (getenv "HOME") directory)
-           (concat remote-prefix
-                   (replace-regexp-in-string (concat (getenv "HOME") "/?")
-                                             ""
-                                             directory)))
-          ;; If `directory' starts with "/" then it's an absolute path but we
-          ;; want to make it relative to the remote host, rather than localhost.
-          ((string-prefix-p "/" directory)
-           (concat remote-prefix directory))
-          (t
-           directory)))
-     directory)))
+           (if (file-remote-p default-directory)
+               (let ((remote-prefix (replace-regexp-in-string ":[^:]*$" ":" default-directory)))
+                 (cond
+                  ;; If `directory' starts with `$HOME' then we assume the original arg
+                  ;; started with "~" and we change directory to the remote `$HOME'. We
+                  ;; can always use `cd' with no args to return to local `$HOME'.
+                  ((string-prefix-p (getenv "HOME") directory)
+                   (concat remote-prefix
+                           (replace-regexp-in-string (concat (getenv "HOME") "/?")
+                                                     ""
+                                                     directory)))
+                  ;; If `directory' starts with "/" then it's an absolute path but we
+                  ;; want to make it relative to the remote host, rather than localhost.
+                  ((string-prefix-p "/" directory)
+                   (concat remote-prefix directory))
+                  (t
+                   directory)))
+             directory)))
 
 (advice-add #'eshell/cd :around #'eshell-path-advice)
 (advice-add #'eshell/e :around #'eshell-path-advice)
 (advice-add #'eshell/ee :around #'eshell-path-advice)
+(advice-add #'eshell/d :around #'eshell-path-advice)
+(advice-add #'eshell/do :around #'eshell-path-advice)
 
 (defun eshell/really-clear (&rest args)
   "Call `eshell/clear' with an argument to really clear the
