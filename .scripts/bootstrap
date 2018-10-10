@@ -5,6 +5,7 @@ repo_remote=https://gitlab.com/mnewt/dotfiles.git
 repo_dir=$HOME/.config/repos
 repo_temp=$HOME/.config/repos/temp
 
+cd $HOME
 mkdir -p $repo_dir
 [ -e $HOME/.git ] && rm -rf $HOME/.git
 git clone --separate-git-dir $repo_dir/dotfiles $repo_remote --no-checkout $repo_temp

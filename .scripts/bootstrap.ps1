@@ -4,6 +4,7 @@ $repo_remote = "https://gitlab.com/mnewt/dotfiles.git"
 $repo_dir = "$HOME/.config/repos"
 $repo_temp = "$HOME/.config/repos/temp"
 
+cd "$HOME"
 New-Item -ItemType Directory "$repo_dir"
 if (Test-Path "$HOME/.git") { Remove-Item -Force -Recurse "$HOME/.git" }
 git clone --separate-git-dir "$repo_dir/dotfiles" "$repo_remote" --no-checkout "$repo_temp"
@@ -12,3 +13,4 @@ Remove-Item -Force -Recurse "$repo_temp"
 git fetch
 git reset --hard HEAD
 git config --local status.showUntrackedFiles no
+New-Item 'HKCU:\Software\GNU\Emacs' -Force | New-ItemProperty -Name HOME -Value "$HOME" -Force
