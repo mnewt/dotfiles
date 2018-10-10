@@ -178,6 +178,10 @@ Do not merge packages listed in `m-pinned-packages'."
 (source-sh "~/.bin/start-ssh-agent")
 (set-path)
 
+(setq m-code-directory "~/code")
+(if (not (file-directory-p m-code-directory)
+         (make-directory m-code-directory)))
+
 (defun expand-environment-variable ()
   "Insert contents of an envionment variable at point."
   (interactive)
@@ -3231,7 +3235,7 @@ git repo, optionally specified by DIR."
 
 (use-package eww
   :hook
-  (eww-mode . (lambda () (setq-local buffer-face-mode-face '(:height 15)))))
+  (eww-mode . (lambda () (text-scale-set 2))))
 
 ;; language detection
 

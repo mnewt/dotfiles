@@ -24,89 +24,89 @@ Further, we can have multiple repos tracking different sets of files, all with t
 *** Set up a new computer
 We already have a repo and we know what we're doing. No need to back anything up. Overwrite existing files.
 #+BEGIN_SRC sh
-  wget 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' -O - | sh
+wget 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' -O - | sh
 #+END_SRC
 Or on Windows:
-#+begin_src powershell
-  Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap.ps1'))
-#+end_src
+#+BEGIN_SRC powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap.ps1'))
+#+END_SRC
 ** The Long Version (discussing various scenarios)
 If we want to set up a repo, we'll want to consider how to transition from whatever is in place at the moment. Here are some basic plans for the main scenarios. To learn about the factors at play, follow along here.
 *** Getting started
 Whether we want to start a brand new repo or clone a remote repo onto the local computer, run ~git init~ to begin.
 #+BEGIN_SRC sh
-  mkdir -p $HOME/.config/repos
-  rm $HOME/.git # if necessary
-  git init --separate-git-dir $HOME/.config/repos/dotfiles $HOME
+mkdir -p $HOME/.config/repos
+rm $HOME/.git # if necessary
+git init --separate-git-dir $HOME/.config/repos/dotfiles $HOME
 #+END_SRC
 *** Clone an existing repo
 Clone an existing remote repo.
 #+BEGIN_SRC sh
-  git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git --no-checkout $HOME/.config/repos/temp
-  mv $HOME/.config/repos/temp/.git $HOME
-  rm -rf $HOME/.config/repos/temp
-  git fetch
-  git reset --mixed HEAD
+git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git --no-checkout $HOME/.config/repos/temp
+mv $HOME/.config/repos/temp/.git $HOME
+rm -rf $HOME/.config/repos/temp
+git fetch
+git reset --mixed HEAD
 #+END_SRC
 *** Don't show untracked files
 Don't show untracked files since there will always be lots of stuff in ~$HOME~ that we don't want in our repo.
 #+BEGIN_SRC sh
-  env GITDIR~$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
+env GITDIR~$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
 #+END_SRC
 *** Back up conflicting dotfiles
 If there are conflicting files between the repo and the existing files in ~$HOME~ then the ~git reset~ above will not have populated all the files in the branch. So, back up the conflicting files.
 #+BEGIN_SRC sh
-  modified~$(git diff --name-status | awk '/^M/{print $2}')
-  [ -n "$modified" ] && mkdir -p $HOME/.dotfiles-backup && cp -R $modified $HOME/.dotfiles-backup
+modified~$(git diff --name-status | awk '/^M/{print $2}')
+[ -n "$modified" ] && mkdir -p $HOME/.dotfiles-backup && cp -R $modified $HOME/.dotfiles-backup
 #+END_SRC
 *** Remove symlinks to the old repository
 If we currently have symlinked dotfiles, let's remove them. Here are two possible ways of cleaning up the links to the old repo. *Let's be careful though!*
 **** Delete the old repository, then delete orphaned symlinks
 #+BEGIN_SRC sh
-  rm -rf $HOME/dotfiles
-  find -L $HOME -maxdepth 3 -type l -print
-  find -L $HOME -maxdepth 3 -type l -exec unlink -- "{}" \;
+rm -rf $HOME/dotfiles
+find -L $HOME -maxdepth 3 -type l -print
+find -L $HOME -maxdepth 3 -type l -exec unlink -- "{}" \;
 #+END_SRC
 **** Delete all symlinks
 #+BEGIN_SRC sh
-  # Find links that we may want to delete
-  find $HOME -maxdepth 1 -type l -print
-  # Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
-  find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -print
-  # Delete them
-  find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -delete
+# Find links that we may want to delete
+find $HOME -maxdepth 1 -type l -print
+# Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
+find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -print
+# Delete them
+find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -delete
 #+END_SRC
 *** Overwrite conflicting files
 If there were conflicting files or links and we've taken care of them, reset hard to overwrite.
 #+BEGIN_SRC sh
-  git reset --hard HEAD
+git reset --hard HEAD
 #+END_SRC
 *** Link to a repo from the ~$HOME~ workdir
 The ~git-home-link~ function creates writes a .git file in ~$HOME~ pointing to one of the repos. By using this function, we can "activate" one of the repos such that we can use normal git comamnds in ~$HOME~ without specifying ~GITDIR~.
 
 Put this function in our ~.bashrc~ or similar (It's in my ~.aliases~ file).
 #+BEGIN_SRC sh
-  git-home-link () {
-    # Link repo specified by $1 to $HOME using a .git file link
-    if [ -n "$1" ] && [ -e "$HOME/.config/repos/$1" ]; then
-      echo "gitdir: .config/repos/$1" >"$HOME/.git"
-    else
-      echo "repo \"$1\" not found in $HOME/.config/repos/"
-      echo "ls $HOME/.config/repos/:"
-      ls $HOME/.config/repos/
-    fi
-  }
+git-home-link () {
+  # Link repo specified by $1 to $HOME using a .git file link
+  if [ -n "$1" ] && [ -e "$HOME/.config/repos/$1" ]; then
+    echo "gitdir: .config/repos/$1" >"$HOME/.git"
+  else
+    echo "repo \"$1\" not found in $HOME/.config/repos/"
+    echo "ls $HOME/.config/repos/:"
+    ls $HOME/.config/repos/
+  fi
+}
 #+END_SRC
 *** Start working with our new setup
 Now use the repo pretty much how we would a normal one. However, note that .git in ~$HOME~ is just a file pointing to the actual directory at ~$HOME/.config/repos/dotfiles~. So before we use ~$HOME~ as a repo, link it. Then when we're done, unlink it so we don't accidentally commit something in a project subdirectory in the dotfiles repo.
 
 Further, note that files will not be tracked by default. We must manually add each new file to the repo. Changes will be tracked. This is the only tricky part as it's easy to overlook a file that should be part of the repo but is really just sitting in place, not tracked. The config will work on the local computer but when cloned to the next one things will be broken. This is really a feature though since we don't ever want files to be added accidentally.
 #+BEGIN_SRC sh
-  git-home-link dotfiles
-  git add .bashrc
-  git commit -m "add .bashrc to new dotfiles repo"
-  git push -u origin master
-  rm $HOME/.git
+git-home-link dotfiles
+git add .bashrc
+git commit -m "add .bashrc to new dotfiles repo"
+git push -u origin master
+rm $HOME/.git
 #+END_SRC
 *** Working in Emacs
 There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ that make it easy to work with this setup in Magit and Projectile.
