@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
+brew install autoconf texinfo libxml2 imagemagick librsvg
+git pull
+git reset HEAD --hard
 ./autogen.sh
 # The ctags bit is to rename the ctags binary so it doesn't conflict with an
 # existing, non-emacs ctags installation

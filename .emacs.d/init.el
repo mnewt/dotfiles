@@ -87,6 +87,8 @@ Do not merge packages listed in `m-pinned-packages'."
   :commands
   (epkg epkg-describe-package epkg-list-packages))
 
+(use-package use-package-ensure-system-package)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Libraries
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -126,15 +128,34 @@ Do not merge packages listed in `m-pinned-packages'."
              more-functions
              :initial-value function))
 
+;; Anonymous function macro
+;; TODO: Doesn't work inside `use-package'
+;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
+(defmacro $ (&rest body)
+  (cl-labels ((collect-vars
+               (&rest forms)
+               (cl-loop for form in forms
+                        append (cl-loop for atom in form
+                                        if (and (symbolp atom)
+                                                (string-match (rx bos "$")
+                                                              (symbol-name atom)))
+                                        collect atom
+                                        else if (consp form)
+                                        append (collect-vars atom)))))
+    `(lambda ,(cl-sort (collect-vars body)
+                       #'string<
+                       :key #'symbol-name)
+       ,@body)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Environment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Path
-(setq set-path-unix '("/usr/local/bin")
+(setq set-path-unix '()
       set-path-windows '("C:/bin"
                          "C:/Program Files/Emacs/bin")
-      set-path-user '("~/.bin"))
+      set-path-user '())
 
 (defun source-sh (filename)
   "Update environment variables from a shell source file."
@@ -172,6 +193,7 @@ Do not merge packages listed in `m-pinned-packages'."
                                             os-specific-paths
                                             old-path))))))
     (setenv "PATH" (apply 'concat (-interpose sep new-path)))
+    (message "New path: %s" new-path)
     (setq exec-path new-path)))
 
 (source-sh "~/.env")
@@ -611,7 +633,8 @@ Version 2017-12-04"
 (defun config-unix ()
   "Configure Emacs for common Unix (Linux and macOS) settings."
   ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
-  (setq-default shell-file-name (executable-find "bash")))
+  (setq-default shell-file-name (executable-find "bash")
+                explicit-shell-file-name shell-file-name))
 
 (defun config-linux ()
   "Configure Emacs for Linux."
@@ -756,9 +779,6 @@ When using Homebrew, install it using \"brew install trash\"."
       ;; Select help window so it's easy to quit it with `q'
       help-window-select t)
 
-;; About Emacs is not useful so replace binding with `apropos'
-;; (bind-keys ("C-h C-a" . apropos))
-
 ;; ELDoc
 (add-hook 'emacs-lisp-mode-hook #'turn-on-eldoc-mode)
 (add-hook 'lisp-interaction-mode-hook #'turn-on-eldoc-mode)
@@ -782,6 +802,7 @@ When using Homebrew, install it using \"brew install trash\"."
    ("C-h v" . helpful-variable)))
 
 (use-package which-key
+  :demand t
   :config
   (which-key-mode t)
   :bind
@@ -793,6 +814,7 @@ When using Homebrew, install it using \"brew install trash\"."
   (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t))
 
 (use-package tldr
+  :ensure-system-package t
   :init
   (unbind-key "C-h t")
   :custom
@@ -808,17 +830,21 @@ When using Homebrew, install it using \"brew install trash\"."
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
 (use-package dash-at-point
+  :if (eq system-type 'darwin)
+  :ensure-system-package
+  ("/Applications/Dash.app" . "brew cask install dash")
   :config
-  (progn
-    (add-to-list 'dash-at-point-mode-alist '(clojure-mode . "clojuredocs"))
-    (add-to-list 'dash-at-point-mode-alist '(clojurec-mode . "clojuredocs"))
-    (add-to-list 'dash-at-point-mode-alist '(clojurescript-mode . "clojuredocs"))
-    (add-to-list 'dash-at-point-mode-alist '(sh-mode . "bash"))
-    (add-to-list 'dash-at-point-mode-alist '(fish-mode . "fish"))
-    (add-to-list 'dash-at-point-mode-alist '(lisp-mode . "lisp"))
-    (add-to-list 'dash-at-point-mode-alist '(slime-repl-mode . "lisp"))
-    (add-to-list 'dash-at-point-mode-alist '(lisp-interaction-mode . "elisp"))
-    (add-to-list 'dash-at-point-mode-alist '(inferior-emacs-lisp-mode . "elisp")))
+  (seq-do (curry #'add-to-list 'dash-at-point-mode-alist)
+          '((clojure-mode . "clojuredocs")
+            (clojurec-mode . "clojuredocs")
+            (clojurescript-mode . "clojuredocs")
+            (fish-mode . "fish")
+            (inferior-emacs-lisp-mode . "elisp")
+            (lisp-mode . "lisp")
+            (lisp-interaction-mode . "elisp")
+            (lua-mode . "lua")
+            (sh-mode . "bash")
+            (slime-repl-mode . "lisp")))
   :bind
   ("M-s-." . dash-at-point))
 
@@ -1507,57 +1533,63 @@ ID, ACTION, CONTEXT."
   ;; sexp entirely.)
   (sp-cancel-autoskip-on-backward-movement nil)
   :config
-  ;; Load the default pair definitions for Smartparens.
-  (require 'smartparens-config)
-  ;; Enable Smartparens functionality in all buffers.
-  (smartparens-global-mode +1)
-  ;; Enable some default keybindings for Smartparens.
-  (sp-use-paredit-bindings)
-  ;; Highlight matching delimiters.
-  (show-smartparens-global-mode +1)
-  ;; Disable Smartparens in Org-related modes, since the keybindings
-  ;; conflict.
-  (add-to-list 'sp-ignore-modes-list #'org-mode)
-  (add-to-list 'sp-ignore-modes-list #'org-agenda-mode)
-  (add-to-list 'sp-ignore-modes-list #'shell-mode)
-
-  ;; Make C-k kill the sexp following point in Lisp modes, instead of
-  ;; just the current line.
   (bind-key [remap kill-line] #'sp-kill-hybrid-sexp smartparens-mode-map
             (apply #'derived-mode-p sp-lisp-modes))
-  
-  (sp-with-modes
-      '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
-               python-mode java-mode sh-mode web-mode)
-    (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-    (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-    (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
-
-  (sp-with-modes
-      '(python-mode)
-    (sp-local-pair "\"\"\"" "\"\"\""
-                   :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
-
-  (sp-with-modes
-      '(sh-mode)
-    (sp-local-pair "do" "done"
-                   :when '(("SPC" "RET"))
-                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                   :actions '(insert navigate)
-                   :pre-handlers '(sp-sh-pre-handler)
-                   :post-handlers '(sp-sh-block-post-handler))
-    (sp-local-pair "then" "fi"
-                   :when '(("SPC" "RET"))
-                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                   :actions '(insert navigate)
-                   :pre-handlers '(sp-sh-pre-handler)
-                   :post-handlers '(sp-sh-block-post-handler))
-    (sp-local-pair "case" "esac"
-                   :when '(("SPC" "RET"))
-                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-                   :actions '(insert navigate)
-                   :pre-handlers '(sp-sh-pre-handler)
-                   :post-handlers '(sp-sh-block-post-handler)))
+  ;; (sp-with-modes
+  ;;     '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
+  ;;              python-mode java-mode sh-mode web-mode)
+  ;;   (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+  ;;   (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+  ;;   (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  ;; (sp-with-modes
+  ;;     '(python-mode)
+  ;;   (sp-local-pair "\"\"\"" "\"\"\""
+  ;;                  :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  ;; (sp-with-modes
+  ;;     '(sh-mode)
+  ;;   (sp-local-pair "do" "done"
+  ;;                  :when '(("SPC" "RET"))
+  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+  ;;                  :actions '(insert navigate)
+  ;;                  :pre-handlers '(sp-sh-pre-handler)
+  ;;                  :post-handlers '(sp-sh-block-post-handler))
+  ;;   (sp-local-pair "then" "fi"
+  ;;                  :when '(("SPC" "RET"))
+  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+  ;;                  :actions '(insert navigate)
+  ;;                  :pre-handlers '(sp-sh-pre-handler)
+  ;;                  :post-handlers '(sp-sh-block-post-handler))
+  ;;   (sp-local-pair "case" "esac"
+  ;;                  :when '(("SPC" "RET"))
+  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+  ;;                  :actions '(insert navigate)
+  ;;                  :pre-handlers '(sp-sh-pre-handler)
+  ;;                  :post-handlers '(sp-sh-block-post-handler)))
+  :hook
+  (smartparens-mode . (lambda()
+                        (require 'smartparens-config)
+                        (sp-use-paredit-bindings)
+                        (turn-on-show-smartparens-mode)))
+  ;; (prog-mode . turn-on-smartparens-mode)
+  (clojure-mode . (lambda () (require 'smartparens-clojure)
+                    (turn-on-smartparens-mode)))
+  (web-mode . (lambda () (require 'smartparens-html)
+                (turn-on-smartparens-mode)))
+  (hy-mode . (turn-on-smartparens-mode))
+  (js2-mode . (lambda () (require 'smartparens-javascript)
+                (turn-on-smartparens-mode)))
+  (lua-mode . (lambda () (require 'smartparens-lua)
+                (turn-on-smartparens-mode)))
+  (markdown-mode . (lambda () (require 'smartparens-markdown)
+                     (turn-on-smartparens-mode)))
+  (org-mode . (lambda () (require 'smartparens-org)
+                (turn-on-smartparens-mode)))
+  (python-mode . (lambda () (require 'smartparens-python)
+                   (turn-on-smartparens-mode)))
+  (enh-ruby-mode . (lambda () (require 'smartparens-ruby)
+                     (turn-on-smartparens-mode)))
+  (text-mode . (lambda () (require 'smartparens-text)
+                 (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
         ("RET" . sp-newline)
@@ -1805,6 +1837,16 @@ ID, ACTION, CONTEXT."
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
 
+(use-package term
+  :bind (("C-c t" . term)
+         :map term-mode-map
+         ("M-p" . term-send-up)
+         ("M-n" . term-send-down)
+         :map term-raw-map
+         ("M-o" . other-window)
+         ("M-p" . term-send-up)
+         ("M-n" . term-send-down)))
+
 ;; xterm colors
 (use-package xterm-color
   :custom
@@ -1957,44 +1999,23 @@ ID, ACTION, CONTEXT."
 (defun eshell/do (&optional path)
   (dired-other-window path))
 
-(defun eshell-path-advice (f &optional directory)
-  "Return a DIRECTORY using a path relative to the remote host (if we are on a
- remote host).
-Examples:
-  > cd /etc -> /sshx:host:/etc
-  > cd : -> /sshx:host:/home/user"
-  (funcall f
-           (if (file-remote-p default-directory)
-               (let ((remote-prefix (replace-regexp-in-string ":[^:]*$" ":" default-directory)))
-                 (cond
-                  ;; If `directory' starts with `$HOME' then we assume the original arg
-                  ;; started with "~" and we change directory to the remote `$HOME'. We
-                  ;; can always use `cd' with no args to return to local `$HOME'.
-                  ((string-prefix-p (getenv "HOME") directory)
-                   (concat remote-prefix
-                           (replace-regexp-in-string (concat (getenv "HOME") "/?")
-                                                     ""
-                                                     directory)))
-                  ;; If `directory' starts with "/" then it's an absolute path but we
-                  ;; want to make it relative to the remote host, rather than localhost.
-                  ((string-prefix-p "/" directory)
-                   (concat remote-prefix directory))
-                  (t
-                   directory)))
-             directory)))
+(defun eshell-path-advice (f &rest paths)
+  "For each element in PATHS, return path relative to the remote
+ host, if element starts with `:' andwe are on a remote host).
 
-(advice-add #'eshell/cd :around #'eshell-path-advice)
-(advice-add #'eshell/e :around #'eshell-path-advice)
-(advice-add #'eshell/ee :around #'eshell-path-advice)
-(advice-add #'eshell/d :around #'eshell-path-advice)
-(advice-add #'eshell/do :around #'eshell-path-advice)
+Examples: > cd /etc -> /etc > cd :/etc -> /sshx:host:/etc > cd :
+-> /sshx:host:/home/user"
+  (apply f
+         (loop for path in paths collect
+               (if-let* ((remote (and (string-prefix-p ":" path)
+                                      (file-remote-p default-directory))))
+                   (concat remote (substring path 1))
+                 path))))
 
-(defun eshell/really-clear (&rest args)
-  "Call `eshell/clear' with an argument to really clear the
-buffer, then a second time to print the prompt."
-  (interactive)
-  (eshell/clear 1)
-  (eshell/clear))
+;; Advise functions to work with ":" path syntax (see `eshell-path-advice').
+(seq-do (lambda (f) (advice-add f :around #'eshell-path-advice))
+        '(eshell/cd eshell/cp eshell/mv eshell/rm eshell/e eshell/ee eshell/d
+                    eshell/do))
 
 (defun tramp-insert-remote-part ()
   "Insert current tramp prefix at point"
@@ -2003,6 +2024,13 @@ buffer, then a second time to print the prompt."
       (insert remote)))
 
 (bind-key "C-c f" #'tramp-insert-remote-part)
+
+(defun eshell/really-clear (&rest args)
+  "Call `eshell/clear' with an argument to really clear the
+buffer, then a second time to print the prompt."
+  (interactive)
+  (eshell/clear 1)
+  (eshell/clear))
 
 (defun eshell/info (&optional subject)
   "Invoke `info', optionally opening the Info system to SUBJECT."
@@ -2080,6 +2108,8 @@ buffer, then a second time to print the prompt."
 initialize the Eshell environment."
   (source-sh "~/.env")
   (setq eshell-path-env (getenv "PATH"))
+  ;; Path to shell executable. Set it this way to work with tramp.
+  (setenv "ESHELL" "/bin/bash")
   (setenv "TERM" "eterm-color")
   (setenv "EDITOR" "emacsclient")
   (setenv "PAGER" "cat")
@@ -2114,7 +2144,7 @@ initialize the Eshell environment."
           '("htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux" "top" "vim" "w3m"))
   (seq-do (curry #'add-to-list 'eshell-visual-subcommands)
           '(("git" "log" "diff" "show")
-            ("dw" "log")))
+            ("dw" "log" "runshell" "shell")))
 
   ;; Load the Eshell versions of `su' and `sudo'
   (require 'em-tramp)
@@ -2223,7 +2253,7 @@ shell is left intact."
                               (with-parsed-tramp-file-name newf nil host))))))
           ((derived-mode-p 'eshell-mode)
            (eshell-return-to-prompt)
-           (insert (concat "cd " newf))
+           (insert (concat "cd '" newf "'"))
            (eshell-send-input))
           (t (message "Can't sudo this buffer")))))
 
@@ -2441,6 +2471,7 @@ Inserted by installing org-mode or when a release is made."
   (writeroom-mode))
 
 (use-package pdf-tools
+  :magic ("%PDF" . pdf-view-mode)
   :config
   (pdf-tools-install)
   :bind
@@ -2463,6 +2494,16 @@ Inserted by installing org-mode or when a release is made."
   (require 'vlf-setup))
 
 (use-package logview)
+
+(defun tail-file (file)
+  "Run `tail -f' on FILE. Tries to find a file at point."
+  (interactive (list (completing-read "Tail file: "
+                                      'read-file-name-internal
+                                      'file-exists-p t nil 'file-name-history
+                                      (thing-at-point 'filename))))
+  (async-shell-command (concat "tail -f " file)))
+
+(bind-key "F" #'tail-file dired-mode-map)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Hydra
@@ -2883,6 +2924,8 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (("C-c C-p" . wgrep-change-to-wgrep-mode)))
 
 (use-package rg
+  :ensure-system-package
+  (rg . ripgrep)
   :requires
   (wgrep-ag)
   :config
@@ -3329,6 +3372,7 @@ git repo, optionally specified by DIR."
   (language-detection-buffer language-detection-string))
 
 (use-package w3m
+  :ensure-system-package t
   :custom
   (w3m-search-default-engine "duckduckgo")
   :commands
@@ -3339,7 +3383,7 @@ git repo, optionally specified by DIR."
 
 (use-package vkill
   :bind
-  (("C-c t" . vkill)))
+  (("C-c T" . vkill)))
 
 (use-package proc-net
   :bind
@@ -3505,6 +3549,9 @@ git repo, optionally specified by DIR."
 (add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))
 (add-to-list 'auto-mode-alist '("\\.timer\\'" . conf-mode))
 
+;; DNS
+(add-to-list 'auto-mode-alist '("\\.rpz\\'" . dns-mode))
+
 ;; (use-package quickrun
 ;;   :commands
 ;;   (quickrun quickrun-region quickrun-shell quickrun-autorun-mode))
@@ -3647,6 +3694,11 @@ git repo, optionally specified by DIR."
   :config
   (add-to-list 'company-backends 'company-restclient))
 
+(use-package hy-mode
+  :ensure-system-package
+  (hy . "pip install git+https://github.com/hylang/hy.git")
+  :mode "\\.hy\\'")
+
 (use-package enh-ruby-mode
   :mode "\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'")
 
@@ -3656,7 +3708,8 @@ git repo, optionally specified by DIR."
   (inf-ruby inf-ruby-console-auto)
   :bind
   (:map inf-ruby-minor-mode-map
-        ("s-<return>" . ruby-send-definition)))
+        ("s-<return>". ruby-send-last-sexp)
+        ("C-M-x" . ruby-send-block)))
 
 (use-package robe
   :hook enh-ruby-mode
@@ -3679,6 +3732,9 @@ git repo, optionally specified by DIR."
   :custom
   (powershell-indent tab-width)
   (powershell-continuation-indent tab-width))
+
+(use-package php-mode
+  :mode "\\.php\\'")
 
 (use-package ios-config-mode
   :mode "\\.cfg\\'")

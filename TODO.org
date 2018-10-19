@@ -1,8 +1,16 @@
 * TODO Make ssh with =dtach= actually work
 See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
+* TODO ~man~ should select the window
+* TODO ~man~ should be able to search manpages on remote system (default to this when using tramp?)
+https://emacs.stackexchange.com/questions/20524/can-emacs-eshell-show-remote-man-pages-in-tramp-mode?rq=1
+https://stackoverflow.com/questions/22957137/how-to-make-emacs-man-work-over-tramp#22962342
+* TODO Make command to tail a file [0/2]
+** TODO command
+** TODO key binding in dired
 * WIP Emacs recoll
 https://oremacs.com/2015/07/27/counsel-recoll/
 https://opensourceprojects.eu/p/recoll1/tickets/61/
+* TODO Get tldr to work
 * TODO Eshell =rm= hangs when pressing =RET=
 Actually, it is working, it just takes a long time and gives zero feedback. Can we fix this?
 ** Takes too long
