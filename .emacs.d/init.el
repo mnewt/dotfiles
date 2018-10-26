@@ -147,6 +147,10 @@ Do not merge packages listed in `m-pinned-packages'."
                        :key #'symbol-name)
        ,@body)))
 
+(defun add-multiple-to-list (list items)
+  "Run `add-to-list' on each ITEM in the LIST"
+  (seq-do (curry #'add-to-list list) items))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Environment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -780,9 +784,10 @@ When using Homebrew, install it using \"brew install trash\"."
       help-window-select t)
 
 ;; ELDoc
-(add-hook 'emacs-lisp-mode-hook #'turn-on-eldoc-mode)
-(add-hook 'lisp-interaction-mode-hook #'turn-on-eldoc-mode)
-(add-hook 'ielm-mode-hook #'turn-on-eldoc-mode)
+(seq-do (lambda (list) (add-hook list #'turn-on-eldoc-mode))
+        '(emacs-lisp-mode-hook
+          lisp-interaction-mode-hook
+          ielm-mode-hook))
 
 ;; Whenever the listed commands are used, ElDoc will automatically refresh the
 ;; minibuffer.
@@ -1224,36 +1229,36 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (bind-keys ("s-C" . copy-region-to-other-window)
            ("s-X" . move-region-to-other-window))
 
-(use-package elisp-slime-nav
-  :hook
-  (emacs-lisp-mode . (lambda () (elisp-slime-nav-mode t))))
+;; (use-package elisp-slime-nav
+;;   :hook
+;;   (emacs-lisp-mode . (lambda () (elisp-slime-nav-mode t))))
 
-(use-package undo-tree
-  :init
-  ;; Keep region when undoing in region.
-  ;; http://whattheemacsd.com/my-misc.el-02.html
-  (defadvice undo-tree-undo (around keep-region activate)
-    (if (use-region-p)
-        (let ((m (set-marker (make-marker) (mark)))
-              (p (set-marker (make-marker) (point))))
-          ad-do-it
-          (goto-char p)
-          (set-mark m)
-          (set-marker p nil)
-          (set-marker m nil))
-      ad-do-it))
-  :custom
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
-  (undo-tree-visualizer-timestamps t)
-  (undo-tree-visualizer-diff t)
-  :config
-  (global-undo-tree-mode)
-  :bind
-  (("s-z" . undo-tree-undo)
-   ("s-Z" . undo-tree-redo)
-   ("s-y" . undo-tree-redo)
-   ("M-s-z" . undo-tree-visualize)))
+;; (use-package undo-tree
+;;   :init
+;;   ;; Keep region when undoing in region.
+;;   ;; http://whattheemacsd.com/my-misc.el-02.html
+;;   (defadvice undo-tree-undo (around keep-region activate)
+;;     (if (use-region-p)
+;;         (let ((m (set-marker (make-marker) (mark)))
+;;               (p (set-marker (make-marker) (point))))
+;;           ad-do-it
+;;           (goto-char p)
+;;           (set-mark m)
+;;           (set-marker p nil)
+;;           (set-marker m nil))
+;;       ad-do-it))
+;;   :custom
+;;   (undo-tree-auto-save-history t)
+;;   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
+;;   (undo-tree-visualizer-timestamps t)
+;;   (undo-tree-visualizer-diff t)
+;;   :config
+;;   (global-undo-tree-mode)
+;;   :bind
+;;   (("s-z" . undo-tree-undo)
+;;    ("s-Z" . undo-tree-redo)
+;;    ("s-y" . undo-tree-redo)
+;;    ("M-s-z" . undo-tree-visualize)))
 
 (use-package easy-kill
   :bind
@@ -1386,13 +1391,6 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (use-package rainbow-mode
   :hook
   ((sass-mode emacs-lisp-mode) . rainbow-mode))
-
-(use-package highlight-escape-sequences
-  :commands
-  (hes-mode turn-on-hes-mode)
-  :config
-  (add-to-list 'hes-mode-alist `(clojurescript-mode . ,hes-js-escape-sequence-re))
-  (turn-on-hes-mode))
 
 (use-package hl-todo
   :commands
@@ -1570,11 +1568,11 @@ ID, ACTION, CONTEXT."
                         (require 'smartparens-config)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
-  ;; (prog-mode . turn-on-smartparens-mode)
+  ((hy-mode sh-mode) . turn-on-smarparens-mode)
   (clojure-mode . (lambda () (require 'smartparens-clojure)
                     (turn-on-smartparens-mode)))
-  (web-mode . (lambda () (require 'smartparens-html)
-                (turn-on-smartparens-mode)))
+  (enh-ruby-mode . (lambda () (require 'smartparens-ruby)
+                     (turn-on-smartparens-mode)))
   (hy-mode . (turn-on-smartparens-mode))
   (js2-mode . (lambda () (require 'smartparens-javascript)
                 (turn-on-smartparens-mode)))
@@ -1586,13 +1584,13 @@ ID, ACTION, CONTEXT."
                 (turn-on-smartparens-mode)))
   (python-mode . (lambda () (require 'smartparens-python)
                    (turn-on-smartparens-mode)))
-  (enh-ruby-mode . (lambda () (require 'smartparens-ruby)
-                     (turn-on-smartparens-mode)))
   (text-mode . (lambda () (require 'smartparens-text)
                  (turn-on-smartparens-mode)))
+  (web-mode . (lambda () (require 'smartparens-html)
+                (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
-        ("RET" . sp-newline)
+        ;; ("RET" . sp-newline)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
 (use-package parinfer
@@ -1605,7 +1603,8 @@ ID, ACTION, CONTEXT."
   :config
   (parinfer-strategy-add 'default 'newline-and-indent)
   :hook
-  ((clojure-mode common-lisp-mode emacs-lisp-mode lisp-interaction-mode lisp-mode scheme-mode) . parinfer-mode)
+  ((clojure-mode common-lisp-mode emacs-lisp-mode hy-mode lisp-interaction-mode
+                 lisp-mode scheme-mode) . parinfer-mode)
   :bind
   (:map parinfer-mode-map
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -1685,10 +1684,6 @@ ID, ACTION, CONTEXT."
   :bind
   (:map dired-mode-map
         ("C-c C-r" . dired-rsync)))
-
-(use-package dired-du
-  :commands
-  (dired-du-mode))
 
 (use-package dired-sidebar
   :init
@@ -2006,9 +2001,9 @@ ID, ACTION, CONTEXT."
 Examples: > cd /etc -> /etc > cd :/etc -> /sshx:host:/etc > cd :
 -> /sshx:host:/home/user"
   (apply f
-         (loop for path in paths collect
+         (loop for path in (-flatten paths) collect
                (if-let* ((remote (and (string-prefix-p ":" path)
-                                      (file-remote-p default-directory))))
+                                      (file-remote-p path))))
                    (concat remote (substring path 1))
                  path))))
 
@@ -2194,7 +2189,7 @@ initialize the Eshell environment."
   (if (not (eq system-type 'windows-nt))
       (pinentry-start)))
 
-(defun ssh-sudo (path)
+(defun sshd-sudo (path)
   "ssh to host, sudo to root, open dired"
   (interactive "M [User@] Hostname: ")
   (let* ((at (string-match "@" path))
@@ -2464,11 +2459,20 @@ Inserted by installing org-mode or when a release is made."
 (use-package nov
   :mode ("\\.epub\\'" . nov-mode))
 
-(use-package writeroom-mode
-  :custom
-  (writeroom-width 100)
+(defun hide-mode-line ()
+  "Hide the mode line."
+  (interactive)
+  (setq mode-line-format-backup mode-line-format)
+  (setq-default mode-line-format nil))
+
+(defun show-mode-line ()
+  "Show the mode line."
+  (interactive)
+  (setq-default mode-line-format mode-line-format-backup))
+
+(use-package darkroom-mode
   :commands
-  (writeroom-mode))
+  (darkroom-mode darkroom-tentative-mode))
 
 (use-package pdf-tools
   :magic ("%PDF" . pdf-view-mode)
@@ -2933,21 +2937,21 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   :hook
   (rg-mode . wgrep-ag-setup))
 
-(use-package counsel-etags
-  :custom
-  ;; TODO: Get this working with Clojure (ctags parses namespaces but
-  ;; `counsel-etags-find-tag-at-point' doesn't. Wouldn't this be `clojure-mode's
-  ;; responsibility? I'm pretty sure it keys off of sexp
-  (tags-revert-without-query t)
-  ;; Don't warn when TAGS files are large.
-  (large-file-warning-threshold nil)
-  :hook
-  ;; Incrementally update TAGS file when the file is saved.
-  (prog-mode . (lambda ()
-                 (add-hook 'after-save-hook
-                           'counsel-etags-virtual-update-tags 'append 'local)))
-  :commands
-  (counsel-etags-find-tag-at-point counsel-etags-scan-code counsel-etags-list-tag))
+;; (use-package counsel-etags
+;;   :custom
+;;   ;; TODO: Get this working with Clojure (ctags parses namespaces but
+;;   ;; `counsel-etags-find-tag-at-point' doesn't. Wouldn't this be `clojure-mode's
+;;   ;; responsibility? I'm pretty sure it keys off of sexp
+;;   (tags-revert-without-query t)
+;;   ;; Don't warn when TAGS files are large.
+;;   (large-file-warning-threshold nil)
+;;   :hook
+;;   ;; Incrementally update TAGS file when the file is saved.
+;;   (prog-mode . (lambda ()
+;;                  (add-hook 'after-save-hook
+;;                            'counsel-etags-virtual-update-tags 'append 'local)))
+;;   :commands
+;;   (counsel-etags-find-tag-at-point counsel-etags-scan-code counsel-etags-list-tag))
 
 (use-package company
   :custom
@@ -3514,20 +3518,27 @@ git repo, optionally specified by DIR."
   (:map cider-mode-map
         ("s-<return>" . cider-eval-last-sexp)))
 
+(defun inf-clojure-start-lumo ()
+  "Start lumo as a subprocess and then connect to it over TCP.
+This is preferable to starting it directly because lumo has lots
+of problems in that context."
+  (interactive)
+  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
+  (inf-clojure-minor-mode)
+  (shell-command "pkill -f 'lumo -d -n 2000'")
+  (async-shell-command "lumo -d -n 2000")
+  (run-with-idle-timer 2 nil (lambda () (inf-clojure-connect "localhost" 2000))))
+
+(defun reinstate-comint-simple-send ()
+  "`inf-clojure' clobbers `comint-send-input' on all comint
+buffers, not just `inf-clojure-mode' ones. This function
+reinstates default behavior. See:
+https://github.com/clojure-emacs/inf-clojure/issues/154"
+  (unless inf-clojure-minor-mode
+    (setq-local comint-input-sender 'comint-simple-send)))
+
 (use-package inf-clojure
-  :config
-  (defun inf-clojure-start-lumo ()
-    (interactive)
-    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
-    (inf-clojure-minor-mode)
-    (inf-clojure "lumo -d"))
-  (defun reinstate-comint-simple-send ()
-    (unless inf-clojure-minor-mode
-      (setq-local comint-input-sender 'comint-simple-send)))
   :hook
-  ;; `inf-clojure' clobbers `comint-send-input' on all comint buffers, not just
-  ;; `inf-clojure-mode' ones.
-  ;; https://github.com/clojure-emacs/inf-clojure/issues/154
   (comint-mode . reinstate-comint-simple-send)
   :bind
   (:map inf-clojure-minor-mode-map
@@ -3693,6 +3704,15 @@ git repo, optionally specified by DIR."
   :defer 2
   :config
   (add-to-list 'company-backends 'company-restclient))
+
+(use-package python-mode
+  :mode "\\.py\\'"
+  :custom
+  (python-indent-offset tab-width)
+  (py-indent-offset tab-width)
+  :bind
+  (:map python-mode-map
+        ("s-<return>" . py-execute-expression)))
 
 (use-package hy-mode
   :ensure-system-package
