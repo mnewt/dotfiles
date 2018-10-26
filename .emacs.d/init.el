@@ -3557,8 +3557,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (setq perl-indent-level tab-width)
 
 ;; systemd
-(add-to-list 'auto-mode-alist '("\\.service\\'" . conf-mode))
-(add-to-list 'auto-mode-alist '("\\.timer\\'" . conf-mode))
+(add-to-list 'auto-mode-alist '("\\(?:\\.service\\|\\.timer\\)\\'" . conf-mode))
 
 ;; DNS
 (add-to-list 'auto-mode-alist '("\\.rpz\\'" . dns-mode))
@@ -3734,8 +3733,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package robe
   :hook enh-ruby-mode
   :config
-  (eval-after-load 'company
-    '(push 'company-robe company-backends)))
+  (eval-after-load 'company '(push 'company-robe company-backends)))
 
 (use-package lua-mode
   :mode "\\.lua\\'")
