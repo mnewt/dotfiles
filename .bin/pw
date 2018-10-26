@@ -7,20 +7,21 @@ into password managers
 
 """
 
-import argparse, random, string, sys, unicodedata, re
+import argparse, random, string, sys, unicodedata, re, pickle, os
+from collections import Counter, defaultdict
+from pprint import pprint
 
+rg = random.SystemRandom()
 
+pw_dir = os.path.dirname(os.path.realpath(__file__))
 
-"""
-
-Generate an untypable unicode password
-
-"""
+regex_lowercase = '[{:s}]'.format(''.join(string.ascii_lowercase))
+regex_uppercase = '[{:s}]'.format(''.join(string.ascii_uppercase))
+regex_digits = '[{:s}]'.format(''.join(string.digits))
+regex_special = '[{:s}]'.format(re.escape(''.join(string.punctuation)))
 
 def _unicode_character_generator():
-  # Based on (https://github.com/omaciel/fauxfactory/pull/70/files)
   """Generates unicode characters
-  :return: a generator which will generates all unicode letters available
   """
   # Arbitrarily chosen unicode character categories:
   # Ll = Letter, lower case (Latin, Greek, etc)
@@ -38,172 +39,130 @@ def _unicode_character_generator():
   # Sm = Symbol, Math
   # Zs = Separator, Space
 
-  UNICODE_CATEGORIES = [ 'Ll', 'Lu']
+  UNICODE_CATEGORIES = [ 'Ll', 'Lo', 'Lu', 'Nd', 'Pd', 'Pc', 'Pf', 'Pi', 'Po',
+                         'Ps', 'Sc', 'Sm' ]
 
-  if sys.version_info.major == 2:
-    chr_function = unichr  # pylint:disable=undefined-variable
-    range_function = xrange  # pylint:disable=undefined-variable
-  else:
-    chr_function = chr
-    range_function = range
+  for i in range(sys.maxunicode):
+    c = chr(i)
+    if c.isprintable() and unicodedata.category(c) in UNICODE_CATEGORIES:
+      yield(c)
 
-  # Use sys.maxunicode instead of 0x10FFFF to avoid the exception below, in a
-  # narrow Python build (before Python 3.3)
-  # ValueError: unichr() arg not in range(0x10000) (narrow Python build)
-  # For more information, read PEP 261.
-  for i in range_function(sys.maxunicode):
-    char = chr_function(i)
-    if unicodedata.category(char) in UNICODE_CATEGORIES:
-      # char is a regular unicode character
-      # See (http://www.fileformat.info/info/unicode/category/index.htm)
-      yield char
+def random_password(opts):
+  return(''.join(rg.sample(opts.alphabet,opts.length)))
 
+def words_from_file(filename):
+  words = []
+  with open(filename, encoding="utf-8") as f:
+    for word in f.readlines():
+      words += word.rsplit()
+  return(words)
 
-def meets_reqs(pw, args):
-  """Evaluates whether the password (pw) meets complexity requirements
-  as defined in command line arguments (minimum-*)
-  :return: Boolean indicating whether requirements are met
+def build_markov_chain(filename):
+  """Read words from a file and build a Markov chain.
   """
-  if args.minimum_lower > 0:
-    if len(re.findall('[' + string.ascii_lowercase + ']', pw)) < args.minimum_lower:
-      return False
-  if args.minimum_upper > 0:
-    if len(re.findall('[' + string.ascii_uppercase + ']', pw)) < args.minimum_upper:
-      return False
-  if args.minimum_digits > 0:
-    if len(re.findall('[' + string.digits + ']', pw)) < args.minimum_digits:
-      return False
-  if args.minimum_special > 0:
-    if len(re.findall('[' + string.punctuation + ']', pw)) < args.minimum_special:
-      return False
-  return True
+  counts = defaultdict(Counter)
+  for word in words_from_file(filename):
+    prev = None
+    for c in word:
+      counts[prev][c] += 1
+      prev = c
+  return(counts)
 
+def markov_password(m, opts):
+  word = ""
+  prev = None
+  for _ in range(opts.length):
+    if not m[prev]: prev = None
+    prev = rg.choices(list(m[prev].keys()), list(m[prev].values()))[0]
+    word += prev
+  return(word)
 
+def add_password_requirement(pw, alphabet, regex, n):
+  if n > 0:
+    # Get positions of matches of regex in pw
+    matches = [m.start() for m in re.finditer(regex, pw)]
+    # We need to replace this many characters to meet the requirement
+    k = max(n - len(matches), 0)
+    # Make a list of fields to change (must be in positions which are NOT
+    # matches for regex)
+    change = rg.sample(set(range(len(pw))) - set(matches), k)
+    # Make the replacements
+    for i in change:
+      pw = pw[:i] + rg.choice(alphabet) + pw[i+1:]
+  return(pw)
+
+def add_password_requirements(pw, opts):
+  pw = add_password_requirement(pw, string.ascii_lowercase, regex_lowercase, opts.minimum_lower)
+  pw = add_password_requirement(pw, string.ascii_uppercase, regex_uppercase, opts.minimum_upper)
+  pw = add_password_requirement(pw, string.digits, regex_digits, opts.minimum_digits)
+  pw = add_password_requirement(pw, string.punctuation, regex_special, opts.minimum_special)
+  return(pw)
 
 def main():
+  
+  """
+  Process command line arguments and do things accordingly
+  """
+  
+  parser = argparse.ArgumentParser(description='Generate random passwords')
+  parser.add_argument("length", nargs='?', type=int, default=16,
+                      help="length of password")
+  parser.add_argument("--number", "-n", type=int, default=1,
+                      help="number of passwords to generate")
+  parser.add_argument("--pronounceable", "-p", default=False, action="store_true",
+                      help="Create human pronounceable passwords")
+  parser.add_argument("--lower", "-l", default=False, action="store_true",
+                      help="Use lower case letters")
+  parser.add_argument("--minimum-lower", "-L", type=int, default=0,
+                      help="minimum number of lowercase characters required")
+  parser.add_argument("--upper", "-u", default=False, action="store_true",
+                      help="Use upper case letters")
+  parser.add_argument("--minimum-upper", "-U", type=int, default=0,
+                      help="minimum number of upper characters required")
+  parser.add_argument("--digits", "-d", default=False, action="store_true",
+                      help="Use digits")
+  parser.add_argument("--minimum-digits", "-D", type=int, default=0,
+                      help="minimum number of digit characters required")
+  parser.add_argument("--special", "-s", default=False, action="store_true",
+                      help="Use special characters (punctuation)")
+  parser.add_argument("--minimum-special", "-S", type=int, default=0,
+                      help="minimum number of special characters required")
+  parser.add_argument("--characters", "-c", default='',
+                      help="Specify individual characters")
+  parser.add_argument("--unicode", "-z", default=False, action="store_true",
+                      help="Use a large unicode character set")
+  parser.add_argument("--build-markov", "-b", action="store",
+                      help="Build a markov chain with the specified source and destination files")
+  opts = parser.parse_args()
 
-    """
-
-    Process command line arguments
-
-    """
-
-    parser = argparse.ArgumentParser(description='Generate random passwords')
-
-    parser.add_argument("length",
-                        nargs='?',
-                        type=int,
-                        default=16,
-                        help="length of password")
-    parser.add_argument("--number", "-n",
-                        type=int,
-                        default=1,
-                        help="number of passwords to generate")
-    parser.add_argument("--pronounceable", "-p", 
-                        default=False,
-                        action="store_true",
-                        help="Create human pronounceable passwords")
-    parser.add_argument("--lower", "-l", 
-                        default=False,
-                        action="store_true",
-                        help="Use lower case letters")
-    parser.add_argument("--minimum-lower", "-L",
-                        type=int,
-                        default=0,
-                        help="minimum number of lowercase characters required")
-    parser.add_argument("--upper", "-u",
-                        default=False,
-                        action="store_true",
-                        help="Use upper case letters")
-    parser.add_argument("--minimum-upper", "-U",
-                        type=int,
-                        default=0,
-                        help="minimum number of upper characters required")
-    parser.add_argument("--digits", "-d",
-                        default=False,
-                        action="store_true",
-                        help="Use digits")
-    parser.add_argument("--minimum-digits", "-D",
-                        type=int,
-                        default=0,
-                        help="minimum number of digit characters required")
-    parser.add_argument("--special", "-s",
-                        default=False,
-                        action="store_true",
-                        help="Use special characters (punctuation)")
-    parser.add_argument("--minimum-special", "-S",
-                        type=int,
-                        default=0,
-                        help="minimum number of special characters required")
-    parser.add_argument("--characters", "-c",
-                        default='',
-                        help="Specify individual characters")
-    parser.add_argument("--unicode", "-Z",
-                        default=False,
-                        action="store_true",
-                        help="Use a very large unicode character set full of untypable characters")
-
-    args = parser.parse_args()
-
-    if args.pronounceable:
-      # not implemented
-      print("I don't know how to speak human yet so here is a random password")
-
-    if any([args.lower, args.upper, args.digits, args.special, args.characters]):
+  if opts.build_markov:
+    # Build the markov chain and write to file
+    with open(pw_dir + "/pw.data","wb") as f:
+      pickle.dump(build_markov_chain(opts.build_markov), f)
+  elif opts.pronounceable:
+    # Make pronounceable passwords
+    with open(pw_dir + "/pw.data", "rb") as f:
+      markov_data = pickle.load(f)
+      for _ in range(opts.number):
+        print(add_password_requirements(markov_password(markov_data, opts), opts))
+  else:
+    # Make completely random passwords
+    if any([opts.lower, opts.upper, opts.digits, opts.special, opts.characters]):
       # use only specified character sets
-      alphabet = ''
-      if args.lower:
-        alphabet += string.ascii_lowercase
-      if args.upper:
-        alphabet += string.ascii_uppercase
-      if args.digits:
-        alphabet += string.digits
-      if args.special:
-        alphabet += string.punctuation
-      alphabet += args.characters
-    elif args.unicode:
-      alphabet = ''.join([c for c in _unicode_character_generator()])
+      opts.alphabet = ''
+      if opts.lower: opts.alphabet += string.ascii_lowercase
+      if opts.upper: opts.alphabet += string.ascii_uppercase
+      if opts.digits: opts.alphabet += string.digits
+      if opts.special: opts.alphabet += string.punctuation
+      opts.alphabet += opts.characters
+    elif opts.unicode:
+      opts.alphabet = ''.join([c for c in _unicode_character_generator()])
     else:
       # no specific character sets were specified so use the defaults
-      alphabet = string.digits + string.ascii_letters + string.punctuation
+      opts.alphabet = string.digits + string.ascii_letters + string.punctuation
 
-
-    """
-
-    Generate the password
-
-    """
-    rg = random.SystemRandom()
-
-    # generate a completely random password
-    # but only accept it if it meets the complexity requirements
-    # this is a super naive way of doing this
-    # and it will freeze for sufficiently high minimum numbers
-    # but the randomness is good
-    n = 0
-    while n < args.number:
-      pw = str().join(rg.choice(alphabet) for _ in range(args.length))
-      if meets_reqs(pw, args):
-        n += 1
-        print(pw)
-
-    # alternate method of meeting complexity requirements
-    # it's not quite as random because it makes it more likely that 
-    # the minimum number of specified characters is exceeded
-    # for _ in range(args.number):
-    #   pw = ''
-    #   pw += str().join(rg.choice(string.ascii_lowercase) for _ in range(args.minimum_lower))
-    #   pw += str().join(rg.choice(string.ascii_uppercase) for _ in range(args.minimum_upper))
-    #   pw += str().join(rg.choice(string.digits) for _ in range(args.minimum_digits))
-    #   pw += str().join(rg.choice(string.punctuation) for _ in range(args.minimum_special))
-    #   pw += str().join(rg.choice(alphabet) for _ in range(len(pw), args.length))
-    #   print(''.join(rg.sample(pw,len(pw))))
-
-
-    # without the complexity requirements
-    # for _ in range(args.number):
-    #   print(str().join(rg.choice(alphabet) for _ in range(args.length)))
-
+    for _ in range(opts.number):
+      print(add_password_requirements(random_password(opts), opts))
 
 if __name__ == '__main__':
     main()
