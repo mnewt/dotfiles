@@ -9,6 +9,7 @@ into password managers
 
 import argparse, random, string, sys, unicodedata, re, pickle, os
 from collections import Counter, defaultdict
+from itertools import chain
 from pprint import pprint
 
 rg = random.SystemRandom()
@@ -20,32 +21,7 @@ regex_uppercase = '[{:s}]'.format(''.join(string.ascii_uppercase))
 regex_digits = '[{:s}]'.format(''.join(string.digits))
 regex_special = '[{:s}]'.format(re.escape(''.join(string.punctuation)))
 
-def _unicode_character_generator():
-  """Generates unicode characters
-  """
-  # Arbitrarily chosen unicode character categories:
-  # Ll = Letter, lower case (Latin, Greek, etc)
-  # Lo = Letter, other (Chinese, Japanese, etc)
-  # Lu = Letter, upper case (Latin, Greek, etc)
-  # Nd = Number, decimal digit (Arabic, Bengali, etc)
-  # Pd = Punctuation, dash
-  # Pc = Punctuation, close
-  # Pf = Punctuation, Final quote (may behave like Ps or Pe depending on usage)
-  # Pi = Punctuation, Initial quote (may behave like Ps or Pe depending on usage)
-  # Po = Punctuation, Other
-  # Ps = Punctuation, Open
-  # Sc = Symbol, Currency
-  # Sk = Symbol, Modifier
-  # Sm = Symbol, Math
-  # Zs = Separator, Space
-
-  UNICODE_CATEGORIES = [ 'Ll', 'Lo', 'Lu', 'Nd', 'Pd', 'Pc', 'Pf', 'Pi', 'Po',
-                         'Ps', 'Sc', 'Sm' ]
-
-  for i in range(sys.maxunicode):
-    c = chr(i)
-    if c.isprintable() and unicodedata.category(c) in UNICODE_CATEGORIES:
-      yield(c)
+unicode_range = chain(range(0x20,0x7e), range(0xa1, 0x27f0))
 
 def random_password(opts):
   return(''.join(rg.sample(opts.alphabet,opts.length)))
@@ -156,7 +132,7 @@ def main():
       if opts.special: opts.alphabet += string.punctuation
       opts.alphabet += opts.characters
     elif opts.unicode:
-      opts.alphabet = ''.join([c for c in _unicode_character_generator()])
+      opts.alphabet = ''.join([chr(c) for c in unicode_range])
     else:
       # no specific character sets were specified so use the defaults
       opts.alphabet = string.digits + string.ascii_letters + string.punctuation
