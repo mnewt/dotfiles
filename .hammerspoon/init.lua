@@ -1,14 +1,15 @@
 --------------------------------------------------------------------------------
--- Settings
+-- * Global stuff
 --------------------------------------------------------------------------------
 
 local mash = {"cmd", "alt", "ctrl"}
 local mashshift = {"cmd", "alt", "ctrl", "shift"}
 
 --------------------------------------------------------------------------------
--- Utility functions to convert table to string
+-- * Utility functions
 --------------------------------------------------------------------------------
 
+-- ** Convert a table to a string
 function table.val_to_str ( v )
    if "string" == type( v ) then
       v = string.gsub( v, "\n", "\\n" )
@@ -45,8 +46,48 @@ function table.tostring( tbl )
    return "{" .. table.concat( result, "," ) .. "}"
 end
 
+-- ** Get output of a bash command
+function os.capture(cmd)
+   local f = assert(io.popen(cmd, 'r'))
+   local s = assert(f:read('*a'))
+   f:close()
+   s = string.gsub(s, '^%s+', '')
+   s = string.gsub(s, '%s+$', '')
+   s = string.gsub(s, '[\n\r]+', ' ')
+   return s
+end
+
+-- ** Execute and print to console
+function executeAndPrint(cmd)
+   print("Executing command:")
+   print(cmd)
+   out, err = hs.execute(cmd)
+   print(out)
+   if (err ~= nil) then
+      print("Command errored.")
+      print(string.format("Command exited with status: %d", err))
+   end
+end
+
+-- ** Check if file exists
+function file_exists(name)
+   local f=io.open(name,"r")
+   if f~=nil then io.close(f) return true else return false end
+end
+
+-- ** Load file if it exists
+function dofile_if(name)
+   if (file_exists(name)) then
+      print("Loading " .. name .. "...")
+      dofile(name)
+   end
+end
+
+-- ** Defeat paste blocking
+hs.hotkey.bind(mash, "V", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
+
 --------------------------------------------------------------------------------
--- Automatically reload hammerspoon config
+-- * Automatically reload hammerspoon config
 --------------------------------------------------------------------------------
 
 function reloadConfig(files)
@@ -66,104 +107,75 @@ hs.alert.show("Config loaded")
 hs.hotkey.bind(mash, 'r', reloadConfig)
 
 --------------------------------------------------------------------------------
--- Execute and print to console
+-- * Window tiling
 --------------------------------------------------------------------------------
 
-function executeAndPrint(cmd)
-  print("Executing command:")
-  print(cmd)
-  out, err = hs.execute(cmd)
-  print(out)
-  if (err ~= nil) then
-    print("Command errored.")
-    print(string.format("Command exited with status: %d", err))
-  end
-end
+hs.window.animationDuration = 0 -- disable animations
 
---------------------------------------------------------------------------------
--- Window tiling
---------------------------------------------------------------------------------
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "F", function()
+      local win = hs.window.focusedWindow()
+      local f = win:frame()
+      local screen = win:screen()
+      local max = screen:frame()
 
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "F", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:frame()
---
---   f.x = max.x
---   f.y = max.y
---   f.w = max.w
---   f.h = max.h
---   win:setFrame(f)
--- end)
---
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Left", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:frame()
---
---   f.x = max.x
---   f.y = max.y
---   f.w = max.w / 2
---   f.h = max.h
---   win:setFrame(f)
--- end)
---
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Right", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:frame()
---
---   f.x = max.x + (max.w / 2)
---   f.y = max.y
---   f.w = max.w / 2
---   f.h = max.h
---   win:setFrame(f)
--- end)
---
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Up", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:frame()
---
---   f.x = max.x
---   f.y = max.y
---   f.w = max.w
---   f.h = max.h / 2
---   win:setFrame(f)
--- end)
---
--- hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Down", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:frame()
---
---   f.x = max.x
---   f.y = max.y + (max.h / 2)
---   f.w = max.w
---   f.h = max.h / 2
---   win:setFrame(f)
--- end)
+      f.x = max.x
+      f.y = max.y
+      f.w = max.w
+      f.h = max.h
+      win:setFrame(f)
+end)
 
---------------------------------------------------------------------------------
--- Check if file exists
---------------------------------------------------------------------------------
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Left", function()
+      local win = hs.window.focusedWindow()
+      local f = win:frame()
+      local screen = win:screen()
+      local max = screen:frame()
 
-function file_exists(name)
-  local f=io.open(name,"r")
-  if f~=nil then io.close(f) return true else return false end
-end
+      f.x = max.x
+      f.y = max.y
+      f.w = max.w / 2
+      f.h = max.h
+      win:setFrame(f)
+end)
 
-function dofile_if(name)
-  if (file_exists(name)) then
-    print("Loading " .. name .. "...")
-    dofile(name)
-  end
-end
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Right", function()
+      local win = hs.window.focusedWindow()
+      local f = win:frame()
+      local screen = win:screen()
+      local max = screen:frame()
+
+      f.x = max.x + (max.w / 2)
+      f.y = max.y
+      f.w = max.w / 2
+      f.h = max.h
+      win:setFrame(f)
+end)
+
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Up", function()
+      local win = hs.window.focusedWindow()
+      local f = win:frame()
+      local screen = win:screen()
+      local max = screen:frame()
+
+      f.x = max.x
+      f.y = max.y
+      f.w = max.w
+      f.h = max.h / 2
+      win:setFrame(f)
+end)
+
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Down", function()
+      local win = hs.window.focusedWindow()
+      local f = win:frame()
+      local screen = win:screen()
+      local max = screen:frame()
+
+      f.x = max.x
+      f.y = max.y + (max.h / 2)
+      f.w = max.w
+      f.h = max.h / 2
+      win:setFrame(f)
+end)
 
 --------------------------------------------------------------------------------
 -- Spaces
@@ -176,7 +188,8 @@ end
 spaces = require("hs._asm.undocumented.spaces")
 
 --------------------------------------------------------------------------------
--- Manual window moving and resizing
+-- * Window moving and resizing
+--------------------------------------------------------------------------------
 -- Credit to GitHub user: ztomer
 
 hs.grid.MARGINX = 0
@@ -228,34 +241,22 @@ hs.hotkey.bind(mash, "m", function()
 end)
 
 --------------------------------------------------------------------------------
--- switch Spaces
-hs.hotkey.bind(mash, '1', function()
-                  spaces.moveToSpace("1")
-                  spaceChange()
-end)
-hs.hotkey.bind(mash, '2', function()
-                  spaces.moveToSpace("2")
-                  spaceChange()
-end)
-hs.hotkey.bind(mash, '3', function()
-                  spaces.moveToSpace("3")
-                  spaceChange()
-end)
-hs.hotkey.bind(mash, '4', function()
-                  spaces.moveToSpace("4")
-                  spaceChange()
-end)
-hs.hotkey.bind(mash, '5', function()
-                  spaces.moveToSpace("5")
-                  spaceChange()
-end)
-hs.hotkey.bind(mash, '6', function()
-                  spaces.moveToSpace("6")
-                  spaceChange()
-end)
+-- * Spaces
+--------------------------------------------------------------------------------
+-- This currently (macOS 10.14) seems to be broken
+
+currentSpace = tostring(spaces.currentSpace())
+
+-- ** Switch to space
+hs.hotkey.bind(mash, '1', function() spaces.changeToSpace("1") end)
+hs.hotkey.bind(mash, '2', function() spaces.changeToSpace("2") end)
+
+-- ** Move window to space
+hs.hotkey.bind(mashshift, '1', function() spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "1") end)
+hs.hotkey.bind(mashshift, '2', function() spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "2") end)
 
 --------------------------------------------------------------------------------
--- Load stuff
+-- * Load private stuff
 --------------------------------------------------------------------------------
 
 dofile_if("private.lua")
