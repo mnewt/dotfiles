@@ -721,8 +721,7 @@ When using Homebrew, install it using \"brew install trash\"."
    (shell-mode . goto-address-mode))
   :bind
   (:map goto-address-highlight-keymap
-        ("<RET>" . goto-address-at-point)
-        ("M-<RET>" . newline))
+        ("C-c C-o" . goto-address-at-point))
   :commands
   (goto-address-prog-mode
    goto-address-mode))
@@ -2928,7 +2927,7 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
            :map ibuffer-mode-map
            ("." . hydra-ibuffer-main/body))
 
-           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Search, Completion, Symbols, Project Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -3513,6 +3512,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
         ("M-h" . sly-documentation-lookup)))
 
 (use-package sly-company
+  :unless (eq system-type 'windows-nt)
   :hook
   (sly-mode . sly-company-mode)
   :config
@@ -3641,16 +3641,16 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :config
   (add-to-list 'company-backends 'company-restclient))
 
-(use-package elpy
-  :config
-  (elpy-enable)
-  (when (require 'flycheck nil t)
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-    (add-hook 'elpy-mode-hook 'flycheck-mode)))
+;; (use-package elpy
+;;   :config
+;;   (elpy-enable)
+;;   (when (require 'flycheck nil t)
+;;     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;     (add-hook 'elpy-mode-hook 'flycheck-mode)))
 
-(use-package py-autopep8
-  :hook
-  ((elpy-mode . py-autopep8-enable-on-save)))
+;; (use-package py-autopep8
+;;   :hook
+;;   ((elpy-mode . py-autopep8-enable-on-save)))
 
 ;; (use-package python-mode
 ;;   :mode "\\.py\\'"
@@ -3706,26 +3706,26 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :mode "\\.cfg\\'")
 
 ;; `eval-in-repl' requires a number of other packages so it's best to load it last
-(use-package eval-in-repl
-  :bind
-  (:map
-   emacs-lisp-mode-map
-   ("C-<return>" . eir-eval-in-ielm)
-   :map
-   lisp-interaction-mode-map
-   ("C-<return>" . eir-eval-in-ielm)
-   :map
-   Info-mode-map
-   ("s-<return>" . eir-eval-in-ielm)
-   :map
-   python-mode-map
-   ("s-<return>" . eir-eval-in-python)
-   :map
-   ruby-mode-map
-   ("s-<return>" . eir-eval-in-ruby)
-   :map
-   sh-mode-map
-   ("s-<return>" . eir-eval-in-shell)))
+;; (use-package eval-in-repl
+;;   :bind
+;;   (:map
+;;    emacs-lisp-mode-map
+;;    ("C-<return>" . eir-eval-in-ielm)
+;;    :map
+;;    lisp-interaction-mode-map
+;;    ("C-<return>" . eir-eval-in-ielm)
+;;    :map
+;;    Info-mode-map
+;;    ("s-<return>" . eir-eval-in-ielm)
+;;    :map
+;;    python-mode-map
+;;    ("s-<return>" . eir-eval-in-python)
+;;    :map
+;;    ruby-mode-map
+;;    ("s-<return>" . eir-eval-in-ruby)
+;;    :map
+;;    sh-mode-map
+;;    ("s-<return>" . eir-eval-in-shell)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Other Packages
