@@ -1242,9 +1242,9 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (bind-keys ("s-C" . copy-region-to-other-window)
            ("s-X" . move-region-to-other-window))
 
-;; (use-package elisp-slime-nav
-;;   :hook
-;;   (emacs-lisp-mode . (lambda () (elisp-slime-nav-mode t))))
+(use-package elisp-slime-nav
+  :hook
+  (emacs-lisp-mode . ($ (elisp-slime-nav-mode t))))
 
 ;; (use-package undo-tree
 ;;   :init
@@ -1577,32 +1577,32 @@ ID, ACTION, CONTEXT."
   ;;                  :pre-handlers '(sp-sh-pre-handler)
   ;;                  :post-handlers '(sp-sh-block-post-handler)))
   :hook
-  (smartparens-mode . (lambda()
+  (smartparens-mode . (lambda ()
                         (require 'smartparens-config)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
-  ((hy-mode sh-mode) . turn-on-smarparens-mode)
+  ((emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
   (clojure-mode . (lambda () (require 'smartparens-clojure)
                     (turn-on-smartparens-mode)))
-  (enh-ruby-mode . (lambda () (require 'smartparens-ruby)
-                     (turn-on-smartparens-mode)))
-  (hy-mode . (turn-on-smartparens-mode))
-  (js2-mode . (lambda () (require 'smartparens-javascript)
-                (turn-on-smartparens-mode)))
+  ((ruby-mode enh-ruby-mode) . (lambda () (require 'smartparens-ruby)
+                                 (turn-on-smartparens-mode)))
+  ((javascript-mode js2-mode) . (lambda () (require 'smartparens-javascript)
+                                  (turn-on-smartparens-mode)))
   (lua-mode . (lambda () (require 'smartparens-lua)
                 (turn-on-smartparens-mode)))
   (markdown-mode . (lambda () (require 'smartparens-markdown)
                      (turn-on-smartparens-mode)))
   (org-mode . (lambda () (require 'smartparens-org)
                 (turn-on-smartparens-mode)))
-  (python-mode . (lambda () (require 'smartparens-python)
-                   (turn-on-smartparens-mode)))
+  ((python-mode elpy-mode) . (lambda () (require 'smartparens-python)
+                               (turn-on-smartparens-mode)))
   (text-mode . (lambda () (require 'smartparens-text)
                  (turn-on-smartparens-mode)))
   (web-mode . (lambda () (require 'smartparens-html)
                 (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
+        ;; Causes problems in `clojure-mode'
         ;; ("RET" . sp-newline)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
