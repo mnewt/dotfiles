@@ -109,25 +109,6 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; Packages go here.
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
-;; Function composition
-(defsubst curry (function &rest arguments)
-  (lexical-let ((function function)
-                (arguments arguments))
-    (lambda (&rest more) (apply function (append arguments more)))))
-
-(defsubst rcurry (function &rest arguments)
-  (lexical-let ((function function)
-                (arguments arguments))
-    (lambda (&rest more) (apply function (append more arguments)))))
-
-(defsubst compose (function &rest more-functions)
-  (cl-reduce (lambda (f g)
-               (lexical-let ((f f) (g g))
-                 (lambda (&rest arguments)
-                   (funcall f (apply g arguments)))))
-             more-functions
-             :initial-value function))
-
 ;; Anonymous function macro
 ;; TODO: Doesn't work inside `use-package'
 ;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
@@ -847,24 +828,60 @@ When using Homebrew, install it using \"brew install trash\"."
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
+(system-packages-ensure "dasht")
+
+(defvar dasht-browser 'eww)
+
+(defvar dasht-server-port 54321)
+
+(defvar dasht-docsets-dir "~/code/docsets")
+
+(defun dasht-at-point-run-search (f &rest args)
+  "Override `dash-at-point-run-search' to use `dasht'"
+  (let ((search (car args))
+        (docsets (-map #'concat (cdr args))))
+    ;; Start dasht-server process if it's not already started.
+    (unless (get-buffer-process  "*dasht*")
+      (start-process "dasht" "*dasht*"
+                     "env" (concat "DASHT_DOCSETS_DIR=" (file-truename dasht-docsets-dir))
+                     "dasht-server" (number-to-string dasht-server-port)))
+    (funcall dasht-browser (format "http://localhost:%d/?query=%s%s"
+                                   dasht-server-port
+                                   (url-hexify-string search)
+                                   (-reduce-from (-partial #'concat "&docsets=") "" docsets)))))
+
 (use-package dash-at-point
-  :if (eq system-type 'darwin)
   :ensure-system-package
-  ("/Applications/Dash.app" . "brew cask install dash")
+  ("dasht" . "brew install dasht")
   :config
-  (seq-do (curry #'add-to-list 'dash-at-point-mode-alist)
+  (seq-do (-partial #'add-to-list 'dash-at-point-mode-alist)
           '((clojure-mode . "clojuredocs")
             (clojurec-mode . "clojuredocs")
             (clojurescript-mode . "clojuredocs")
+            (emacs-lisp-mode . "Emacs Lisp")
             (fish-mode . "fish")
-            (inferior-emacs-lisp-mode . "elisp")
+            (inferior-emacs-lisp-mode . "Emacs Lisp")
             (lisp-mode . "lisp")
-            (lisp-interaction-mode . "elisp")
+            (lisp-interaction-mode . "Emacs Lisp")
             (lua-mode . "lua")
             (sh-mode . "bash")
             (slime-repl-mode . "lisp")))
+  (setenv "DASHT_DOCSETS_DIR" (file-truename "~/code/docsets"))
+  (advice-add 'dash-at-point-run-search :around #'dasht-at-point-run-search)
   :bind
   ("M-s-." . dash-at-point))
+
+(use-package counsel-dash
+  :custom
+  (counsel-dash-docsets-path dasht-docsets-dir)
+  (counsel-dash-browser-func 'eww)
+  (counsel-dash-common-docsets '("Bash" "Clojure" "Docker" "Emacs_Lisp"
+                                 "JavaScript" "Man_Pages" "NodeJS"
+                                 "clojure-docs"))
+  :commands
+  (counsel-dash counsel-dash-install-docset)
+  :bind
+  ("M-s-l" . counsel-dash))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Buffer Navigation and Management
@@ -1243,8 +1260,10 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
            ("s-X" . move-region-to-other-window))
 
 (use-package elisp-slime-nav
+  :commands
+  (elisp-slime-nav-mode)
   :hook
-  (emacs-lisp-mode . ($ (elisp-slime-nav-mode t))))
+  ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
 ;; (use-package undo-tree
 ;;   :init
@@ -2148,9 +2167,10 @@ initialize the Eshell environment."
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
 
   ;; Commands that use curses get launched in their own `term' buffer
-  (seq-do (curry #'add-to-list 'eshell-visual-commands)
-          '("htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux" "top" "vim" "w3m"))
-  (seq-do (curry #'add-to-list 'eshell-visual-subcommands)
+  (seq-do (-partial #'add-to-list 'eshell-visual-commands)
+          '("dasht" "htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux"
+            "top" "vim" "w3m"))
+  (seq-do (-partial #'add-to-list 'eshell-visual-subcommands)
           '(("git" "log" "diff" "show")
             ("dw" "log" "runshell" "shell")))
 
@@ -3470,7 +3490,7 @@ of problems in that context."
 buffers, not just `inf-clojure-mode' ones. This function
 reinstates default behavior. See:
 https://github.com/clojure-emacs/inf-clojure/issues/154"
-  (unless inf-clojure-minor-mode
+  (unless (and (boundp inf-clojure-minor-mode) inf-clojure-minor-mode)
     (setq-local comint-input-sender 'comint-simple-send)))
 
 (use-package inf-clojure
