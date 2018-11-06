@@ -1,16 +1,40 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # Bootstrap the dotfiles repo on a new computer
+# $1: A remote git repo
 
-repo_remote=https://gitlab.com/mnewt/dotfiles.git
-repo_dir=$HOME/.config/repos
-repo_temp=$HOME/.config/repos/temp
+[ -n "$1" ] && echo <<-END
+bootstrap: Create a git repo in the current user's home directory
 
-cd $HOME
-mkdir -p $repo_dir
-[ -e $HOME/.git ] && rm -rf $HOME/.git
-git clone --separate-git-dir $repo_dir/dotfiles $repo_remote --no-checkout $repo_temp
-mv $repo_temp/.git $HOME
-rm -rf $repo_temp
+Usage: 
+  bootstrap GIT_REPO
+
+GIT_REPO: A remote git repo URI
+END
+
+repo_remote="$1"
+repo="${repo_remote%.*}"
+repo_dir="$HOME/.config/repos"
+repo_temp="$HOME/.config/repos/temp"
+
+if [ -e "$repo_dir/$repo" ]; then
+  read -p "The repo dir at $repo_dir/$repo exists. Overwrite? [y/N] " choice
+  case "$choice" in 
+    y|Y )
+      echo "Deleting and recreating repo..."
+      ;;
+    * )
+      echo "Not making any changes. Exiting."
+      exit 1
+      ;;
+  esac
+fi
+
+cd "$HOME"
+mkdir -p "$repo_dir"
+[ -e "$HOME/.git" ] && rm -rf "$HOME/.git"
+git clone --separate-git-dir "$repo_dir/$repo" "$repo_remote" --no-checkout "$repo_temp"
+mv "$repo_temp/.git" "$HOME"
+rm -rf "$repo_temp"
 git fetch
 git reset --hard HEAD
 git config --local status.showUntrackedFiles no
