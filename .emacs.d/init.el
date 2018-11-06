@@ -1565,36 +1565,36 @@ ID, ACTION, CONTEXT."
   :config
   (bind-key [remap kill-line] #'sp-kill-hybrid-sexp smartparens-mode-map
             (apply #'derived-mode-p sp-lisp-modes))
-  ;; (sp-with-modes
-  ;;     '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
-  ;;              python-mode java-mode sh-mode web-mode)
-  ;;   (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-  ;;   (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-  ;;   (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
-  ;; (sp-with-modes
-  ;;     '(python-mode)
-  ;;   (sp-local-pair "\"\"\"" "\"\"\""
-  ;;                  :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
-  ;; (sp-with-modes
-  ;;     '(sh-mode)
-  ;;   (sp-local-pair "do" "done"
-  ;;                  :when '(("SPC" "RET"))
-  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-  ;;                  :actions '(insert navigate)
-  ;;                  :pre-handlers '(sp-sh-pre-handler)
-  ;;                  :post-handlers '(sp-sh-block-post-handler))
-  ;;   (sp-local-pair "then" "fi"
-  ;;                  :when '(("SPC" "RET"))
-  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-  ;;                  :actions '(insert navigate)
-  ;;                  :pre-handlers '(sp-sh-pre-handler)
-  ;;                  :post-handlers '(sp-sh-block-post-handler))
-  ;;   (sp-local-pair "case" "esac"
-  ;;                  :when '(("SPC" "RET"))
-  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-  ;;                  :actions '(insert navigate)
-  ;;                  :pre-handlers '(sp-sh-pre-handler)
-  ;;                  :post-handlers '(sp-sh-block-post-handler)))
+  (sp-with-modes
+      '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
+               python-mode java-mode sh-mode web-mode)
+    (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  (sp-with-modes
+      '(python-mode)
+    (sp-local-pair "\"\"\"" "\"\"\""
+                   :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  (sp-with-modes
+      '(sh-mode)
+    (sp-local-pair "do" "done"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler))
+    (sp-local-pair "then" "fi"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler))
+    (sp-local-pair "case" "esac"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler)))
   :hook
   (smartparens-mode . (lambda ()
                         (require 'smartparens-config)

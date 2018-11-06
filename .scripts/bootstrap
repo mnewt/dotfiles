@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Bootstrap the dotfiles repo on a new computer
-# $1: A remote git repo
 
 [ -n "$1" ] && echo <<-END
-bootstrap: Create a git repo in the current user's home directory
+bootstrap: Create a git repo in the destination directory with a separate git
+           dir in $HOME/.config/repos.
 
 Usage: 
-  bootstrap GIT_REPO
+  bootstrap GIT_REPO [DESTINATION]
 
-GIT_REPO: A remote git repo URI
+GIT_REPO:     A remote git repo URI
+DESTINATION:  The directory to check out files into (default is \$HOME)
 END
 
 repo_remote="$1"
+destination="${2:-$HOME}"
 repo="${repo_remote%.*}"
 repo_dir="$HOME/.config/repos"
 repo_temp="$HOME/.config/repos/temp"
@@ -32,9 +33,20 @@ fi
 cd "$HOME"
 mkdir -p "$repo_dir"
 [ -e "$HOME/.git" ] && rm -rf "$HOME/.git"
+
 git clone --separate-git-dir "$repo_dir/$repo" "$repo_remote" --no-checkout "$repo_temp"
 mv "$repo_temp/.git" "$HOME"
 rm -rf "$repo_temp"
+
+git config --local status.showUntrackedFiles no
+
+modified=$(git diff --name-status | awk '/^M/{print $2}')
+if [ ${#modified[@]} -gt 0 ]; then
+  backup_dir="$HOME/.backup.$repo"
+  echo "Backing up files to $backup_dir"
+  mkdir -p "backup_dir"
+  cp -R $modified "$backup_dir"
+fi
+  
 git fetch
 git reset --hard HEAD
-git config --local status.showUntrackedFiles no
