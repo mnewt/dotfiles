@@ -1621,8 +1621,7 @@ ID, ACTION, CONTEXT."
                 (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
-        ;; Causes problems in `clojure-mode'
-        ;; ("RET" . sp-newline)
+        ("RET" . sp-newline)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
 (use-package parinfer
@@ -3697,11 +3696,6 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (:map inf-ruby-minor-mode-map
         ("s-<return>". ruby-send-last-sexp)
         ("C-M-x" . ruby-send-block)))
-
-(use-package robe
-  :hook enh-ruby-mode
-  :config
-  (eval-after-load 'company '(push 'company-robe company-backends)))
 
 (use-package lua-mode
   :mode "\\.lua\\'")

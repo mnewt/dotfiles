@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 [ -n "$1" ] && echo <<-END
 bootstrap: Create a git repo in the destination directory with a separate git
