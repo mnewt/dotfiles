@@ -876,7 +876,7 @@ When using Homebrew, install it using \"brew install trash\"."
   (counsel-dash-docsets-path dasht-docsets-dir)
   (counsel-dash-browser-func 'eww)
   (counsel-dash-common-docsets '("Bash" "Clojure" "Docker" "Emacs_Lisp"
-                                 "JavaScript" "Man_Pages" "NodeJS"
+                                 "JavaScript" "Man_Pages" "NodeJS" "PostgreSQL"
                                  "clojure-docs"))
   :commands
   (counsel-dash counsel-dash-install-docset)
@@ -1090,9 +1090,10 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   :commands
   (backup-walker-start))
 
-(use-package backups-mode
-  :config
-  (backups-minor-mode))
+;; Automatically save files kind of like Apple Mac apps.
+;; (use-package backups-mode
+;;   :config
+;;   (backups-minor-mode))
 
 ;; Wrap text.
 (setq-default fill-column 80)
@@ -1781,9 +1782,9 @@ ID, ACTION, CONTEXT."
             (apply-partially #'string-match "^/sshx\?:\\([a-z]+\\):")
             recentf-list))))
 
-(defun ssh-choose-host ()
+(defun ssh-choose-host (&optional prompt)
   "Make a list of recent ssh hosts and interactively choose one."
-  (completing-read "SSH to Host: "
+  (completing-read (or prompt "SSH to Host: ")
                    (-distinct
                     (append
                      (list-hosts-from-recentf)
@@ -1843,10 +1844,29 @@ ID, ACTION, CONTEXT."
 (setq explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login"))
 (defun ssh-dtach (host)
   "Open SSH connection to remote host and attach to dtach session."
-  (interactive "MSSH using dtach to host: ")
+  (interactive (list (ssh-choose-host "SSH using dtach to host: ")))
   (let ((explicit-shell-file-name "dtach")
-        (default-directory (format  "/sshx:%s:" host)))
-    (shell (format "*ssh %s*" host))))
+        (default-directory (format  "/sshx:%s:" host))
+        (explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login")))
+    (shell (format "*ssh (dtach) %s*" host))))
+
+;; https://www.emacswiki.org/emacs/ShellMode
+(defun term-switch-to-shell-mode ()
+  (interactive)
+  (if (equal major-mode 'term-mode)
+      (progn
+        (shell-mode)
+        (set-process-filter  (get-buffer-process (current-buffer)) 'comint-output-filter)
+        (local-set-key (kbd "C-M-j") 'term-switch-to-shell-mode)
+        (compilation-shell-minor-mode 1)
+        (comint-send-input))
+    (progn
+      (compilation-shell-minor-mode -1)
+      (font-lock-mode -1)
+      (set-process-filter  (get-buffer-process (current-buffer)) 'term-emulate-terminal)
+      (term-mode)
+      (term-char-mode)
+      (term-send-raw-string (kbd "C-l")))))
 
 ;; Apply colors to `shell-command' minibuffer output.
 ;; Adapted from https://stackoverflow.com/a/42666026/1588358
@@ -1871,7 +1891,8 @@ ID, ACTION, CONTEXT."
          :map term-raw-map
          ("M-o" . other-window)
          ("M-p" . term-send-up)
-         ("M-n" . term-send-down)))
+         ("M-n" . term-send-down)
+         ("C-M-j" . term-switch-to-shell-mode)))
 
 ;; xterm colors
 (use-package xterm-color
@@ -2956,6 +2977,9 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (reb-re-syntax 'string))
 
 (use-package wgrep
+  :custom
+  ;; Save changed buffers immediately when exiting wgrep mode
+  (wgrep-auto-save-buffer t)
   :bind
   (("C-c C-p" . wgrep-change-to-wgrep-mode)))
 
@@ -3489,7 +3513,7 @@ of problems in that context."
 buffers, not just `inf-clojure-mode' ones. This function
 reinstates default behavior. See:
 https://github.com/clojure-emacs/inf-clojure/issues/154"
-  (unless (and (boundp inf-clojure-minor-mode) inf-clojure-minor-mode)
+  (unless (bound-and-true-p inf-clojure-minor-mode)
     (setq-local comint-input-sender 'comint-simple-send)))
 
 (use-package inf-clojure
