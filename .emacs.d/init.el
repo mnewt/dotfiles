@@ -443,7 +443,7 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; Beeping is REALLY NOT OK
 (setq visible-bell t
       ring-bell-function 'echo-area-visible-bell
-      ; Show keystrokes right away, don't show the message in the scratch buffer
+      ;; Show keystrokes right away, don't show the message in the scratch buffer
       echo-keystrokes 0.1)
 
 ;; Use the system clipboard
@@ -686,7 +686,7 @@ When using Homebrew, install it using \"brew install trash\"."
     (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
 
   (bind-key "C-c i" #'reveal-in-windows-explorer))
-             
+
 ;; OS specific configuration
 (pcase system-type
   ('darwin (config-macos))
@@ -867,6 +867,7 @@ When using Homebrew, install it using \"brew install trash\"."
             (sh-mode . "bash")
             (slime-repl-mode . "lisp")))
   (setenv "DASHT_DOCSETS_DIR" (file-truename "~/code/docsets"))
+  ;; Replace `dash-at-point-run-search' with a version that runs `dasht' instead.
   (advice-add 'dash-at-point-run-search :around #'dasht-at-point-run-search)
   :bind
   ("M-s-." . dash-at-point))
@@ -1374,20 +1375,21 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   (outline-next-visible-heading 1)
   (outline-show-subtree))
 
-;; outline-mode for folding sections (in lisps that is defined by `;;;')
+;; outline-mode extension for navigating by sections. in Emacs Lisp that is defined by
+;; `;;; ', `;;;; ', etc. Everywhere else it is like `;; * ' `;; ** ', and so on.
 (use-package outshine
-  :custom
-  (outline-minor-mode-prefix "\M-#")
+  :init
+  (defvar outline-minor-mode-prefix "\M-#")
   :config
   ;; Narrowing now works within the headline rather than requiring to be on it
   (advice-add 'outshine-narrow-to-subtree :before
               (lambda (&rest args) (unless (outline-on-heading-p t)
                                      (outline-previous-visible-heading 1))))
+  :commands
+  (outshine-mode outshine-hook-function)
   :hook
   ((prog-mode . outline-minor-mode)
    (outline-minor-mode . outshine-hook-function))
-  :commands
-  (outshine-hook-function)
   :bind
   (:map outline-minor-mode-map
         ;; Don't shadow smarparens or org bindings
@@ -1606,8 +1608,8 @@ ID, ACTION, CONTEXT."
                     (turn-on-smartparens-mode)))
   ((ruby-mode enh-ruby-mode) . (lambda () (require 'smartparens-ruby)
                                  (turn-on-smartparens-mode)))
-  ((javascript-mode js2-mode) . (lambda () (require 'smartparens-javascript)
-                                  (turn-on-smartparens-mode)))
+  ((javascript-mode js2-mode json-mode) . (lambda () (require 'smartparens-javascript)
+                                            (turn-on-smartparens-mode)))
   (lua-mode . (lambda () (require 'smartparens-lua)
                 (turn-on-smartparens-mode)))
   (markdown-mode . (lambda () (require 'smartparens-markdown)
@@ -1705,12 +1707,14 @@ ID, ACTION, CONTEXT."
 
 (use-package dired-subtree
   :bind
-  ("C-, i" . dired-subtree-insert)
-  ("C-, r" . dired-subtree-remove)
-  ("C-, R" . dired-subtree-revert)
-  ("C-, n" . dired-subtree-narrow)
-  ("C-, ^" . dired-subtree-up)
-  ("C-, v" . dired-subtree-down))
+  (:map dired-mode-map
+        ("I" . dired-subtree-cycle)
+        ("C-, i" . dired-subtree-insert)
+        ("C-, r" . dired-subtree-remove)
+        ("C-, R" . dired-subtree-revert)
+        ("C-, n" . dired-subtree-narrow)
+        ("C-, ^" . dired-subtree-up)
+        ("C-, v" . dired-subtree-down)))
 
 (use-package dired-rsync
   :bind
@@ -1920,9 +1924,9 @@ ID, ACTION, CONTEXT."
   ;; `devel' branch is needed to support Emacs 27.
   ;; https://github.com/dieggsy/eterm-256color/pull/9#issuecomment-403229541
   :straight
-  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel")
-  :hook
-  (term-mode . eterm-256color-mode))
+  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel"))
+;; :hook
+;; (term-mode . eterm-256color-mode))
 
 (use-package bash-completion
   :custom
@@ -2631,14 +2635,14 @@ _R_ebuild package |_P_ull package  |_V_ersions thaw  |_W_atcher quit    |pru_n_e
 
 (defhydra hydra-window ()
   "
-Movement^^        ^Split^         ^Switch^		^Resize^
+Movement^^        ^Split^         ^Switch^    ^Resize^
 ----------------------------------------------------------------
-_h_ ←       	_v_ertical    	_b_uffer		_q_ X←
-_j_ ↓        	_x_ horizontal	_f_ind files	_w_ X↓
-_k_ ↑        	_z_ undo      	_a_ce 1		_e_ X↑
-_l_ →        	_Z_ reset      	_s_wap		_r_ X→
-_F_ollow		_D_lt Other   	_S_ave		max_i_mize
-_SPC_ cancel	_o_nly this   	_d_elete	
+_h_ ←         _v_ertical      _b_uffer    _q_ X←
+_j_ ↓         _x_ horizontal  _f_ind files  _w_ X↓
+_k_ ↑         _z_ undo        _a_ce 1   _e_ X↑
+_l_ →         _Z_ reset       _s_wap    _r_ X→
+_F_ollow    _D_lt Other     _S_ave    max_i_mize
+_SPC_ cancel  _o_nly this     _d_elete
 "
   ("h" windmove-left)
   ("j" windmove-down)
@@ -2656,17 +2660,17 @@ _SPC_ cancel	_o_nly this   	_d_elete
          (ace-window 1)
          (add-hook 'ace-window-end-once-hook
                    'hydra-window/body)))
-   
+
   ("v" (lambda ()
          (interactive)
          (split-window-right)
          (windmove-right)))
-   
+
   ("x" (lambda ()
          (interactive)
          (split-window-below)
          (windmove-down)))
-   
+
   ("s" (lambda ()
          (interactive)
          (ace-window 4)
@@ -2679,16 +2683,15 @@ _SPC_ cancel	_o_nly this   	_d_elete
          (ace-window 16)
          (add-hook 'ace-window-end-once-hook
                    'hydra-window/body)))
-   
+
   ("o" delete-other-windows)
   ("i" ace-maximize-window)
   ("z" (progn
          (winner-undo)
          (setq this-command 'winner-undo)))
-   
+
   ("Z" winner-redo)
   ("SPC" nil))
-  
 
 (defhydra hydra-multiple-cursors (:hint nil)
   "
@@ -3055,9 +3058,10 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   ;; (ivy-use-virtual-buffers t)
   :config
   (ivy-mode 1)
-  :bind ("C-c C-r" . ivy-resume)
-        ("s-b" . ivy-switch-buffer)
-        ("s-B" . ivy-switch-buffer-other-window))
+  :bind
+  ("C-c C-r" . ivy-resume)
+  ("s-b" . ivy-switch-buffer)
+  ("s-B" . ivy-switch-buffer-other-window))
 
 (use-package ivy-hydra
   :defer 1)
