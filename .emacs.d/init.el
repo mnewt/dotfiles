@@ -777,6 +777,10 @@ When using Homebrew, install it using \"brew install trash\"."
       ;; Select help window so it's easy to quit it with `q'
       help-window-select t)
 
+(add-to-list 'same-window-regexps "\\*helpful ")
+(add-multiple-to-list 'same-window-buffer-names
+                      '("*Help*" "*Apropos*" "*Summary*" "*info*"))
+
 ;; ELDoc
 (seq-do (lambda (list) (add-hook list #'turn-on-eldoc-mode))
         '(emacs-lisp-mode-hook
@@ -808,6 +812,9 @@ When using Homebrew, install it using \"brew install trash\"."
   (("M-s-h" . which-key-show-top-level)))
 
 (use-package man
+  :custom
+  ;; Make the manpage the current buffer in the current window
+  (Man-notify-method 'pushy)
   :config
   (set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
   (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t))
@@ -876,9 +883,10 @@ When using Homebrew, install it using \"brew install trash\"."
   :custom
   (counsel-dash-docsets-path dasht-docsets-dir)
   (counsel-dash-browser-func 'eww)
-  (counsel-dash-common-docsets '("Bash" "Clojure" "Docker" "Emacs_Lisp"
-                                 "JavaScript" "Man_Pages" "NodeJS" "PostgreSQL"
-                                 "clojure-docs"))
+  (counsel-dash-common-docsets '("Bash" "Clojure" "clojure-docs" "Docker"
+                                 "Emacs_Lisp" "JavaScript" "Man_Pages" "NodeJS"
+                                 "PostgreSQL" "React"))
+  
   :commands
   (counsel-dash counsel-dash-install-docset)
   :bind
@@ -1604,26 +1612,37 @@ ID, ACTION, CONTEXT."
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
   ((emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
-  (clojure-mode . (lambda () (require 'smartparens-clojure)
+  (clojure-mode . (lambda ()
+                    (require 'smartparens-clojure)
                     (turn-on-smartparens-mode)))
-  ((ruby-mode enh-ruby-mode) . (lambda () (require 'smartparens-ruby)
+  ((ruby-mode enh-ruby-mode) . (lambda ()
+                                 (require 'smartparens-ruby)
                                  (turn-on-smartparens-mode)))
-  ((javascript-mode js2-mode json-mode) . (lambda () (require 'smartparens-javascript)
-                                            (turn-on-smartparens-mode)))
-  (lua-mode . (lambda () (require 'smartparens-lua)
+  ((javascript-mode js2-mode json-mode rjsx-mode) .
+   (lambda ()
+     (require 'smartparens-javascript)
+     (turn-on-smartparens-mode)))
+  (lua-mode . (lambda ()
+                (require 'smartparens-lua)
                 (turn-on-smartparens-mode)))
-  (markdown-mode . (lambda () (require 'smartparens-markdown)
+  (markdown-mode . (lambda ()
+                     (require 'smartparens-markdown)
                      (turn-on-smartparens-mode)))
-  (org-mode . (lambda () (require 'smartparens-org)
+  (org-mode . (lambda ()
+                (require 'smartparens-org)
                 (turn-on-smartparens-mode)))
-  ((python-mode elpy-mode) . (lambda () (require 'smartparens-python)
+  ((python-mode elpy-mode) . (lambda ()
+                               (require 'smartparens-python)
                                (turn-on-smartparens-mode)))
-  (text-mode . (lambda () (require 'smartparens-text)
+  (text-mode . (lambda ()
+                 (require 'smartparens-text)
                  (turn-on-smartparens-mode)))
-  (web-mode . (lambda () (require 'smartparens-html)
+  (web-mode . (lambda ()
+                (require 'smartparens-html)
                 (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
+        ;; TODO: This makes things freak out in javascript modes
         ("RET" . sp-newline)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
@@ -1709,6 +1728,7 @@ ID, ACTION, CONTEXT."
   :bind
   (:map dired-mode-map
         ("I" . dired-subtree-cycle)
+        ("TAB" . dired-subtree-cycle)
         ("C-, i" . dired-subtree-insert)
         ("C-, r" . dired-subtree-remove)
         ("C-, R" . dired-subtree-revert)
@@ -1731,7 +1751,7 @@ ID, ACTION, CONTEXT."
   (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
   (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
   :bind
-  (("C-x C-j" . dired-sidebar-toggle-sidebar)))
+  (("C-x M-d" . dired-sidebar-toggle-sidebar)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell, SSH, Tramp
@@ -1924,9 +1944,9 @@ ID, ACTION, CONTEXT."
   ;; `devel' branch is needed to support Emacs 27.
   ;; https://github.com/dieggsy/eterm-256color/pull/9#issuecomment-403229541
   :straight
-  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel"))
-;; :hook
-;; (term-mode . eterm-256color-mode))
+  (:type git :host github :repo "dieggsy/eterm-256color" :branch "devel")
+  :hook
+  (term-mode . eterm-256color-mode))
 
 (use-package bash-completion
   :custom
@@ -3642,6 +3662,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
    "\\.djhtml\\'"
    "\\.html?\\'")
   :custom
+  (sgml-basic-offset tab-width)
   (web-mode-markup-indent-offset tab-width)
   (web-mode-css-indent-offset tab-width)
   (web-mode-code-indent-offset tab-width)
@@ -3652,8 +3673,19 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :hook
   (web-mode . m-web-mode-hook))
 
-(use-package js2-mode
-  :mode "\\.js\\'"
+(defun toggle-sp-newline ()
+  "Toggle whether `RET' is bound to `newline' or `sp-newline'."
+  (interactive)
+  (let* ((f (key-binding (kbd "RET")))
+         (newf (if (eq f 'sp-newline) #'newline #'sp-newline)))
+    (bind-key "RET" newf smartparens-mode-map)
+    (message "<RET> now invokes to %s" newf)))
+
+(bind-key "C-c C-<return>" #'toggle-sp-newline)
+
+;; Pulls in js2-mode because it is built on top of it
+(use-package rjsx-mode
+  :mode "\\.jsx?\\'"
   :custom
   (js2-basic-offset tab-width)
   ;; Set tab width for js-mode and json-mode
@@ -3661,11 +3693,31 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :hook
   (js2-mode . js2-imenu-extras-mode))
 
-(use-package rjsx-mode
-  :mode "\\.jsx\\'")
+(use-package js2-refactor
+  :hook
+  (js2-mode . js2-refactor-mode)
+  (js2-mode . (lambda ()
+                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+  :bind
+  (:map js2-mode-map
+        ("C-k" . js2r-kill)))
 
-;; (use-package indium
-;;   :defer 1)
+;; (use-package xref-js2
+;;   :hook
+;;   (js2-mode . (lambda ()
+;;                 (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+;;   :bind
+;;   (:map js-mode-map
+;;         ;; Don't shadow js2-mode-map
+;;         ("M-." nil)))
+
+(use-package company-tern
+  :ensure-system-package
+  (tern . "npm install -g tern")
+  :config
+  (add-to-list 'company-backends 'company-tern)
+  :hook
+  (js2-mode . (lambda () (tern-mode) (company-mode-on))))
 
 ;; (use-package nodejs-repl
 ;;   :bind
