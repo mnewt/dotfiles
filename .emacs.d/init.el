@@ -110,7 +110,7 @@ Do not merge packages listed in `m-pinned-packages'."
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
 ;; Anonymous function macro
-;; TODO: Doesn't work inside `use-package'
+;; * TODO: Doesn't work inside `use-package'
 ;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
 (defmacro $ (&rest body)
   (cl-labels ((collect-vars
@@ -127,6 +127,24 @@ Do not merge packages listed in `m-pinned-packages'."
                        #'string<
                        :key #'symbol-name)
        ,@body)))
+
+(defsubst curry (function &rest arguments)
+  (lexical-let ((function function)
+                (arguments arguments))
+    (lambda (&rest more) (apply function (append arguments more)))))
+
+(defsubst rcurry (function &rest arguments)
+  (lexical-let ((function function)
+                (arguments arguments))
+    (lambda (&rest more) (apply function (append more arguments)))))
+
+(defsubst compose (function &rest more-functions)
+  (cl-reduce (lambda (f g)
+               (lexical-let ((f f) (g g))
+                 (lambda (&rest arguments)
+                   (funcall f (apply g arguments)))))
+             more-functions
+             :initial-value function))
 
 (defun add-multiple-to-list (list items)
   "Run `add-to-list' on each ITEM in the LIST"
@@ -462,18 +480,6 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; Show line in the original buffer from occur mode
 (setq list-matching-lines-jump-to-current-line t)
 
-;; (defun scroll-down-4 ()
-;;   "Scroll 4 lines down."
-;;   (interactive)
-;;   (setq this-command 'scroll-down)
-;;   (scroll-down 4))
-
-;; (defun scroll-up-4 ()
-;;   "Scroll 4 lines up."
-;;   (interactive)
-;;   (setq this-command 'scroll-up)
-;;   (scroll-up 4))
-
 (defun next-line-4 ()
   "Scroll 4 lines down."
   (interactive)
@@ -629,6 +635,19 @@ Version 2017-12-04"
  ("s-h" . ns-do-hide-emacs)
  ("s-H" . ns-do-hide-others))
 
+(use-package goto-addr
+  :hook
+  ((compilation-mode . goto-address-mode)
+   (prog-mode . goto-address-prog-mode)
+   (eshell-mode . goto-address-mode)
+   (shell-mode . goto-address-mode))
+  :commands
+  (goto-address-prog-mode
+   goto-address-mode)
+  :bind
+  (:map goto-address-highlight-keymap
+        ("C-c C-o" . goto-address-at-point)))
+
 (defun config-unix ()
   "Configure Emacs for common Unix (Linux and macOS) settings."
   ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
@@ -693,19 +712,6 @@ When using Homebrew, install it using \"brew install trash\"."
   ('gnu/linux (config-linux))
   ('windows-nt (config-windows))
   ('cygwin (config-windows)))
-
-(use-package goto-addr
-  :hook
-  ((compilation-mode . goto-address-mode)
-   (prog-mode . goto-address-prog-mode)
-   (eshell-mode . goto-address-mode)
-   (shell-mode . goto-address-mode))
-  :bind
-  (:map goto-address-highlight-keymap
-        ("C-c C-o" . goto-address-at-point))
-  :commands
-  (goto-address-prog-mode
-   goto-address-mode))
 
 ;; Enable ido for the few functions that don't have ivy coverage.
 (setq ido-enable-flex-matching t)
@@ -1031,9 +1037,31 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   (("M-o" . ace-window)))
 
 (use-package auto-dim-other-buffers
+  :if (<= emacs-major-version 26)
   :config
   (auto-dim-other-buffers-mode t)
   (set-face-attribute 'auto-dim-other-buffers-face nil :background "#1F1F1F"))
+
+(use-package window-highlight
+  :if (>= emacs-major-version 27)
+  :straight
+  (:type git :host github :repo "dcolascione/emacs-window-highlight")
+  :config
+  (apply
+   #'custom-set-faces
+   (let ((active-color "#282828")
+         (inactive-color "#1F1F1F")
+         (where '((type x w32 ns))))
+     `((default
+         ((,where
+           :background ,inactive-color)))
+       (fringe
+         ((,where
+           :background ,inactive-color)))
+       (window-highlight-focused-window
+        ((,where
+          :background ,active-color))))))
+  (window-highlight-mode 1))
 
 (use-package winum
   :custom
@@ -1448,6 +1476,9 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   (("C-c C-s" . yas-insert-snippet)))
 
 (use-package yasnippet-snippets
+  :defer 2)
+
+(use-package react-snippets
   :defer 2)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3696,20 +3727,18 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package js2-refactor
   :hook
   (js2-mode . js2-refactor-mode)
-  (js2-mode . (lambda ()
-                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
   :bind
   (:map js2-mode-map
         ("C-k" . js2r-kill)))
 
-;; (use-package xref-js2
-;;   :hook
-;;   (js2-mode . (lambda ()
-;;                 (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
-;;   :bind
-;;   (:map js-mode-map
-;;         ;; Don't shadow js2-mode-map
-;;         ("M-." nil)))
+(use-package xref-js2
+  :hook
+  (js2-mode . (lambda ()
+                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+  :bind
+  (:map js-mode-map
+        ;; Don't shadow js2-mode-map
+        ("M-." . nil)))
 
 (use-package company-tern
   :ensure-system-package
