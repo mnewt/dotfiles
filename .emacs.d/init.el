@@ -890,9 +890,8 @@ When using Homebrew, install it using \"brew install trash\"."
   (counsel-dash-docsets-path dasht-docsets-dir)
   (counsel-dash-browser-func 'eww)
   (counsel-dash-common-docsets '("Bash" "Clojure" "clojure-docs" "Docker"
-                                 "Emacs_Lisp" "JavaScript" "Man_Pages" "NodeJS"
-                                 "PostgreSQL" "React"))
-  
+                                 "Emacs_Lisp" "Hammerspoon" "JavaScript"
+                                 "Man_Pages" "NodeJS" "PostgreSQL" "React"))
   :commands
   (counsel-dash counsel-dash-install-docset)
   :bind
@@ -3285,8 +3284,8 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   "Run `git add' on the selected files in a dired buffer"
   (interactive)
   (let ((files (dired-get-marked-files)))
-    (dired-do-shell-command "git add" nil files)
-    (message "Finished running git add on files: %s" files)))
+    (message "> git add %s" files)
+    (dired-do-shell-command "git add" nil files)))
 
 (bind-key ";" #'dired-git-add dired-mode-map)
 

@@ -84,11 +84,13 @@ function dofile_if(name)
 end
 
 -- ** Defeat paste blocking
-hs.hotkey.bind(mash, "V", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
+hs.hotkey.bind(mash, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
 
 --------------------------------------------------------------------------------
--- * Automatically reload hammerspoon config
+-- * Hammerspoon config utlities
 --------------------------------------------------------------------------------
+
+-- ** Automatically reload Hammerspoon config
 
 function reloadConfig(files)
    doReload = false
@@ -101,18 +103,42 @@ function reloadConfig(files)
       hs.reload()
    end
 end
-myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 hs.alert.show("Config loaded")
 
-hs.hotkey.bind(mash, 'r', reloadConfig)
+hs.hotkey.bind(mash, 'r', hs.reload)
+
+-- ** Open Hammerspoon console
+hs.hotkey.bind(mash, "'", hs.openConsole)
+
+-- ** Open Hammerspoon preferences
+hs.hotkey.bind(mash, ",", hs.openPreferences)
+
+-- ** Dark mode
+local console = require("hs.console")
+console.smartInsertDeleteEnabled(false)
+if console.darkMode() then
+   console.outputBackgroundColor{ white = 0 }
+   console.consoleCommandColor{ white = 1 }
+   console.alpha(.8)
+else
+   console.windowBackgroundColor({red=.6,blue=.7,green=.7})
+   console.outputBackgroundColor({red=.8,blue=.8,green=.8})
+   console.alpha(.9)
+end
 
 --------------------------------------------------------------------------------
 -- * Window tiling
 --------------------------------------------------------------------------------
 
-hs.window.animationDuration = 0 -- disable animations
+-- ** Undo
+local undo = require 'undo'
+hs.hotkey.bind(mash, "z", function() undo:undo() end)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "F", function()
+-- disable animations
+hs.window.animationDuration = 0
+
+hs.hotkey.bind(mash, "F", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -122,10 +148,11 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "F", function()
       f.y = max.y
       f.w = max.w
       f.h = max.h
+      undo:addToStack()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Left", function()
+hs.hotkey.bind(mash, "Left", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -135,10 +162,11 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Left", function()
       f.y = max.y
       f.w = max.w / 2
       f.h = max.h
+      undo:addToStack()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Right", function()
+hs.hotkey.bind(mash, "Right", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -148,10 +176,11 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Right", function()
       f.y = max.y
       f.w = max.w / 2
       f.h = max.h
+      undo:addToStack()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Up", function()
+hs.hotkey.bind(mash, "Up", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -161,10 +190,11 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Up", function()
       f.y = max.y
       f.w = max.w
       f.h = max.h / 2
+      undo:addToStack()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Down", function()
+hs.hotkey.bind(mash, "Down", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -174,18 +204,9 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "Down", function()
       f.y = max.y + (max.h / 2)
       f.w = max.w
       f.h = max.h / 2
+      undo:addToStack()
       win:setFrame(f)
 end)
-
---------------------------------------------------------------------------------
--- Spaces
---------------------------------------------------------------------------------
-
--- https://gist.github.com/TwoLeaves/a9d226ac98be5109a226
-
--- Unsupported Spaces extension. Uses private APIs but works okay.
--- (http://github.com/asmagill/hammerspoon_asm.undocumented)
-spaces = require("hs._asm.undocumented.spaces")
 
 --------------------------------------------------------------------------------
 -- * Window moving and resizing
@@ -197,29 +218,70 @@ hs.grid.MARGINY = 0
 hs.grid.GRIDHEIGHT = 18
 hs.grid.GRIDWIDTH = 18
 
---Alter gridsize
-hs.hotkey.bind(mashshift, '=', function() hs.grid.adjustHeight( 1) end)
-hs.hotkey.bind(mashshift, '-', function() hs.grid.adjustHeight(-1) end)
-hs.hotkey.bind(mash, '=', function() hs.grid.adjustWidth( 1) end)
-hs.hotkey.bind(mash, '-', function() hs.grid.adjustWidth(-1) end)
+-- ** Alter gridsize
+hs.hotkey.bind(mashshift, '=', function()
+                  undo:addToStack() hs.grid.adjustHeight(1)
+end)
+hs.hotkey.bind(mashshift, '-', function()
+                  undo:addToStack()
+                  hs.grid.adjustHeight(-1)
+end)
+hs.hotkey.bind(mash, '=', function()
+                  undo:addToStack()
+                  hs.grid.adjustWidth(1)
+end)
+hs.hotkey.bind(mash, '-', function()
+                  undo:addToStack()
+                  hs.grid.adjustWidth(-1)
+end)
 
---Snap windows
-hs.hotkey.bind(mash, ';', function() hs.grid.snap(hs.window.focusedWindow()) end)
-hs.hotkey.bind(mash, "'", function() hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap) end)
+-- ** Snap windows
+hs.hotkey.bind(mash, ';', function()
+                  undo:addToStack()
+                  hs.grid.snap(hs.window.focusedWindow())
+end)
+hs.hotkey.bind(mash, "'", function()
+                  undo:addToStack()
+                  hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap)
+end)
 
---Move windows
-hs.hotkey.bind(mash, 'j', hs.grid.pushWindowDown)
-hs.hotkey.bind(mash, 'k', hs.grid.pushWindowUp)
-hs.hotkey.bind(mash, 'h', hs.grid.pushWindowLeft)
-hs.hotkey.bind(mash, 'l', hs.grid.pushWindowRight)
+-- ** Move windows
+hs.hotkey.bind(mash, 'j', function()
+                  undo:addToStack()
+                  hs.grid.pushWindowDown()
+end)
+hs.hotkey.bind(mash, 'k', function()
+                  undo:addToStack()
+                  hs.grid.pushWindowUp()
+end)
+hs.hotkey.bind(mash, 'h', function()
+                  undo:addToStack()
+                  hs.grid.pushWindowLeft()
+end)
+hs.hotkey.bind(mash, 'l', function()
+                  undo:addToStack()
+                  hs.grid.pushWindowRight()
+end)
 
---resize windows
-hs.hotkey.bind(mashshift, 'k', hs.grid.resizeWindowShorter)
-hs.hotkey.bind(mashshift, 'j', hs.grid.resizeWindowTaller)
-hs.hotkey.bind(mashshift, 'l', hs.grid.resizeWindowWider)
-hs.hotkey.bind(mashshift, 'h', hs.grid.resizeWindowThinner)
+--** Resize windows
+hs.hotkey.bind(mashshift, 'k', function()
+                  undo:addToStack()
+                  hs.grid.resizeWindowShorter()
+end)
+hs.hotkey.bind(mashshift, 'j', function()
+                  undo:addToStack()
+                  hs.grid.resizeWindowTaller()
+end)
+hs.hotkey.bind(mashshift, 'l', function()
+                  undo:addToStack()
+                  hs.grid.resizeWindowWider()
+end)
+hs.hotkey.bind(mashshift, 'h', function()
+                  undo:addToStack()
+                  hs.grid.resizeWindowThinner()
+end)
 
--- toggle window zoom (acts like Alt+Shift+GreenPlusButton)
+-- ** Toggle window zoom (acts like Alt+Shift+GreenPlusButton)
 hs.hotkey.bind(mash, "m", function()
                   local win = hs.window.focusedWindow()
                   local frame = win:frame()
@@ -229,6 +291,7 @@ hs.hotkey.bind(mash, "m", function()
                   savedwin = savedwin or {}
                   savedwin[id] = savedwin[id] or {}
 
+                  undo:addToStack()
                   if (savedwin[id].maximized == nil or savedwin[id].maximized == false) then
                      savedwin[id].frame = frame
                      savedwin[id].maximized = true
@@ -240,20 +303,100 @@ hs.hotkey.bind(mash, "m", function()
                   end
 end)
 
+-- ** Exposé
+-- This is not working 100%
+expose = hs.expose.new(nil,{showThumbnails=true}) -- default windowfilter
+expose_app = hs.expose.new(nil,{onlyActiveApplication=true}) -- show windows for the current application
+expose_space = hs.expose.new(nil,{includeOtherSpaces=false}) -- only windows in the current Mission Control Space
+
+hs.hotkey.bind(mash, 'x', 'Expose',function() expose:toggleShow() end)
+hs.hotkey.bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
+
 --------------------------------------------------------------------------------
 -- * Spaces
 --------------------------------------------------------------------------------
 -- This currently (macOS 10.14) seems to be broken
 
+-- https://gist.github.com/TwoLeaves/a9d226ac98be5109a226
+
+-- Unsupported Spaces extension. Uses private APIs
+-- (http://github.com/asmagill/hammerspoon_asm.undocumented)
+spaces = require("hs._asm.undocumented.spaces")
+
 currentSpace = tostring(spaces.currentSpace())
 
 -- ** Switch to space
-hs.hotkey.bind(mash, '1', function() spaces.changeToSpace("1") end)
-hs.hotkey.bind(mash, '2', function() spaces.changeToSpace("2") end)
+hs.hotkey.bind(mash, '1', function()
+                  undo:addToStack()
+                  spaces.changeToSpace("1")
+end)
+hs.hotkey.bind(mash, '2', function()
+                  undo:addToStack()
+                  spaces.changeToSpace("2")
+end)
 
 -- ** Move window to space
-hs.hotkey.bind(mashshift, '1', function() spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "1") end)
-hs.hotkey.bind(mashshift, '2', function() spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "2") end)
+hs.hotkey.bind(mashshift, '1', function()
+                  undo:addToStack()
+                  spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "1")
+end)
+hs.hotkey.bind(mashshift, '2', function()
+                  undo:addToStack()
+                  spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "2")
+end)
+
+--------------------------------------------------------------------------------
+-- * Caffeinate
+--------------------------------------------------------------------------------
+-- Stolen from
+-- https://github.com/songchenwen/dotfiles/blob/master/hammerspoon/init.lua
+
+hs.hotkey.bind(mash, 'c', function() 
+      local c = hs.caffeinate
+      if not c then return end
+      if c.get('displayIdle') or c.get('systemIdle') or c.get('system') then
+         if menuCaff then
+            menuCaffRelease()
+         else
+            addMenuCaff()
+            local type
+            if c.get('displayIdle') then type = 'displayIdle' end
+            if c.get('systemIdle') then type = 'systemIdle' end
+            if c.get('system') then type = 'system' end
+            hs.alert('Caffeine already on for '..type)
+         end
+      else
+         acAndBatt = hs.battery.powerSource() == 'Battery Power'
+         c.set('system', true, acAndBatt)
+         hs.alert('Caffeinated '..(acAndBatt and '' or 'on AC Power'))
+         addMenuCaff()
+      end
+end)
+
+function addMenuCaff()
+   menuCaff = hs.menubar.new()
+   menuCaff:setIcon("caffeine-on.pdf") 
+   menuCaff:setClickCallback(menuCaffRelease)
+end
+
+function menuCaffRelease()
+   local c = hs.caffeinate
+   if not c then return end
+   if c.get('displayIdle') then
+      c.set('displayIdle', false, true)
+   end
+   if c.get('systemIdle') then
+      c.set('systemIdle', false, true)
+   end
+   if c.get('system') then
+      c.set('system', false, true)
+   end
+   if menuCaff then
+      menuCaff:delete()
+      menuCaff = nil
+   end
+   hs.alert('Decaffeinated')
+end
 
 --------------------------------------------------------------------------------
 -- * Load private stuff
