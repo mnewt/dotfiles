@@ -310,17 +310,24 @@ Do not merge packages listed in `m-pinned-packages'."
   :load-path "straight/build/dracula-theme"
   :config
   (defun activate-theme-dracula ()
-    (setq face-remapping-alist
-          '((m-inactive0 :background "#262834" :foreground "#565861")
-            (m-active0 :background "#565861" :foreground "#9E9FA5")
-            (m-inactive1 :background "#262834" :foreground "#565861")
-            (m-active1 :background "#565861" :foreground "#E6E7E8")
-            (m-inactive2 :background "#262834" :foreground "#565861")
-            (m-active2 :background "#CECFD2" :foreground "#565861")
-            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
-            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
-            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
-            (m-active4 :background "#00e5e5" :foreground "#262834")))
+    (let ((active-color "#282828")
+          (inactive-color "#1F1F1F")
+          (where '((type x w32 ns))))
+      (apply
+       #'custom-set-faces
+       `((default ((,where :background ,inactive-color)))
+         (fringe ((,where :background ,inactive-color)))
+         (window-highlight-focused-window ((,where :background ,active-color)))
+         (m-inactive0 ((t :background "#262834" :foreground "#565861")))
+         (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
+         (m-inactive1 ((t :background "#262834" :foreground "#565861")))
+         (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
+         (m-inactive2 ((t :background "#262834" :foreground "#565861")))
+         (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+         (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
+         (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+         (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
+         (m-active4 ((t :background "#00e5e5" :foreground "#262834"))))))
     (set-cursor-color "#F60")
     (set-mouse-color "white")
     (set-background-color "#282828")
@@ -332,31 +339,45 @@ Do not merge packages listed in `m-pinned-packages'."
   :load-path "straight/build/solarized-theme"
   :config
   (defun activate-theme-solarized-light ()
-    (setq face-remapping-alist
-          '((m-inactive0 :background "#EDE8D7" :foreground "#EDE8D7")
-            (m-active0 :background "#9E9FA5" :foreground "#E6E7E8")
-            (m-inactive1 :background "#EDE8D7" :foreground "#EDE8D7")
-            (m-active1 :background "#9E9FA5" :foreground "#EDE8D7")
-            (m-inactive2 :background "#EDE8D7" :foreground "#EDE8D7")
-            (m-active2 :background "#CECFD2" :foreground "#565861")
-            (m-inactive3 :background "#EDE8D7" :foreground "#9E9FA5")
-            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
-            (m-inactive4 :background "#EDE8D7" :foreground "#9E9FA5")
-            (m-active4 :background "#00E5E5" :foreground "#262834")
-            (default :foreground "#60767E")))
+    (let ((active-color "#EDE8D7")
+          (inactive-color "#9E9FA5")
+          (where '((type x w32 ns))))
+      (apply
+       #'custom-set-faces)
+      `((default ((,where :background ,inactive-color)))
+        (fringe ((,where :background ,inactive-color)))
+        (window-highlight-focused-window ((,where :background ,active-color)))
+        (m-inactive0 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+        (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
+        (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+        (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
+        (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+        (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+        (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
+        (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+        (m-inactive4 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
+        (m-active4 ((t :background "#00E5E5" :foreground "#262834")))
+        (default :foreground "#60767E")))
     (set-mouse-color "black"))
   (defun activate-theme-solarized-dark ()
-    (setq face-remapping-alist
-          '((m-inactive0 :background "#262834" :foreground "#565861")
-            (m-active0 :background "#565861" :foreground "#9E9FA5")
-            (m-inactive1 :background "#262834" :foreground "#565861")
-            (m-active1 :background "#565861" :foreground "#E6E7E8")
-            (m-inactive2 :background "#262834" :foreground "#565861")
-            (m-active2 :background "#CECFD2" :foreground "#565861")
-            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
-            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
-            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
-            (m-active4 :background "#00e5e5" :foreground "#262834")))
+    (let ((active-color "#262834")
+          (inactive-color "#565861")
+          (where '((type x w32 ns))))
+      (apply
+       #'custom-set-faces)
+      `((default ((,where :background ,inactive-color)))
+        (fringe ((,where :background ,inactive-color)))
+        (window-highlight-focused-window ((,where :background ,active-color)))
+        (m-inactive0 ((t :background "#262834" :foreground "#565861")))
+        (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
+        (m-inactive1 ((t :background "#262834" :foreground "#565861")))
+        (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
+        (m-inactive2 ((t :background "#262834" :foreground "#565861")))
+        (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+        (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
+        (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+        (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
+        (m-active4 ((t :background "#00e5e5" :foreground "#262834")))))
     (set-mouse-color "white"))
   (add-to-list 'm-themes '(solarized-light . activate-theme-solarized-light))
   (add-to-list 'm-themes '(solarized-dark . activate-theme-solarized-dark)))
@@ -1046,20 +1067,6 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   :straight
   (:type git :host github :repo "dcolascione/emacs-window-highlight")
   :config
-  (apply
-   #'custom-set-faces
-   (let ((active-color "#282828")
-         (inactive-color "#1F1F1F")
-         (where '((type x w32 ns))))
-     `((default
-         ((,where
-           :background ,inactive-color)))
-       (fringe
-         ((,where
-           :background ,inactive-color)))
-       (window-highlight-focused-window
-        ((,where
-          :background ,active-color))))))
   (window-highlight-mode 1))
 
 (use-package winum
@@ -3454,6 +3461,20 @@ git repo, optionally specified by DIR."
 ;;; Emacs Lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(use-package crux
+  :bind
+  ("C-c O" . crux-open-with)
+  ("C-x f" . crux-recentf-find-file)
+  ("C-c C-e" . crux-eval-and-replace)
+  ("C-c D" . crux-delete-file-and-buffer)
+  ("C-c d" . crux-duplicate-current-line-or-region)
+  ("C-c R" . crux-rename-file-and-buffer)
+  ("C-c k" . crux-kill-other-buffers)
+  ("C-M-X" . crux-indent-defun)
+  ("C-c I" . crux-find-user-init-file)
+  ("C-c S" . crux-find-shell-init-file)
+  ("C-<backspace>" . crux-kill-line-backwards))
+
 (bind-keys :map emacs-lisp-mode-map
            ("s-<return>" . eval-last-sexp)
            ("C-c C-k" . eval-buffer)
@@ -3654,7 +3675,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package docker
   :bind
-  ("C-c d" . docker))
+  ("C-c M-d" . docker))
 
 (use-package docker-tramp
   :defer 2)
