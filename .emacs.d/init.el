@@ -276,14 +276,10 @@ Do not merge packages listed in `m-pinned-packages'."
 
 (defun activate-theme-common ()
   "Run whenever a theme is activated."
-  (set-face-attribute 'mode-line nil
-                      :box nil
-                      :overline nil
-                      :underline nil)
-  (set-face-attribute 'mode-line-inactive nil
-                      :box nil
-                      :overline nil
-                      :underline nil))
+  (apply #'custom-set-faces
+         `((cursor ((t :background "#F60")))
+           (mode-line ((t :box nil :overline nil :underline nil)))
+           (mode-line-inactive ((t :box nil :overline nil :underline nil))))))
 
 (defun activate-theme (x)
   "Disable current themes and load theme X."
@@ -327,11 +323,10 @@ Do not merge packages listed in `m-pinned-packages'."
          (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
          (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
          (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-active4 ((t :background "#00e5e5" :foreground "#262834"))))))
-    (set-cursor-color "#F60")
-    (set-mouse-color "white")
-    (set-background-color "#282828")
-    (set-face-attribute 'mode-line-emphasis nil :foreground "orange"))
+         (m-active4 ((t :background "#00e5e5" :foreground "#262834")))
+         (mode-line-emphasis ((t :foreground "orange")))
+         (cursor ((t :background "#F60"))))))
+    (set-mouse-color "white"))
   (add-to-list 'm-themes '(dracula . activate-theme-dracula))
   (activate-theme 'dracula))
 
@@ -340,44 +335,43 @@ Do not merge packages listed in `m-pinned-packages'."
   :config
   (defun activate-theme-solarized-light ()
     (let ((active-color "#EDE8D7")
-          (inactive-color "#9E9FA5")
+          (inactive-color "#CECFD2")
           (where '((type x w32 ns))))
       (apply
-       #'custom-set-faces)
-      `((default ((,where :background ,inactive-color)))
-        (fringe ((,where :background ,inactive-color)))
-        (window-highlight-focused-window ((,where :background ,active-color)))
-        (m-inactive0 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-        (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
-        (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-        (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
-        (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-        (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-        (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
-        (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-        (m-inactive4 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
-        (m-active4 ((t :background "#00E5E5" :foreground "#262834")))
-        (default :foreground "#60767E")))
+       #'custom-set-faces
+       `((default ((,where :background ,inactive-color)))
+         (fringe ((,where :background ,inactive-color)))
+         (window-highlight-focused-window ((,where :background ,active-color)))
+         (m-inactive0 ((t :background "#CECFD2" :foreground "#EDE8D7")))
+         (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
+         (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+         (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
+         (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+         (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+         (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
+         (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+         (m-inactive4 ((t :background "#CECFD2" :foreground "#9E9FA5")))
+         (m-active4 ((t :background "#00E5E5" :foreground "#262834"))))))
     (set-mouse-color "black"))
   (defun activate-theme-solarized-dark ()
     (let ((active-color "#262834")
           (inactive-color "#565861")
           (where '((type x w32 ns))))
       (apply
-       #'custom-set-faces)
-      `((default ((,where :background ,inactive-color)))
-        (fringe ((,where :background ,inactive-color)))
-        (window-highlight-focused-window ((,where :background ,active-color)))
-        (m-inactive0 ((t :background "#262834" :foreground "#565861")))
-        (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
-        (m-inactive1 ((t :background "#262834" :foreground "#565861")))
-        (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
-        (m-inactive2 ((t :background "#262834" :foreground "#565861")))
-        (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-        (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
-        (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-        (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
-        (m-active4 ((t :background "#00e5e5" :foreground "#262834")))))
+       #'custom-set-faces
+       `((default ((,where :background ,inactive-color)))
+         (fringe ((,where :background ,inactive-color)))
+         (window-highlight-focused-window ((,where :background ,active-color)))
+         (m-inactive0 ((t :background "#262834" :foreground "#565861")))
+         (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
+         (m-inactive1 ((t :background "#262834" :foreground "#565861")))
+         (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
+         (m-inactive2 ((t :background "#262834" :foreground "#565861")))
+         (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+         (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
+         (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+         (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
+         (m-active4 ((t :background "#00e5e5" :foreground "#262834"))))))
     (set-mouse-color "white"))
   (add-to-list 'm-themes '(solarized-light . activate-theme-solarized-light))
   (add-to-list 'm-themes '(solarized-dark . activate-theme-solarized-dark)))
@@ -688,7 +682,9 @@ Version 2017-12-04"
         ns-right-command-modifier 'left
         ns-control-modifier 'control
         ns-right-control-modifier 'left
-        ns-function-modifier 'hyper)
+        ns-function-modifier 'hyper
+        ;; Open files from Finder in same frame.
+        ns-pop-up-frames nil)
   (when window-system (menu-bar-mode +1))
   (set-face-font 'default "Monaco-13")
   (set-face-attribute 'default nil
@@ -804,9 +800,9 @@ When using Homebrew, install it using \"brew install trash\"."
       ;; Select help window so it's easy to quit it with `q'
       help-window-select t)
 
-(add-to-list 'same-window-regexps "\\*helpful ")
-(add-multiple-to-list 'same-window-buffer-names
-                      '("*Help*" "*Apropos*" "*Summary*" "*info*"))
+(bind-keys
+ ("C-h C-i" . #'elisp-index-search)
+ ("C-h M-i" . #'info-apropos))
 
 ;; ELDoc
 (seq-do (lambda (list) (add-hook list #'turn-on-eldoc-mode))
@@ -861,8 +857,6 @@ When using Homebrew, install it using \"brew install trash\"."
   (info-colors-fontify-node)
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
-
-(system-packages-ensure "dasht")
 
 (defvar dasht-browser 'eww)
 
@@ -961,6 +955,13 @@ When using Homebrew, install it using \"brew install trash\"."
 
 (bind-keys ("s-n" . new-scratch-buffer)
            ("C-c C-n . new-scratch-buffer"))
+
+;; Displaying buffers
+(setq display-buffer-alist
+      '(("\\*helpful " display-buffer-reuse-help-window)))
+(add-to-list 'same-window-regexps "\\*helpful ")
+(add-multiple-to-list 'same-window-buffer-names
+                      '("*Help*" "*Apropos*" "*Summary*" "*info*"))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -1648,7 +1649,7 @@ ID, ACTION, CONTEXT."
                         (require 'smartparens-config)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
-  ((emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
+  ((css-mode emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
   (clojure-mode . (lambda ()
                     (require 'smartparens-clojure)
                     (turn-on-smartparens-mode)))
@@ -3345,6 +3346,10 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
                          (expand-file-name (match-string 1)))
                        (getenv "HOME")))
 
+(bind-keys
+ ("C-c M-l" . git-home-link)
+ ("C-c M-u" . git-home-unlink))
+
 (defun projectile-git-ls-files (&optional dir)
   "List all the tracked files in the current git repo, optionally
 specified by DIR."
@@ -3723,6 +3728,9 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
                                ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
   :hook
   (web-mode . m-web-mode-hook))
+
+;; CSS config
+(setq-default css-indent-offset tab-width)
 
 (defun toggle-sp-newline ()
   "Toggle whether `RET' is bound to `newline' or `sp-newline'."
