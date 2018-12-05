@@ -2,6 +2,7 @@
 -- * Global stuff
 --------------------------------------------------------------------------------
 
+-- The Karabiner Elements config remaps caps lock to {"cmd", "alt", "ctrl"}
 local mash = {"cmd", "alt", "ctrl"}
 local mashshift = {"cmd", "alt", "ctrl", "shift"}
 
