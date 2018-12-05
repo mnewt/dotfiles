@@ -272,109 +272,166 @@ Do not merge packages listed in `m-pinned-packages'."
   "Powerline active face 4."
   :group 'powerline)
 
-(setq-default m-themes '())
+;; `a-theme'
+(defvar a-theme-hook '()
+  "Run whenever a theme is activated.")
 
-(defun activate-theme-common ()
-  "Run whenever a theme is activated."
-  (apply #'custom-set-faces
-         `((cursor ((t :background "#F60")))
-           (mode-line ((t :box nil :overline nil :underline nil)))
-           (mode-line-inactive ((t :box nil :overline nil :underline nil))))))
+(defvar a-theme-themes '()
+  "Alist where car is the theme and cdr can be:
 
-(defun activate-theme (x)
-  "Disable current themes and load theme X."
-  (let ((theme (if (stringp x) (intern x) x)))
-    (condition-case nil
+* A function to run after loading the theme.
+* An alist specifying additional arguments. Possible arguments:
+** hook - A function, as above.
+** specs
+** preset
+** mouse-color
+** ")
+
+(defvar a-theme-current-theme nil
+  "The currently loaded theme. Use it like this:
+
+(setq a-theme-current-theme
+      (if (bound-and-true-p a-theme-current-theme)
+          a-theme-current-theme
+        'doom-dracula))
+
+(a-theme a-theme-current-theme)")
+
+(defvar a-theme-specs '()
+  "List of default face specs to apply when a theme is being
+  activated. 
+
+The attributes specified in `a-theme-themes' overrides
+  these.
+
+For details on face specs see `defface'.")
+
+(defun alist-get-all (key alist &optional default testfn)
+  "Return a list containing all the elements of ALIST with
+matching KEY, not just the first. Has almost the same signature
+as `alist-get'.
+
+DEFAULT returns a default value if nothing matches.
+
+REMOVE is not implemented on account of I don't care and it's
+dumb.
+
+TESTFN is an equality function, *not* an alist function as with
+`alist-get'. Default is `eq'."
+  (let* ((testfn #'eq)
+         (matches (seq-filter
+                   (lambda (e) (funcall testfn key (car e)))
+                   alist)))
+    (if matches
+        (mapcar #'cdr matches)
+      default)))
+
+(defun a-theme-activate (theme)
+  "Switch the current Emacs theme to THEME. Handle some
+housekeeping that comes with switching themes to try to prevent
+Emacs from barfing on your screen."
+  (let* ((theme (if (stringp theme) (intern theme) theme))
+         (opts (alist-get theme a-theme-themes)))
+    (when (functionp opts)
+      (setq hook opts)
+      (setq opts '()))
+    ;; Append presets to tail of `opts' alist
+    (let* ((preset (alist-get 'preset opts))
+           (opts (append opts (car (alist-get preset a-theme-presets)))))
+      (let-alist opts
         (progn
           (mapc #'disable-theme custom-enabled-themes)
           (load-theme theme t)
-          (activate-theme-common)
-          (funcall (cdr (assoc theme m-themes)))
-          (when (fboundp 'powerline-reset) (powerline-reset)))
-      (error "Problem loading theme %s" x))))
+          (mapc #'funcall a-theme-hook)
+          (unless (boundp 'specs) (setq specs '()))
+          ;; Feed face specs to `custom-set-faces' in reverse because last
+          ;; write wins.
+          ;; (append a-theme-common
+          ;; (reverse (apply #'append (alist-get-all 'specs opts))))
+          (print "")
+          (apply #'custom-set-faces
+                 (if (symbolp specs) (symbol-value specs) specs))
+          (when (boundp 'mouse-color) (set-mouse-color mouse-color))
+          (when (fboundp 'hook) (funcall hook))
+          (when (fboundp #'powerline-reset) (powerline-reset)))))))
 
-(defun choose-theme ()
-  "Forward to `load-theme'. Usable with `ivy-resume',
-`ivy-next-line-and-call' and `ivy-previous-line-and-call'."
+(defun a-theme-choose ()
+  "Interactively choose a theme from `a-theme-themes' and
+activate it."
   (interactive)
   (ivy-read "Load custom theme: "
-            (mapcar 'car m-themes)
-            :action #'activate-theme
-            :caller 'choose-theme))
+            (mapcar #'car a-theme-themes)
+            :action #'a-theme-activate
+            :caller #'a-theme-choose-theme))
 
-(use-package dracula-theme
-  :load-path "straight/build/dracula-theme"
-  :config
-  (defun activate-theme-dracula ()
-    (let ((active-color "#282828")
-          (inactive-color "#1F1F1F")
-          (where '((type x w32 ns))))
-      (apply
-       #'custom-set-faces
-       `((default ((,where :background ,inactive-color)))
-         (fringe ((,where :background ,inactive-color)))
-         (window-highlight-focused-window ((,where :background ,active-color)))
-         (m-inactive0 ((t :background "#262834" :foreground "#565861")))
-         (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-inactive1 ((t :background "#262834" :foreground "#565861")))
-         (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
-         (m-inactive2 ((t :background "#262834" :foreground "#565861")))
-         (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-         (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-         (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-active4 ((t :background "#00e5e5" :foreground "#262834")))
-         (mode-line-emphasis ((t :foreground "orange")))
-         (cursor ((t :background "#F60"))))))
-    (set-mouse-color "white"))
-  (add-to-list 'm-themes '(dracula . activate-theme-dracula))
-  (activate-theme 'dracula))
+(bind-key "C-c C-t" #'a-theme-choose)
 
-(use-package solarized-theme
-  :load-path "straight/build/solarized-theme"
+(setq
+ a-theme-current-theme
+ (if (bound-and-true-p a-theme-current-theme)
+     a-theme-current-theme
+   'doom-dracula)
+
+ a-theme-specs-common
+ '((cursor ((t :background "#F60"))))
+
+ a-theme-specs-dark
+ (let ((active-color "#282828")
+       (inactive-color "#3D3D3D")
+       (where '((type x w32 ns))))
+   `((default ((,where :background ,inactive-color)))
+     (fringe ((,where :background ,inactive-color)))
+     (window-highlight-focused-window ((,where :background ,active-color)))
+     (m-inactive0 ((t :background "#262834" :foreground "#565861")))
+     (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
+     (m-inactive1 ((t :background "#262834" :foreground "#565861")))
+     (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
+     (m-inactive2 ((t :background "#262834" :foreground "#565861")))
+     (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+     (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
+     (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+     (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
+     (m-active4 ((t :background "#00e5e5" :foreground "#262834")))
+     (mode-line-emphasis ((t :foreground "orange")))))
+
+ a-theme-specs-light
+ (let ((active-color "#EDE8D7")
+       (inactive-color "#CECFD2")
+       (where '((type x w32 ns))))
+   `((default ((,where :background ,inactive-color)))
+     (fringe ((,where :background ,inactive-color)))
+     (window-highlight-focused-window ((,where :background ,active-color)))
+     (m-inactive0 ((t :background "#CECFD2" :foreground "#EDE8D7")))
+     (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
+     (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+     (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
+     (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+     (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+     (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
+     (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+     (m-inactive4 ((t :background "#CECFD2" :foreground "#9E9FA5")))
+     (m-active4 ((t :background "#00E5E5" :foreground "#262834")))))
+
+ a-theme-presets
+ '((light ((specs . a-theme-specs-light)
+           (mouse-color . "black")))
+   (dark ((specs . a-theme-specs-dark)
+          (mouse-color . "white")))))
+
+(add-hook 'a-theme-hook (lambda ()
+                          (doom-themes-visual-bell-config)
+                          (doom-themes-org-config)))
+
+(use-package doom-themes
   :config
-  (defun activate-theme-solarized-light ()
-    (let ((active-color "#EDE8D7")
-          (inactive-color "#CECFD2")
-          (where '((type x w32 ns))))
-      (apply
-       #'custom-set-faces
-       `((default ((,where :background ,inactive-color)))
-         (fringe ((,where :background ,inactive-color)))
-         (window-highlight-focused-window ((,where :background ,active-color)))
-         (m-inactive0 ((t :background "#CECFD2" :foreground "#EDE8D7")))
-         (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
-         (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-         (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
-         (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-         (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-         (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
-         (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-         (m-inactive4 ((t :background "#CECFD2" :foreground "#9E9FA5")))
-         (m-active4 ((t :background "#00E5E5" :foreground "#262834"))))))
-    (set-mouse-color "black"))
-  (defun activate-theme-solarized-dark ()
-    (let ((active-color "#262834")
-          (inactive-color "#565861")
-          (where '((type x w32 ns))))
-      (apply
-       #'custom-set-faces
-       `((default ((,where :background ,inactive-color)))
-         (fringe ((,where :background ,inactive-color)))
-         (window-highlight-focused-window ((,where :background ,active-color)))
-         (m-inactive0 ((t :background "#262834" :foreground "#565861")))
-         (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-inactive1 ((t :background "#262834" :foreground "#565861")))
-         (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
-         (m-inactive2 ((t :background "#262834" :foreground "#565861")))
-         (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-         (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-         (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
-         (m-active4 ((t :background "#00e5e5" :foreground "#262834"))))))
-    (set-mouse-color "white"))
-  (add-to-list 'm-themes '(solarized-light . activate-theme-solarized-light))
-  (add-to-list 'm-themes '(solarized-dark . activate-theme-solarized-dark)))
+  (add-multiple-to-list 'a-theme-themes
+                        '((doom-one ((preset . dark)))
+                          (doom-vibrant ((preset . dark)))
+                          (doom-one-light ((preset . light)))
+                          (doom-solarized-light ((preset . light)))
+                          (doom-dracula ((preset . dark)))
+                          (doom-molokai ((preset . dark)))
+                          (doom-tomorrow-day ((preset . light))))))
 
 (use-package powerline
   :custom
@@ -441,6 +498,15 @@ Do not merge packages listed in `m-pinned-packages'."
                              (powerline-render center)
                              (powerline-fill face1 (powerline-width rhs))
                              (powerline-render rhs)))))))
+
+(use-package window-highlight
+  :if (>= emacs-major-version 27)
+  :straight
+  (:type git :host github :repo "dcolascione/emacs-window-highlight")
+  :config
+  (window-highlight-mode 1))
+
+(a-theme-activate a-theme-current-theme)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; User Interface
@@ -546,7 +612,7 @@ Do not merge packages listed in `m-pinned-packages'."
   (call-interactively 'indent-region))
 
 (defun cut-line-or-region ()
-  "Cut current line, or text selection.
+  "Cut current line, or text selection.))))))))
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
 
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
@@ -791,6 +857,9 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; Desktop
 (desktop-save-mode 1)
 
+(add-to-list 'desktop-globals-to-save 'kill-ring)
+(add-to-list 'desktop-globals-to-save 'a-theme-current-theme)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Help!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -858,6 +927,11 @@ When using Homebrew, install it using \"brew install trash\"."
   :config
   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
+(use-package define-word
+  :bind
+  ("C-c W" . define-word)
+  ("C-c w" . define-word-at-point))
+
 (defvar dasht-browser 'eww)
 
 (defvar dasht-server-port 54321)
@@ -865,7 +939,8 @@ When using Homebrew, install it using \"brew install trash\"."
 (defvar dasht-docsets-dir "~/code/docsets")
 
 (defun dasht-at-point-run-search (f &rest args)
-  "Override `dash-at-point-run-search' to use `dasht'"
+  "Override `dash-at-point-run-search' to use `dasht' instead of
+`dash'."
   (let ((search (car args))
         (docsets (-map #'concat (cdr args))))
     ;; Start dasht-server process if it's not already started.
@@ -903,7 +978,7 @@ When using Homebrew, install it using \"brew install trash\"."
 (use-package counsel-dash
   :custom
   (counsel-dash-docsets-path dasht-docsets-dir)
-  (counsel-dash-browser-func 'eww)
+  (counsel-dash-browser-func #'eww)
   (counsel-dash-common-docsets '("Bash" "Clojure" "clojure-docs" "Docker"
                                  "Emacs_Lisp" "Hammerspoon" "JavaScript"
                                  "Man_Pages" "NodeJS" "PostgreSQL" "React"))
@@ -956,12 +1031,32 @@ When using Homebrew, install it using \"brew install trash\"."
 (bind-keys ("s-n" . new-scratch-buffer)
            ("C-c C-n . new-scratch-buffer"))
 
-;; Displaying buffers
-(setq display-buffer-alist
-      '(("\\*helpful " display-buffer-reuse-help-window)))
-(add-to-list 'same-window-regexps "\\*helpful ")
-(add-multiple-to-list 'same-window-buffer-names
-                      '("*Help*" "*Apropos*" "*Summary*" "*info*"))
+;; (internal-complete-buffer "*help" #'match-buffer-name t)
+
+;; (setq special-display-regexps-help
+;;       (rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*")))
+
+;; (defun m-special-display-function (buffer &optional args)
+;;   "Pop up a window displaying BUFFER and return said window. ARGS
+;; is an alist with additional parameters."
+;;   (let ((name "*Help*"))
+;;     (or (cond
+;;          ((string-match-p special-display-regexps-help name)
+;;           (-some (lambda (w)
+;;                    (if (string-match-p special-display-regexps-help (buffer-name (window-buffer w)))
+;;                        w))
+;;                  (window-list))))
+;;         (pop-to-buffer buffer))))
+
+;; (setq special-display-function #'m-special-display-function)
+
+;; (setq display-buffer-alist
+;;       `((,(rx (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*"))
+;;          (display-buffer-reuse-mode-window display-buffer-pop-up-window)
+;;          (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+;; (add-to-list 'same-window-regexps "\\*helpful ")
+;; (add-multiple-to-list 'same-window-buffer-names
+;;                       '("*Help*" "*Apropos*" "*Summary*" "*info*"))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -1056,19 +1151,6 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 (use-package ace-window
   :bind
   (("M-o" . ace-window)))
-
-(use-package auto-dim-other-buffers
-  :if (<= emacs-major-version 26)
-  :config
-  (auto-dim-other-buffers-mode t)
-  (set-face-attribute 'auto-dim-other-buffers-face nil :background "#1F1F1F"))
-
-(use-package window-highlight
-  :if (>= emacs-major-version 27)
-  :straight
-  (:type git :host github :repo "dcolascione/emacs-window-highlight")
-  :config
-  (window-highlight-mode 1))
 
 (use-package winum
   :custom
@@ -1682,6 +1764,8 @@ ID, ACTION, CONTEXT."
   (:map smartparens-mode-map
         ;; TODO: This makes things freak out in javascript modes
         ("RET" . sp-newline)
+        ("C-M-k" . sp-kill-sexp)
+        ("C-M-<backspace>" . sp-backward-kill-sexp)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
 (use-package parinfer
@@ -3480,14 +3564,51 @@ git repo, optionally specified by DIR."
   ("C-c S" . crux-find-shell-init-file)
   ("C-<backspace>" . crux-kill-line-backwards))
 
-(bind-keys :map emacs-lisp-mode-map
+(defun eval-last-sexp-other-window (eval-last-sexp-arg-internal)
+  "Run `eval-last-sexp' in the other window."
+  (interactive "P")
+  (save-window-excursion
+    (other-window 1)
+    (eval-last-sexp eval-last-sexp-arg-internal)))
+
+(defun expression-to-register (register)
+  "Interactively store an Emacs Lisp expression in a REGISTER. If
+  region is active, store that. Otherwise, store the sexp at
+  point."
+  (interactive (list (register-read-with-preview "Copy expression to register: ")))
+  (set-register register
+                (if (region-active-p)
+                    (buffer-substring (mark) (point))
+                  (destructuring-bind (start . end) (bounds-of-thing-at-point 'sexp)
+                    (buffer-substring start end))))
+  (setq deactivate-mark t)
+  (when (called-interactively-p 'interactive) (indicate-copied-region)))
+
+(defun eval-register (register)
+  "Evaluate contents of register REGISTER (which hopefully
+contains a string) as an Emacs Lisp expression. REGISTER is a
+character and its contents are a string.
+
+If called with a prefix arg, then insert the return value at
+point.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (progn
+                 (barf-if-buffer-read-only)
+                 (list (register-read-with-preview "Eval register: ")
+                       current-prefix-arg)))
+  (print arg)
+  (let* ((val (get-register register))
+         (res (eval (car (read-from-string (format "(progn %s)" val))))))
+    (when arg (register-val-insert res))))
+
+(bind-keys :map lisp-mode-shared-map
            ("s-<return>" . eval-last-sexp)
+           ("C-s-<return>" . eval-last-sexp-other-window)
            ("C-c C-k" . eval-buffer)
            ("C-x C-r" . eval-region)
-           :map lisp-interaction-mode-map
-           ("s-<return>" . eval-last-sexp)
-           ("C-c C-k" . eval-buffer)
-           ("C-x C-r" . eval-region))
+           ("C-x r E" . expression-to-register)
+           ("C-x r e" . eval-register))
 
 (add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
 
