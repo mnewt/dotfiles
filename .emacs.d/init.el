@@ -237,8 +237,7 @@ Do not merge packages listed in `m-pinned-packages'."
 (add-to-list 'default-frame-alist '(cursor-color . "#F60"))
 
 ;; eww uses this as its default font, among others.
-(set-face-attribute 'variable-pitch nil
-                    :family "Georgia")
+(set-face-font 'variable-pitch "Georgia-18")
 
 ;; Base faces for modeline
 (defface m-inactive0 '((t (:inherit mode-line-inactive)))
@@ -326,34 +325,43 @@ TESTFN is an equality function, *not* an alist function as with
         (mapcar #'cdr matches)
       default)))
 
+(defun maybe-expand-symbol (x)
+  "If X is a symbol, return its value. Else, return X."
+  (if (symbolp x) (symbol-value x) x))
+
 (defun a-theme-activate (theme)
   "Switch the current Emacs theme to THEME. Handle some
 housekeeping that comes with switching themes to try to prevent
 Emacs from barfing on your screen."
   (let* ((theme (if (stringp theme) (intern theme) theme))
-         (opts (alist-get theme a-theme-themes)))
-    (when (functionp opts)
-      (setq hook opts)
-      (setq opts '()))
-    ;; Append presets to tail of `opts' alist
-    (let* ((preset (alist-get 'preset opts))
-           (opts (append opts (car (alist-get preset a-theme-presets)))))
-      (let-alist opts
-        (progn
-          (mapc #'disable-theme custom-enabled-themes)
-          (load-theme theme t)
-          (mapc #'funcall a-theme-hook)
-          (unless (boundp 'specs) (setq specs '()))
-          ;; Feed face specs to `custom-set-faces' in reverse because last
-          ;; write wins.
-          ;; (append a-theme-common
-          ;; (reverse (apply #'append (alist-get-all 'specs opts))))
-          (print "")
-          (apply #'custom-set-faces
-                 (if (symbolp specs) (symbol-value specs) specs))
-          (when (boundp 'mouse-color) (set-mouse-color mouse-color))
-          (when (fboundp 'hook) (funcall hook))
-          (when (fboundp #'powerline-reset) (powerline-reset)))))))
+         (opts (let ((opts (alist-get theme a-theme-themes)))
+                 (if (functionp opts)
+                     (progn
+                       (setq hook opts)
+                       '())
+                   opts)))
+         ;; Append presets to tail of `opts' alist
+         (preset (alist-get 'preset (car opts)))
+         (opts (append opts (car (alist-get preset a-theme-presets))))
+         (set-faces-fn (if (fboundp #'doom-themes-set-faces)
+                           #'doom-themes-set-faces
+                         #'custom-theme-set-faces)))
+    (let-alist opts
+      (progn
+        (mapc #'disable-theme custom-enabled-themes)
+        (load-theme theme t)
+        (mapc #'funcall a-theme-hook)
+        (unless (boundp 'specs) (setq specs '()))
+        ;; Feed face specs to `custom-set-faces' in reverse because last
+        ;; write wins.
+        (apply #'custom-set-faces
+         (-mapcat #'maybe-expand-symbol
+                  (append
+                   (list a-theme-specs-common)
+                   (reverse (alist-get-all 'specs opts)))))
+        (when (boundp 'mouse-color) (set-mouse-color mouse-color))
+        (when (fboundp 'hook) (funcall hook))
+        (when (fboundp #'powerline-reset) (powerline-reset))))))
 
 (defun a-theme-choose ()
   "Interactively choose a theme from `a-theme-themes' and
@@ -932,60 +940,37 @@ When using Homebrew, install it using \"brew install trash\"."
   ("C-c W" . define-word)
   ("C-c w" . define-word-at-point))
 
-(defvar dasht-browser 'eww)
-
-(defvar dasht-server-port 54321)
-
-(defvar dasht-docsets-dir "~/code/docsets")
-
-(defun dasht-at-point-run-search (f &rest args)
-  "Override `dash-at-point-run-search' to use `dasht' instead of
-`dash'."
-  (let ((search (car args))
-        (docsets (-map #'concat (cdr args))))
-    ;; Start dasht-server process if it's not already started.
-    (unless (get-buffer-process  "*dasht*")
-      (start-process "dasht" "*dasht*"
-                     "env" (concat "DASHT_DOCSETS_DIR=" (file-truename dasht-docsets-dir))
-                     "dasht-server" (number-to-string dasht-server-port)))
-    (funcall dasht-browser (format "http://localhost:%d/?query=%s%s"
-                                   dasht-server-port
-                                   (url-hexify-string search)
-                                   (-reduce-from (-partial #'concat "&docsets=") "" docsets)))))
-
-(use-package dash-at-point
-  :ensure-system-package
-  ("dasht" . "brew install dasht")
-  :config
-  (seq-do (-partial #'add-to-list 'dash-at-point-mode-alist)
-          '((clojure-mode . "clojuredocs")
-            (clojurec-mode . "clojuredocs")
-            (clojurescript-mode . "clojuredocs")
-            (emacs-lisp-mode . "Emacs Lisp")
-            (fish-mode . "fish")
-            (inferior-emacs-lisp-mode . "Emacs Lisp")
-            (lisp-mode . "lisp")
-            (lisp-interaction-mode . "Emacs Lisp")
-            (lua-mode . "lua")
-            (sh-mode . "bash")
-            (slime-repl-mode . "lisp")))
-  (setenv "DASHT_DOCSETS_DIR" (file-truename "~/code/docsets"))
-  ;; Replace `dash-at-point-run-search' with a version that runs `dasht' instead.
-  (advice-add 'dash-at-point-run-search :around #'dasht-at-point-run-search)
-  :bind
-  ("M-s-." . dash-at-point))
+(use-package dash-docs
+  :straight
+  (:type git :host github :repo "gilbertw1/dash-docs")
+  :custom
+  (dash-docs-docsets-path "~/code/docsets")
+  (dash-docs-browser-func #'eww)
+  (dash-docs-common-docsets '("Bash"
+                              "CSS"
+                              "ClojureDocs"
+                              "ClojureScript"
+                              "Docker"
+                              "Emacs Lisp"
+                              "Hammerspoon"
+                              "JavaScript"
+                              "Lua"
+                              "NodeJS"
+                              "PouchDB"
+                              "Python 3"
+                              "React"
+                              "SQLite")))
 
 (use-package counsel-dash
-  :custom
-  (counsel-dash-docsets-path dasht-docsets-dir)
-  (counsel-dash-browser-func #'eww)
-  (counsel-dash-common-docsets '("Bash" "Clojure" "clojure-docs" "Docker"
-                                 "Emacs_Lisp" "Hammerspoon" "JavaScript"
-                                 "Man_Pages" "NodeJS" "PostgreSQL" "React"))
+  :ensure-system-package
+  sqlite3
+  :straight
+  (:type git :host github :repo "gilbertw1/counsel-dash")
   :commands
-  (counsel-dash counsel-dash-install-docset)
+  (counsel-dash counsel-dash-at-point counsel-dash-install-docset)
   :bind
-  ("M-s-l" . counsel-dash))
+  ("M-s-l" . counsel-dash)
+  ("M-s-." . counsel-dash-at-point))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Buffer Navigation and Management
@@ -1019,14 +1004,22 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; scratch
 (setq initial-scratch-message nil
-      initial-major-mode 'org-mode)
+      initial-major-mode 'lisp-interaction-mode)
 
 (defun new-scratch-buffer ()
-  "Create or go to a scratch buffer."
+  "Create or go to a scratch buffer. Try these things in succession:
+
+1. Select an existing window containing the scratch buffer.
+2. Switch to an existing scratch buffer.
+3. Create a new scratch buffer and switch to it."
   (interactive)
-  (switch-to-buffer (get-buffer-create "<untitled>"))
-  (setq buffer-file-name "untitled")
-  (org-mode))
+  (let ((bn "<untitled>"))
+    (cond
+     ((get-buffer-window bn) (select-window (get-buffer-window bn)))
+     ((get-buffer bn) (switch-to-buffer bn))
+     (t (switch-to-buffer (get-buffer-create bn))
+        (setq buffer-file-name "untitled")
+        (funcall initial-major-mode)))))
 
 (bind-keys ("s-n" . new-scratch-buffer)
            ("C-c C-n . new-scratch-buffer"))
@@ -1050,13 +1043,16 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; (setq special-display-function #'m-special-display-function)
 
-;; (setq display-buffer-alist
-;;       `((,(rx (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*"))
-;;          (display-buffer-reuse-mode-window display-buffer-pop-up-window)
-;;          (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+;; (setq special-display-buffer-names '("*Help*"))
+
 ;; (add-to-list 'same-window-regexps "\\*helpful ")
 ;; (add-multiple-to-list 'same-window-buffer-names
 ;;                       '("*Help*" "*Apropos*" "*Summary*" "*info*"))
+
+(setq display-buffer-alist
+      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+         (display-buffer-reuse-mode-window display-buffer-pop-up-window)
+         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -1825,6 +1821,19 @@ ID, ACTION, CONTEXT."
     (message "Opening %s..." file)
     (os-open-file file)))
 
+(defun dired-dotfiles-toggle ()
+  "Show/hide dot-files"
+  (interactive)
+  (when (equal major-mode 'dired-mode)
+    (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
+        (progn 
+          (set (make-local-variable 'dired-dotfiles-show-p) nil)
+          (message "h")
+          (dired-mark-files-regexp "^\\\.")
+          (dired-do-kill-lines))
+      (progn (revert-buffer) ; otherwise just revert to re-show
+             (set (make-local-variable 'dired-dotfiles-show-p) t)))))
+
 (setq dired-recursive-deletes 'always
       dired-recursive-copies 'always
       dired-listing-switches "-alh"
@@ -1839,8 +1848,9 @@ ID, ACTION, CONTEXT."
  ("C-x d" . dired)
  :map dired-mode-map
  ("C-c o" . dired-open-file)
- ("C-x f" . find-file-literally-at-point)
- ("T" . touch))
+ ("C-x M-f" . find-file-at-point)
+ ("T" . touch)
+ ("C-." . dired-dotfiles-toggle))
 
 (use-package diredfl
   :config
@@ -2928,7 +2938,7 @@ _q_ quit
         regexp-history)
   (call-interactively 'occur))
 
-;; Keeps focus on *Occur* window, even when when target is visited via RETURN key.
+;; Keeps focus on *Occur* window, even when target is visited via RETURN key.
 ;; See hydra-occur-dwim for more options.
 (defadvice occur-mode-goto-occurrence (after occur-mode-goto-occurrence-advice activate)
   (other-window 1)
@@ -3381,9 +3391,24 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
 
 (bind-key ";" #'dired-git-add dired-mode-map)
 
+;; Magit dependencies. Unless these are included here, they don't get loaded.
+;; Haven't investigated why.
+(use-package graphql)
+(use-package treepy)
+
+(use-package magit
+  :requires
+  (graphql treepy)
+  :custom
+  (magit-completing-read-function 'ivy-completing-read)
+  :commands
+  (magit-call-git)
+  :bind
+  (("C-x g" . magit-status)
+   ("C-x C-g" . magit-dispatch-popup)))
+
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
-  (require 'magit)
   (interactive (list (read-directory-name "Gitdir: ")
                      (read-directory-name "Worktree: ")))
   (with-temp-file (expand-file-name ".git" worktree)
@@ -3450,20 +3475,6 @@ git repo, optionally specified by DIR."
     (rename-buffer (format "*git ls-files %s*" dir))))
 
 (bind-key "C-x G" #'projectile-git-ls-files-dired)
-
-;; Magit dependencies. Unless these are included here, they don't get loaded.
-;; Haven't investigated why.
-(use-package graphql)
-(use-package treepy)
-
-(use-package magit
-  :requires
-  (graphql treepy)
-  :custom
-  (magit-completing-read-function 'ivy-completing-read)
-  :bind
-  (("C-x g" . magit-status)
-   ("C-x C-g" . magit-dispatch-popup)))
 
 (use-package git-timemachine
   :bind
