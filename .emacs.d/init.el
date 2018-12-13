@@ -372,7 +372,7 @@ activate it."
             :action #'a-theme-activate
             :caller #'a-theme-choose-theme))
 
-(bind-key "C-c C-t" #'a-theme-choose)
+(bind-key "M-s-t" #'a-theme-choose)
 
 (setq
  a-theme-current-theme
@@ -919,16 +919,6 @@ When using Homebrew, install it using \"brew install trash\"."
   (set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
   (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t))
 
-(use-package tldr
-  :ensure-system-package t
-  :init
-  (unbind-key "C-h t")
-  :custom
-  (tldr-enabled-categories '("common" "linux" "osx"))
-  :bind
-  (("C-h t t" . tldr)
-   ("C-h t u" . tldr-update-docs)))
-
 (use-package info-colors
   :commands
   (info-colors-fontify-node)
@@ -939,6 +929,16 @@ When using Homebrew, install it using \"brew install trash\"."
   :bind
   ("C-c W" . define-word)
   ("C-c w" . define-word-at-point))
+
+(use-package tldr
+  :ensure-system-package tldr
+  :init
+  (unbind-key "C-h t")
+  :custom
+  (tldr-enabled-categories '("common" "linux" "osx"))
+  :bind
+  (("C-h t t" . tldr)
+   ("C-h t u" . tldr-update-docs)))
 
 (use-package dash-docs
   :straight
@@ -1015,6 +1015,11 @@ When using Homebrew, install it using \"brew install trash\"."
   (interactive)
   (let ((bn "<untitled>"))
     (cond
+     (current-prefix-arg
+      (let ((bn (generate-new-buffer bn))))
+      (switch-to-buffer bn)
+      (setq buffer-file-name bn)
+      (funcall initial-major-mode))
      ((get-buffer-window bn) (select-window (get-buffer-window bn)))
      ((get-buffer bn) (switch-to-buffer bn))
      (t (switch-to-buffer (get-buffer-create bn))
@@ -1050,9 +1055,14 @@ When using Homebrew, install it using \"brew install trash\"."
 ;;                       '("*Help*" "*Apropos*" "*Summary*" "*info*"))
 
 (setq display-buffer-alist
-      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+      `((,(rx bos
+              (or "*Apropos*" "*eww*" "*Help*" "*helpful" "*info*" "*Summary*")
+              (0+ not-newline))
          (display-buffer-reuse-mode-window display-buffer-pop-up-window)
          (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+
+;; (setq special-display-buffer-names '("*Apropos*" "*Help*" "*info*" "*Summary*")
+;;       special-display-regexps '("*helpful"))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -1758,8 +1768,6 @@ ID, ACTION, CONTEXT."
                 (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
-        ;; TODO: This makes things freak out in javascript modes
-        ("RET" . sp-newline)
         ("C-M-k" . sp-kill-sexp)
         ("C-M-<backspace>" . sp-backward-kill-sexp)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
@@ -1785,6 +1793,8 @@ ID, ACTION, CONTEXT."
         ("C-," . parinfer-toggle-mode)
         ;; Don't interfere with smartparens quote handling
         ("\"" . nil)
+        ;; sp-newline seems to offer a better experience for lisps
+        ("RET" . sp-newline)
         :map parinfer-region-mode-map
         ("C-i" . indent-for-tab-command)
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -2354,6 +2364,16 @@ initialize the Eshell environment."
   (require 'em-tramp)
   (add-to-list 'eshell-modules-list 'eshell-tramp))
 
+(defun ibuffer-show-eshell-buffers ()
+  "Open an ibuffer window and display all Eshell buffers."
+  (interactive)
+  (ibuffer nil "Eshell Buffers" '((mode . eshell-mode)) nil t nil
+           '(((name 16 16 :left)
+              " "
+              (process 24 24 :left)
+              " "
+              (filename 0 -1 :right)))))
+
 (use-package eshell
   :custom
   (eshell-banner-message "")
@@ -2374,6 +2394,7 @@ initialize the Eshell environment."
   (("s-e" . eshell)
    ("C-c e" . eshell)
    ("s-E" . eshell-other-window)
+   ("C-s-e" . ibuffer-show-eshell-buffers)
    ("C-c E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
@@ -2693,8 +2714,10 @@ Inserted by installing org-mode or when a release is made."
 
 ;; Doesn't seem to work. Probably API changed?
 ;; (use-package org-wunderlist
-;;   :bind
-;;   ("C-c o w" . org-wunderlist-fetch))
+;;   :commands
+;;   (org-wunderlist-fetch))
+  ;; :bind
+  ;; ("C-c o w" . org-wunderlist-fetch))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Log files
@@ -3186,12 +3209,18 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
         :map company-active-map
-        ;; * TODO: The inconsistency between C-n and M-n to select company
+        ;; TODO: The inconsistency between C-n and M-n to select company
         ;; completion in different contexts (e.g `emacs-lisp-mode' and
         ;; `eshell-mode') is aggravating. Not sure about the solution though.
         ;; ("C-n" . company-select-next) ("C-p" . company-select-previous)
-        ("C-d" . company-show-doc-buffer)
         ("M-." . company-show-location)))
+
+(use-package company-quickhelp
+  :bind
+  (:map company-active-map
+        ("C-c h" . company-quickhelp-manual-begin))
+  :hook
+  (global-company-mode . company-quickhelp-mode))
 
 (use-package company-shell
   :config
@@ -3516,7 +3545,7 @@ git repo, optionally specified by DIR."
   (add-to-list 'shr-external-rendering-functions '(pre . shr-tag-pre-highlight)))
 
 (use-package w3m
-  :ensure-system-package t
+  :ensure-system-package w3m
   :custom
   (w3m-search-default-engine "duckduckgo")
   :commands
@@ -3613,7 +3642,14 @@ Interactively, reads the register using `register-read-with-preview'."
          (res (eval (car (read-from-string (format "(progn %s)" val))))))
     (when arg (register-val-insert res))))
 
-(bind-keys :map lisp-mode-shared-map
+(defun replace-last-sexp ()
+  (interactive)
+  (let ((value (eval (preceding-sexp))))
+    (kill-sexp -1)
+    (insert (format "%S" value))))
+
+(bind-keys ("C-c C-j" . replace-last-sexp)
+           :map lisp-mode-shared-map
            ("s-<return>" . eval-last-sexp)
            ("C-s-<return>" . eval-last-sexp-other-window)
            ("C-c C-k" . eval-buffer)
@@ -3626,6 +3662,15 @@ Interactively, reads the register using `register-read-with-preview'."
 (use-package elisp-format
   :commands
   (elisp-format-buffer elisp-format-file elisp-format-region))
+
+(use-package lively
+  :commands
+  (lively-shell-command)
+  :bind
+  ("C-c C-l l" . lively)
+  ("C-c C-l r" . lively-region)
+  ("C-c C-l u" . lively-update)
+  ("C-c C-l s" . lively-stop))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Clojure
@@ -3821,9 +3866,11 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :mode "\\.csv\\'")
 
 (use-package nginx-mode
-  :mode "\\`Caddyfile\\'"
   :custom
   (nginx-indent-level tab-width))
+
+(use-package caddyfile-mode
+  :mode "\\`Caddyfile\\'")
 
 (use-package yaml-mode
   :mode "\\.ya\?ml\\'")
@@ -3929,12 +3976,23 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :config
   (add-to-list 'company-backends 'company-restclient))
 
-;; (use-package elpy
-;;   :config
-;;   (elpy-enable)
-;;   (when (require 'flycheck nil t)
-;;     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-;;     (add-hook 'elpy-mode-hook 'flycheck-mode)))
+(use-package elpy
+  ;; :ensure-system-package
+  ;; (jedi . "pip install jedi flake8 autopep8 yapf")
+  :interpreter ("python3?" . python-mode)
+  :custom
+  ;; (python-shell-interpreter "ipython")
+  ;; (python-shell-interpreter-args "-i --simple-prompt")
+  (gud-pdb-command-name "python -m pdb")
+  :config
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  :hook
+  (python-mode . (lambda ()
+                   (unless (bound-and-true-p elpy-version)
+                     (elpy-enable))))
+  :bind
+  (:map python-mode-map
+        ("s-<return>" . py-execute-expression)))
 
 ;; (use-package py-autopep8
 ;;   :hook
@@ -3942,9 +4000,8 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 ;; (use-package python-mode
 ;;   :mode "\\.py\\'"
-;;   :custom
-;;   (python-indent-offset tab-width)
-;;   (py-indent-offset tab-width)
+;;   ;; :custom
+;;   ;; (python-indent-offset 4)
 ;;   :bind
 ;;   (:map python-mode-map
 ;;         ("s-<return>" . py-execute-expression)))

@@ -115,17 +115,19 @@ hs.hotkey.bind(mash, "'", hs.openConsole)
 -- ** Open Hammerspoon preferences
 hs.hotkey.bind(mash, ",", hs.openPreferences)
 
+hs.hotkey.showHotkeys(mash, "/")
+
 -- ** Dark mode
-local console = require("hs.console")
-console.smartInsertDeleteEnabled(false)
-if console.darkMode() then
-   console.outputBackgroundColor{ white = 0 }
-   console.consoleCommandColor{ white = 1 }
-   console.alpha(.8)
+hs.console.smartInsertDeleteEnabled(false)
+hs.console.darkMode(true)
+if hs.console.darkMode() then
+   hs.preferences.darkMode(true)
+   hs.console.outputBackgroundColor({ white = 0 })
+   hs.console.consoleCommandColor({ white = 1 })
 else
-   console.windowBackgroundColor({red=.6,blue=.7,green=.7})
-   console.outputBackgroundColor({red=.8,blue=.8,green=.8})
-   console.alpha(.9)
+   hs.preferences.darkMode(false)
+   hs.console.windowBackgroundColor({red=.7,blue=.7,green=.7})
+   hs.console.outputBackgroundColor({red=.8,blue=.8,green=.8})
 end
 
 --------------------------------------------------------------------------------
