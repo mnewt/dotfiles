@@ -243,30 +243,39 @@ Do not merge packages listed in `m-pinned-packages'."
 (defface m-inactive0 '((t (:inherit mode-line-inactive)))
   "Powerline inactive face 0."
   :group 'powerline)
+
 (defface m-active0 '((t (:inherit default)))
   "Powerline active face 0."
   :group 'powerline)
+
 (defface m-inactive1 '((t (:inherit mode-line-inactive)))
   "Powerline inactive face 1."
   :group 'powerline)
+
 (defface m-active1 '((t (:inherit default)))
   "Powerline active face 1."
   :group 'powerline)
+
 (defface m-inactive2 '((t (:inherit mode-line-inactive)))
   "Powerline inactive face 2."
   :group 'powerline)
+
 (defface m-active2 '((t (:inherit default)))
   "Powerline active face 2."
   :group 'powerline)
+
 (defface m-inactive3 '((t (:inherit mode-line-inactive)))
   "Powerline inactive face 3."
   :group 'powerline)
+
 (defface m-active3 '((t (:inherit default)))
   "Powerline active face 3."
   :group 'powerline)
+
 (defface m-inactive4 '((t (:inherit mode-line-inactive)))
   "Powerline inactive face 4."
   :group 'powerline)
+
 (defface m-active4 '((t (:inherit default)))
   "Powerline active face 4."
   :group 'powerline)
@@ -446,67 +455,66 @@ activate it."
   :custom
   (powerline-default-separator nil)
   (powerline-narrowed-indicator "n")
+  (mode-line-format
+   '("%e"
+     (:eval
+      (let* ((active (powerline-selected-window-active))
+             (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
+             (mode-line (if active 'mode-line 'mode-line-inactive))
+             (face0 (if active 'm-active0 'm-inactive0))
+             (face1 (if active 'm-active1 'm-inactive1))
+             (face2 (if active 'm-active2 'm-inactive2))
+             (face3 (if active 'm-active3 'm-inactive3))
+             (face4 (if active 'm-active4 'm-inactive4))
+             (lhs (list (powerline-raw " " face1)
+                        (powerline-major-mode face2 'l)
+                        (powerline-raw " " face2)
+                        ;; (powerline-vc face1 'r)
+                        (powerline-raw "%*" face1 'l)
+                        (if (eq major-mode 'term-mode)
+                            (powerline-raw
+                             (cond
+                              ((term-in-char-mode) " (char-mode) ")
+                              ((term-in-line-mode) " (line-mode) ")
+                              (t ""))
+                             face1))))
+             (center (list (powerline-raw
+                            (if (file-remote-p default-directory)
+                                (concat " "
+                                        (tramp-file-name-host
+                                         (tramp-dissect-file-name
+                                          default-directory))
+                                        " ")
+                              "")
+                            face4)
+                           (powerline-raw " " face3)
+                           (powerline-raw (buffer-name) face3 'm)
+                           (powerline-raw " " face3)))
+             (rhs (if active
+                      (list (if (and (boundp 'outline-minor-mode)
+                                     outline-minor-mode)
+                                (powerline-raw "o" face0))
+                            (if (and (boundp 'hs-minor-mode)
+                                     hs-minor-mode)
+                                (powerline-raw "h" face0))
+                            (powerline-narrow face0)
+                            (powerline-raw " " face0)
+                            (if (fboundp #'eyebrowse-mode-line-indicator)
+                                (eyebrowse-mode-line-indicator))
+                            (powerline-raw global-mode-string face0 'r)
+                            (powerline-raw " " face0)
+                            (powerline-raw "%l" face1 'r)
+                            (powerline-raw ":" face1)
+                            (powerline-raw "%c" face1 'r)
+                            (powerline-hud face3 face1)))))
+        (concat (powerline-render lhs)
+                (powerline-fill-center face1 (/ (powerline-width center) 2.0))
+                (powerline-render center)
+                (powerline-fill face1 (powerline-width rhs))
+                (powerline-render rhs))))))
   :init
-  (set-face-attribute 'mode-line nil :box nil)
-  :config
-  (setq-default mode-line-format
-                '("%e"
-                  (:eval
-                   (let* ((active (powerline-selected-window-active))
-                          (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
-                          (mode-line (if active 'mode-line 'mode-line-inactive))
-                          (face0 (if active 'm-active0 'm-inactive0))
-                          (face1 (if active 'm-active1 'm-inactive1))
-                          (face2 (if active 'm-active2 'm-inactive2))
-                          (face3 (if active 'm-active3 'm-inactive3))
-                          (face4 (if active 'm-active4 'm-inactive4))
-                          (lhs (list (powerline-raw " " face1)
-                                     (powerline-major-mode face2 'l)
-                                     (powerline-raw " " face2)
-                                     ;; (powerline-vc face1 'r)
-                                     (if (eq major-mode 'term-mode)
-                                         (powerline-raw
-                                          (cond
-                                           ((term-in-char-mode) " (char-mode) ")
-                                           ((term-in-line-mode) " (line-mode) ")
-                                           (t ""))
-                                          face1))))
-                          (center (list (powerline-raw "%*" face1 'l)
-                                        (powerline-raw
-                                         (if (file-remote-p default-directory)
-                                             (concat " "
-                                                     (tramp-file-name-host
-                                                      (tramp-dissect-file-name
-                                                       default-directory))
-                                                     " ")
-                                           "")
-                                         face4)
-                                        (powerline-raw " " face3)
-                                        (powerline-raw (buffer-name) face3 'm)
-                                        (powerline-raw " " face3)
-                                        (powerline-raw "%*" face1 'r)))
-                          (rhs (if active
-                                   (list (if (and (boundp 'outline-minor-mode)
-                                                  outline-minor-mode)
-                                             (powerline-raw "o" face0))
-                                         (if (and (boundp 'hs-minor-mode)
-                                                  hs-minor-mode)
-                                             (powerline-raw "h" face0))
-                                         (powerline-narrow face0)
-                                         (powerline-raw " " face0)
-                                         (if (fboundp #'eyebrowse-mode-line-indicator)
-                                             (eyebrowse-mode-line-indicator))
-                                         (powerline-raw global-mode-string face0 'r)
-                                         (powerline-raw " " face0)
-                                         (powerline-raw "%l" face1 'r)
-                                         (powerline-raw ":" face1)
-                                         (powerline-raw "%c" face1 'r)
-                                         (powerline-hud face3 face1)))))
-                     (concat (powerline-render lhs)
-                             (powerline-fill-center face1 (/ (powerline-width center) 2.0))
-                             (powerline-render center)
-                             (powerline-fill face1 (powerline-width rhs))
-                             (powerline-render rhs)))))))
+  (set-face-attribute 'mode-line nil :box nil))
+                
 
 (use-package window-highlight
   :if (>= emacs-major-version 27)
@@ -2467,7 +2475,11 @@ initialize the Eshell environment."
   ((eshell-mode . eshell/init)
    ;; For using xterm-256color properties in the prompt
    (eshell-before-prompt . (lambda ()
-                             (setq xterm-color-preserve-properties t))))
+                             (setq xterm-color-preserve-properties t)))
+   (eshell-post-command . (lambda ()
+                            (rename-buffer
+                             (generate-new-buffer-name
+                              (concat "*eshell: " default-directory "*"))))))
   :bind
   (("s-e" . eshell)
    ("C-c e" . eshell)
