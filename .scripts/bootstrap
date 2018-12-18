@@ -1,3 +1,22 @@
+<<<<<<< HEAD
+#!/usr/bin/env bash
+# Bootstrap the dotfiles repo on a new computer
+# $1: OPTIONAL: Path to repo
+
+repo_remote="${1:-https://gitlab.com/mnewt/dotfiles.git}"
+repo_name="$(basename "$repo_remote")"
+repo_dir="$HOME/.config/repos"
+repo_temp="$HOME/.config/repos/temp"
+
+if [ -e "$HOME.git" || -e "repo_dir/$repo_name"]; then
+  echo 
+cd "$HOME"
+mkdir -p "$repo_dir"
+[ -e "$HOME/.git" ] && rm -rf "$HOME/.git"
+git clone --separate-git-dir "$repo_dir/$repo_name" "$repo_remote" --no-checkout "$repo_temp"
+mv "$repo_temp/.git" "$HOME"
+rm -rf "$repo_temp"
+=======
 #!/usr/bin/env sh
 
 [ -n "$1" ] && echo <<-END
@@ -48,5 +67,6 @@ if [ ${#modified[@]} -gt 0 ]; then
   cp -R $modified "$backup_dir"
 fi
   
+>>>>>>> 374389814de2b6a4ea87aac2a1d6bce7f9ecc074
 git fetch
 git reset --hard HEAD
