@@ -968,8 +968,8 @@ display as if in `eww'."
                                            command
                                            " | cmark -t html")))
   (shr-render-region (point-min) (point-max) (current-buffer))
-  (goto-char (point-min)
-  (help-mode)))
+  (goto-char (point-min))
+  (help-mode))
 
 (use-package dash-docs
   :straight
