@@ -941,6 +941,38 @@ When using Homebrew, install it using \"brew install trash\"."
   (("C-h t t" . tldr)
    ("C-h t u" . tldr-update-docs)))
 
+(defface eg-h1
+  '((((class color) (background light))
+     (:foreground "#ff8700" :bold t :height 2.0))
+    (((class color) (background dark))
+     (:foreground "#ffa722" :bold t :height 2.0)))
+  ""
+  :group 'eg)
+
+(defface eg-h2
+  '((((class color) (background light))
+     (:foreground "#1f5bff" :bold t :height 1.2))
+    (((class color) (background dark))
+     (:foreground "#6faaff" :bold t :height 1.2)))
+  ""
+  :group 'eg)
+
+(defface eg-h3
+  '((((class color) (background light))
+     (:foreground "#5a5a5a" :bold t))
+    (((class color) (background dark))
+     (:foreground "#d7ff87" :bold t)))
+  ""
+  :group 'eg)
+
+(defface eg-code-block
+  '((((class color) (background light))
+     (:foreground "#555" :background "#d7ff87"))
+    (((class color) (background dark))
+     (:foreground "#eee" :background "#5a5a5a")))
+  ""
+  :group 'eg)
+
 (defun eg (command)
   "Run the `eg' command (https://github.com/srsudar/eg) and
 display as if from a terminal."
@@ -950,24 +982,25 @@ display as if from a terminal."
           (let ((l (split-string (shell-command-to-string "eg --list"))))
             (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
   (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
-  (insert (xterm-color-filter
-           (shell-command-to-string (concat "eg --pager-cmd cat " command))))
-  (goto-char (point-min))
-  (help-mode))
-
-(defun eg-html (command)
-  "Run the `eg' command (https://github.com/srsudar/eg) and
-display as if in `eww'."
-  (interactive
-   (list (completing-read
-          "eg: "
-          (let ((l (split-string (shell-command-to-string "eg --list"))))
-            (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
-  (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
-  (insert (shell-command-to-string (concat "eg --no-color --pager-cmd cat "
-                                           command
-                                           " | cmark -t html")))
-  (shr-render-region (point-min) (point-max) (current-buffer))
+  (insert
+   (mapconcat (lambda (line)
+                (cond
+                 ((equal "" line)
+                  "")
+                 ((string-prefix-p "# " line)
+                  (propertize (substring line 2) 'face 'eg-h1))
+                 ((string-prefix-p "## " line)
+                  (propertize (substring line 3) 'face 'eg-h2))
+                 ((string-prefix-p "### " line)
+                  (propertize (substring line 4) 'face 'eg-h3))
+                 ((string-prefix-p "    " line)
+                  (concat "    " (propertize (substring line 4) 'face 'eg-code-block)))
+                 (t line)))
+              (split-string
+               (shell-command-to-string
+                (concat "eg --no-color --pager-cmd cat " command))
+               "\n")
+              "\n"))
   (goto-char (point-min))
   (help-mode))
 
