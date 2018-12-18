@@ -361,7 +361,8 @@ Emacs from barfing on your screen."
                    (reverse (alist-get-all 'specs opts)))))
         (when (boundp 'mouse-color) (set-mouse-color mouse-color))
         (when (fboundp 'hook) (funcall hook))
-        (when (fboundp #'powerline-reset) (powerline-reset))))))
+        (when (fboundp #'powerline-reset) (powerline-reset))))
+    (setq a-theme-current-theme theme)))
 
 (defun a-theme-choose ()
   "Interactively choose a theme from `a-theme-themes' and
@@ -940,6 +941,36 @@ When using Homebrew, install it using \"brew install trash\"."
   (("C-h t t" . tldr)
    ("C-h t u" . tldr-update-docs)))
 
+(defun eg (command)
+  "Run the `eg' command (https://github.com/srsudar/eg) and
+display as if from a terminal."
+  (interactive
+   (list (completing-read
+          "eg: "
+          (let ((l (split-string (shell-command-to-string "eg --list"))))
+            (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
+  (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
+  (insert (xterm-color-filter
+           (shell-command-to-string (concat "eg --pager-cmd cat " command))))
+  (goto-char (point-min))
+  (help-mode))
+
+(defun eg-html (command)
+  "Run the `eg' command (https://github.com/srsudar/eg) and
+display as if in `eww'."
+  (interactive
+   (list (completing-read
+          "eg: "
+          (let ((l (split-string (shell-command-to-string "eg --list"))))
+            (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
+  (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
+  (insert (shell-command-to-string (concat "eg --no-color --pager-cmd cat "
+                                           command
+                                           " | cmark -t html")))
+  (shr-render-region (point-min) (point-max) (current-buffer))
+  (goto-char (point-min)
+  (help-mode))
+
 (use-package dash-docs
   :straight
   (:type git :host github :repo "gilbertw1/dash-docs")
@@ -959,7 +990,10 @@ When using Homebrew, install it using \"brew install trash\"."
                               "PouchDB"
                               "Python 3"
                               "React"
-                              "SQLite")))
+                              "SQLite"
+                              "caniuse"
+                              "jsdoc"
+                              "use-package")))
 
 (use-package counsel-dash
   :ensure-system-package
@@ -1114,9 +1148,7 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; Create friendly names for buffers with the same name
 (setq uniquify-buffer-name-style 'forward
       uniquify-separator "/"
-                                        ; rename after killing uniquified
       uniquify-after-kill-buffer-p t
-                                        ; don't muck with special buffers
       uniquify-ignore-buffers-re "^\\*")
 
 (defadvice server-visit-files (before parse-numbers-in-lines (files proc &optional nowait) activate)
@@ -1895,8 +1927,17 @@ ID, ACTION, CONTEXT."
   :bind
   (("C-x M-d" . dired-sidebar-toggle-sidebar)))
 
+(use-package dired-du
+  :custom
+  ;; Human readable file sizes.
+  (dired-du-size-format t)
+  (dired-du-used-space-program '("du" "sb"))
+  (dired-du-update-headers t)
+  :commands
+  (dired-du-mode))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Shell, SSH, Tramp
+;;; Shell, Terminal, SSH, Tramp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'tramp)
@@ -2059,6 +2100,10 @@ ID, ACTION, CONTEXT."
          ("M-p" . term-send-up)
          ("M-n" . term-send-down)
          ("C-M-j" . term-switch-to-shell-mode)))
+
+(add-to-list 'load-path "~/code/emacs-libvterm")
+(let (vterm-install)
+  (require 'vterm))
 
 ;; xterm colors
 (use-package xterm-color
@@ -3536,8 +3581,8 @@ git repo, optionally specified by DIR."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package eww
-  :hook
-  (eww-mode . (lambda () (text-scale-set 2))))
+  :commands
+  (eww))
 
 (use-package shr-tag-pre-highlight
   :after shr
@@ -3598,6 +3643,7 @@ git repo, optionally specified by DIR."
   ("C-c D" . crux-delete-file-and-buffer)
   ("C-c d" . crux-duplicate-current-line-or-region)
   ("C-c R" . crux-rename-file-and-buffer)
+  ("M-s-r" . crux-rename-file-and-buffer)
   ("C-c k" . crux-kill-other-buffers)
   ("C-M-X" . crux-indent-defun)
   ("C-c I" . crux-find-user-init-file)
