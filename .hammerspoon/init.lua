@@ -266,7 +266,7 @@ hs.hotkey.bind(mash, 'l', function()
                   hs.grid.pushWindowRight()
 end)
 
---** Resize windows
+-- ** Resize windows
 hs.hotkey.bind(mashshift, 'k', function()
                   undo:addToStack()
                   hs.grid.resizeWindowShorter()
