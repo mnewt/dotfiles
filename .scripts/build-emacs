@@ -8,4 +8,4 @@ git reset HEAD --hard
 # existing, non-emacs ctags installation
 ./configure --without-dbus --with-ns --disable-ns-self-contained --with-xml2 --with-imagemagick --with-rsvg --without-pop CFLAGS="-I /usr/local/opt/libxml2/include/libxml2" --program-transform-name='s/^ctags$/ctags.emacs/'
 make
-make install
+# make install

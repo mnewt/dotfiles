@@ -95,6 +95,7 @@ Do not merge packages listed in `m-pinned-packages'."
 
 ;; cl is assumed to be present in this config and some packages too.
 (require 'cl)
+(require 'seq)
 
 ;; All external packages and many built in ones are configured using use-package. 
 (eval-when-compile
