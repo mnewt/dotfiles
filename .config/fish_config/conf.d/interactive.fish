@@ -11,8 +11,9 @@ if status --is-interactive
     source_if "$HOME/.bin/iterm2_shell_integration.fish"
   end
 
-  # fzf
-  set -gx FZF_LEGACY_KEYBINDINGS 0
+  # Help with Emacs muscle memory
+  bind \ep history-search-backward
+  bind \en history-search-forward
 
   source_if "$HOME/.private.fish"
 end

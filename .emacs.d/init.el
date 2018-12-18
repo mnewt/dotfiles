@@ -110,7 +110,25 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; Packages go here.
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
-;; Function composition
+;; Anonymous function macro
+;; * TODO: Doesn't work inside `use-package'
+;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
+(defmacro $ (&rest body)
+  (cl-labels ((collect-vars
+               (&rest forms)
+               (cl-loop for form in forms
+                        append (cl-loop for atom in form
+                                        if (and (symbolp atom)
+                                                (string-match (rx bos "$")
+                                                              (symbol-name atom)))
+                                        collect atom
+                                        else if (consp form)
+                                        append (collect-vars atom)))))
+    `(lambda ,(cl-sort (collect-vars body)
+                       #'string<
+                       :key #'symbol-name)
+       ,@body)))
+
 (defsubst curry (function &rest arguments)
   (lexical-let ((function function)
                 (arguments arguments))
@@ -128,25 +146,6 @@ Do not merge packages listed in `m-pinned-packages'."
                    (funcall f (apply g arguments)))))
              more-functions
              :initial-value function))
-
-;; Anonymous function macro
-;; TODO: Doesn't work inside `use-package'
-;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
-(defmacro $ (&rest body)
-  (cl-labels ((collect-vars
-               (&rest forms)
-               (cl-loop for form in forms
-                        append (cl-loop for atom in form
-                                        if (and (symbolp atom)
-                                                (string-match (rx bos "$")
-                                                              (symbol-name atom)))
-                                        collect atom
-                                        else if (consp form)
-                                        append (collect-vars atom)))))
-    `(lambda ,(cl-sort (collect-vars body)
-                       #'string<
-                       :key #'symbol-name)
-       ,@body)))
 
 (defun add-multiple-to-list (list items)
   "Run `add-to-list' on each ITEM in the LIST"
@@ -239,8 +238,7 @@ Do not merge packages listed in `m-pinned-packages'."
 (add-to-list 'default-frame-alist '(cursor-color . "#F60"))
 
 ;; eww uses this as its default font, among others.
-(set-face-attribute 'variable-pitch nil
-                    :family "Georgia")
+(set-face-font 'variable-pitch "Georgia-18")
 
 ;; Base faces for modeline
 (defface m-inactive0 '((t (:inherit mode-line-inactive)))
@@ -274,94 +272,176 @@ Do not merge packages listed in `m-pinned-packages'."
   "Powerline active face 4."
   :group 'powerline)
 
-(setq-default m-themes '())
+;; `a-theme'
+(defvar a-theme-hook '()
+  "Run whenever a theme is activated.")
 
-(defun activate-theme-common ()
-  "Run whenever a theme is activated."
-  (set-face-attribute 'mode-line nil
-                      :box nil
-                      :overline nil
-                      :underline nil)
-  (set-face-attribute 'mode-line-inactive nil
-                      :box nil
-                      :overline nil
-                      :underline nil))
+(defvar a-theme-themes '()
+  "Alist where car is the theme and cdr can be:
 
-(defun activate-theme (x)
-  "Disable current themes and load theme X."
-  (let ((theme (if (stringp x) (intern x) x)))
-    (condition-case nil
-        (progn
-          (mapc #'disable-theme custom-enabled-themes)
-          (load-theme theme t)
-          (activate-theme-common)
-          (funcall (cdr (assoc theme m-themes)))
-          (when (fboundp 'powerline-reset) (powerline-reset)))
-      (error "Problem loading theme %s" x))))
+* A function to run after loading the theme.
+* An alist specifying additional arguments. Possible arguments:
+** hook - A function, as above.
+** specs
+** preset
+** mouse-color
+** ")
 
-(defun choose-theme ()
-  "Forward to `load-theme'. Usable with `ivy-resume',
-`ivy-next-line-and-call' and `ivy-previous-line-and-call'."
+(defvar a-theme-current-theme nil
+  "The currently loaded theme. Use it like this:
+
+(setq a-theme-current-theme
+      (if (bound-and-true-p a-theme-current-theme)
+          a-theme-current-theme
+        'doom-dracula))
+
+(a-theme a-theme-current-theme)")
+
+(defvar a-theme-specs '()
+  "List of default face specs to apply when a theme is being
+  activated. 
+
+The attributes specified in `a-theme-themes' overrides
+  these.
+
+For details on face specs see `defface'.")
+
+(defun alist-get-all (key alist &optional default testfn)
+  "Return a list containing all the elements of ALIST with
+matching KEY, not just the first. Has almost the same signature
+as `alist-get'.
+
+DEFAULT returns a default value if nothing matches.
+
+REMOVE is not implemented on account of I don't care and it's
+dumb.
+
+TESTFN is an equality function, *not* an alist function as with
+`alist-get'. Default is `eq'."
+  (let* ((testfn #'eq)
+         (matches (seq-filter
+                   (lambda (e) (funcall testfn key (car e)))
+                   alist)))
+    (if matches
+        (mapcar #'cdr matches)
+      default)))
+
+(defun maybe-expand-symbol (x)
+  "If X is a symbol, return its value. Else, return X."
+  (if (symbolp x) (symbol-value x) x))
+
+(defun a-theme-activate (theme)
+  "Switch the current Emacs theme to THEME. Handle some
+housekeeping that comes with switching themes to try to prevent
+Emacs from barfing on your screen."
+  (let* ((theme (if (stringp theme) (intern theme) theme))
+         (opts (let ((opts (alist-get theme a-theme-themes)))
+                 (if (functionp opts)
+                     (progn
+                       (setq hook opts)
+                       '())
+                   opts)))
+         ;; Append presets to tail of `opts' alist
+         (preset (alist-get 'preset (car opts)))
+         (opts (append opts (car (alist-get preset a-theme-presets))))
+         (set-faces-fn (if (fboundp #'doom-themes-set-faces)
+                           #'doom-themes-set-faces
+                         #'custom-theme-set-faces)))
+    (let-alist opts
+      (progn
+        (mapc #'disable-theme custom-enabled-themes)
+        (load-theme theme t)
+        (mapc #'funcall a-theme-hook)
+        (unless (boundp 'specs) (setq specs '()))
+        ;; Feed face specs to `custom-set-faces' in reverse because last
+        ;; write wins.
+        (apply #'custom-set-faces
+         (-mapcat #'maybe-expand-symbol
+                  (append
+                   (list a-theme-specs-common)
+                   (reverse (alist-get-all 'specs opts)))))
+        (when (boundp 'mouse-color) (set-mouse-color mouse-color))
+        (when (fboundp 'hook) (funcall hook))
+        (when (fboundp #'powerline-reset) (powerline-reset))))
+    (setq a-theme-current-theme theme)))
+
+(defun a-theme-choose ()
+  "Interactively choose a theme from `a-theme-themes' and
+activate it."
   (interactive)
   (ivy-read "Load custom theme: "
-            (mapcar 'car m-themes)
-            :action #'activate-theme
-            :caller 'choose-theme))
+            (mapcar #'car a-theme-themes)
+            :action #'a-theme-activate
+            :caller #'a-theme-choose-theme))
 
-(use-package dracula-theme
-  :load-path "straight/build/dracula-theme"
-  :config
-  (defun activate-theme-dracula ()
-    (setq face-remapping-alist
-          '((m-inactive0 :background "#262834" :foreground "#565861")
-            (m-active0 :background "#565861" :foreground "#9E9FA5")
-            (m-inactive1 :background "#262834" :foreground "#565861")
-            (m-active1 :background "#565861" :foreground "#E6E7E8")
-            (m-inactive2 :background "#262834" :foreground "#565861")
-            (m-active2 :background "#CECFD2" :foreground "#565861")
-            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
-            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
-            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
-            (m-active4 :background "#00e5e5" :foreground "#262834")))
-    (set-cursor-color "#F60")
-    (set-mouse-color "white")
-    (set-background-color "#282828")
-    (set-face-attribute 'mode-line-emphasis nil :foreground "orange"))
-  (add-to-list 'm-themes '(dracula . activate-theme-dracula))
-  (activate-theme 'dracula))
+(bind-key "M-s-t" #'a-theme-choose)
 
-(use-package solarized-theme
-  :load-path "straight/build/solarized-theme"
+(setq
+ a-theme-current-theme
+ (if (bound-and-true-p a-theme-current-theme)
+     a-theme-current-theme
+   'doom-dracula)
+
+ a-theme-specs-common
+ '((cursor ((t :background "#F60"))))
+
+ a-theme-specs-dark
+ (let ((active-color "#282828")
+       (inactive-color "#3D3D3D")
+       (where '((type x w32 ns))))
+   `((default ((,where :background ,inactive-color)))
+     (fringe ((,where :background ,inactive-color)))
+     (window-highlight-focused-window ((,where :background ,active-color)))
+     (m-inactive0 ((t :background "#262834" :foreground "#565861")))
+     (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
+     (m-inactive1 ((t :background "#262834" :foreground "#565861")))
+     (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
+     (m-inactive2 ((t :background "#262834" :foreground "#565861")))
+     (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+     (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
+     (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+     (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
+     (m-active4 ((t :background "#00e5e5" :foreground "#262834")))
+     (mode-line-emphasis ((t :foreground "orange")))))
+
+ a-theme-specs-light
+ (let ((active-color "#EDE8D7")
+       (inactive-color "#CECFD2")
+       (where '((type x w32 ns))))
+   `((default ((,where :background ,inactive-color)))
+     (fringe ((,where :background ,inactive-color)))
+     (window-highlight-focused-window ((,where :background ,active-color)))
+     (m-inactive0 ((t :background "#CECFD2" :foreground "#EDE8D7")))
+     (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
+     (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+     (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
+     (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
+     (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
+     (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
+     (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
+     (m-inactive4 ((t :background "#CECFD2" :foreground "#9E9FA5")))
+     (m-active4 ((t :background "#00E5E5" :foreground "#262834")))))
+
+ a-theme-presets
+ '((light ((specs . a-theme-specs-light)
+           (mouse-color . "black")))
+   (dark ((specs . a-theme-specs-dark)
+          (mouse-color . "white")))))
+
+(add-hook 'a-theme-hook (lambda ()
+                          (doom-themes-visual-bell-config)
+                          (doom-themes-org-config)))
+
+(use-package doom-themes
   :config
-  (defun activate-theme-solarized-light ()
-    (setq face-remapping-alist
-          '((m-inactive0 :background "#EDE8D7" :foreground "#EDE8D7")
-            (m-active0 :background "#9E9FA5" :foreground "#E6E7E8")
-            (m-inactive1 :background "#EDE8D7" :foreground "#EDE8D7")
-            (m-active1 :background "#9E9FA5" :foreground "#EDE8D7")
-            (m-inactive2 :background "#EDE8D7" :foreground "#EDE8D7")
-            (m-active2 :background "#CECFD2" :foreground "#565861")
-            (m-inactive3 :background "#EDE8D7" :foreground "#9E9FA5")
-            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
-            (m-inactive4 :background "#EDE8D7" :foreground "#9E9FA5")
-            (m-active4 :background "#00E5E5" :foreground "#262834")
-            (default :foreground "#60767E")))
-    (set-mouse-color "black"))
-  (defun activate-theme-solarized-dark ()
-    (setq face-remapping-alist
-          '((m-inactive0 :background "#262834" :foreground "#565861")
-            (m-active0 :background "#565861" :foreground "#9E9FA5")
-            (m-inactive1 :background "#262834" :foreground "#565861")
-            (m-active1 :background "#565861" :foreground "#E6E7E8")
-            (m-inactive2 :background "#262834" :foreground "#565861")
-            (m-active2 :background "#CECFD2" :foreground "#565861")
-            (m-inactive3 :background "#565861" :foreground "#9E9FA5")
-            (m-active3 :background "#A863C9" :foreground "#FFFFFF")
-            (m-inactive4 :background "#565861" :foreground "#9E9FA5")
-            (m-active4 :background "#00e5e5" :foreground "#262834")))
-    (set-mouse-color "white"))
-  (add-to-list 'm-themes '(solarized-light . activate-theme-solarized-light))
-  (add-to-list 'm-themes '(solarized-dark . activate-theme-solarized-dark)))
+  (add-multiple-to-list 'a-theme-themes
+                        '((doom-one ((preset . dark)))
+                          (doom-vibrant ((preset . dark)))
+                          (doom-one-light ((preset . light)))
+                          (doom-solarized-light ((preset . light)))
+                          (doom-dracula ((preset . dark)))
+                          (doom-molokai ((preset . dark)))
+                          (doom-tomorrow-day ((preset . light))))))
 
 (use-package powerline
   :custom
@@ -429,6 +509,15 @@ Do not merge packages listed in `m-pinned-packages'."
                              (powerline-fill face1 (powerline-width rhs))
                              (powerline-render rhs)))))))
 
+(use-package window-highlight
+  :if (>= emacs-major-version 27)
+  :straight
+  (:type git :host github :repo "dcolascione/emacs-window-highlight")
+  :config
+  (window-highlight-mode 1))
+
+(a-theme-activate a-theme-current-theme)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; User Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -463,7 +552,7 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; Beeping is REALLY NOT OK
 (setq visible-bell t
       ring-bell-function 'echo-area-visible-bell
-      ; Show keystrokes right away, don't show the message in the scratch buffer
+      ;; Show keystrokes right away, don't show the message in the scratch buffer
       echo-keystrokes 0.1)
 
 ;; Use the system clipboard
@@ -481,18 +570,6 @@ Do not merge packages listed in `m-pinned-packages'."
 
 ;; Show line in the original buffer from occur mode
 (setq list-matching-lines-jump-to-current-line t)
-
-;; (defun scroll-down-4 ()
-;;   "Scroll 4 lines down."
-;;   (interactive)
-;;   (setq this-command 'scroll-down)
-;;   (scroll-down 4))
-
-;; (defun scroll-up-4 ()
-;;   "Scroll 4 lines up."
-;;   (interactive)
-;;   (setq this-command 'scroll-up)
-;;   (scroll-up 4))
 
 (defun next-line-4 ()
   "Scroll 4 lines down."
@@ -545,7 +622,7 @@ Do not merge packages listed in `m-pinned-packages'."
   (call-interactively 'indent-region))
 
 (defun cut-line-or-region ()
-  "Cut current line, or text selection.
+  "Cut current line, or text selection.))))))))
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
 
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
@@ -649,6 +726,19 @@ Version 2017-12-04"
  ("s-h" . ns-do-hide-emacs)
  ("s-H" . ns-do-hide-others))
 
+(use-package goto-addr
+  :hook
+  ((compilation-mode . goto-address-mode)
+   (prog-mode . goto-address-prog-mode)
+   (eshell-mode . goto-address-mode)
+   (shell-mode . goto-address-mode))
+  :commands
+  (goto-address-prog-mode
+   goto-address-mode)
+  :bind
+  (:map goto-address-highlight-keymap
+        ("C-c C-o" . goto-address-at-point)))
+
 (defun config-unix ()
   "Configure Emacs for common Unix (Linux and macOS) settings."
   ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
@@ -668,7 +758,9 @@ Version 2017-12-04"
         ns-right-command-modifier 'left
         ns-control-modifier 'control
         ns-right-control-modifier 'left
-        ns-function-modifier 'hyper)
+        ns-function-modifier 'hyper
+        ;; Open files from Finder in same frame.
+        ns-pop-up-frames nil)
   (when window-system (menu-bar-mode +1))
   (set-face-font 'default "Monaco-13")
   (set-face-attribute 'default nil
@@ -706,26 +798,13 @@ When using Homebrew, install it using \"brew install trash\"."
     (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
 
   (bind-key "C-c i" #'reveal-in-windows-explorer))
-             
+
 ;; OS specific configuration
 (pcase system-type
   ('darwin (config-macos))
   ('gnu/linux (config-linux))
   ('windows-nt (config-windows))
   ('cygwin (config-windows)))
-
-(use-package goto-addr
-  :hook
-  ((compilation-mode . goto-address-mode)
-   (prog-mode . goto-address-prog-mode)
-   (eshell-mode . goto-address-mode)
-   (shell-mode . goto-address-mode))
-  :bind
-  (:map goto-address-highlight-keymap
-        ("C-c C-o" . goto-address-at-point))
-  :commands
-  (goto-address-prog-mode
-   goto-address-mode))
 
 ;; Enable ido for the few functions that don't have ivy coverage.
 (setq ido-enable-flex-matching t)
@@ -788,6 +867,9 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; Desktop
 (desktop-save-mode 1)
 
+(add-to-list 'desktop-globals-to-save 'kill-ring)
+(add-to-list 'desktop-globals-to-save 'a-theme-current-theme)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Help!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -796,6 +878,10 @@ When using Homebrew, install it using \"brew install trash\"."
       apropos-do-all t
       ;; Select help window so it's easy to quit it with `q'
       help-window-select t)
+
+(bind-keys
+ ("C-h C-i" . #'elisp-index-search)
+ ("C-h M-i" . #'info-apropos))
 
 ;; ELDoc
 (seq-do (lambda (list) (add-hook list #'turn-on-eldoc-mode))
@@ -828,12 +914,26 @@ When using Homebrew, install it using \"brew install trash\"."
   (("M-s-h" . which-key-show-top-level)))
 
 (use-package man
+  :custom
+  ;; Make the manpage the current buffer in the current window
+  (Man-notify-method 'pushy)
   :config
   (set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
   (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t))
 
+(use-package info-colors
+  :commands
+  (info-colors-fontify-node)
+  :config
+  (add-hook 'Info-selection-hook 'info-colors-fontify-node))
+
+(use-package define-word
+  :bind
+  ("C-c W" . define-word)
+  ("C-c w" . define-word-at-point))
+
 (use-package tldr
-  :ensure-system-package t
+  :ensure-system-package tldr
   :init
   (unbind-key "C-h t")
   :custom
@@ -842,30 +942,103 @@ When using Homebrew, install it using \"brew install trash\"."
   (("C-h t t" . tldr)
    ("C-h t u" . tldr-update-docs)))
 
-(use-package info-colors
-  :commands
-  (info-colors-fontify-node)
-  :config
-  (add-hook 'Info-selection-hook 'info-colors-fontify-node))
+(defface eg-h1
+  '((((class color) (background light))
+     (:foreground "#ff8700" :bold t :height 2.0))
+    (((class color) (background dark))
+     (:foreground "#ffa722" :bold t :height 2.0)))
+  ""
+  :group 'eg)
 
-(use-package dash-at-point
-  :if (eq system-type 'darwin)
+(defface eg-h2
+  '((((class color) (background light))
+     (:foreground "#1f5bff" :bold t :height 1.2))
+    (((class color) (background dark))
+     (:foreground "#6faaff" :bold t :height 1.2)))
+  ""
+  :group 'eg)
+
+(defface eg-h3
+  '((((class color) (background light))
+     (:foreground "#5a5a5a" :bold t))
+    (((class color) (background dark))
+     (:foreground "#d7ff87" :bold t)))
+  ""
+  :group 'eg)
+
+(defface eg-code-block
+  '((((class color) (background light))
+     (:foreground "#555" :background "#d7ff87"))
+    (((class color) (background dark))
+     (:foreground "#eee" :background "#5a5a5a")))
+  ""
+  :group 'eg)
+
+(defun eg (command)
+  "Run the `eg' command (https://github.com/srsudar/eg) and
+display as if from a terminal."
+  (interactive
+   (list (completing-read
+          "eg: "
+          (let ((l (split-string (shell-command-to-string "eg --list"))))
+            (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
+  (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
+  (insert
+   (mapconcat (lambda (line)
+                (cond
+                 ((equal "" line)
+                  "")
+                 ((string-prefix-p "# " line)
+                  (propertize (substring line 2) 'face 'eg-h1))
+                 ((string-prefix-p "## " line)
+                  (propertize (substring line 3) 'face 'eg-h2))
+                 ((string-prefix-p "### " line)
+                  (propertize (substring line 4) 'face 'eg-h3))
+                 ((string-prefix-p "    " line)
+                  (concat "    " (propertize (substring line 4) 'face 'eg-code-block)))
+                 (t line)))
+              (split-string
+               (shell-command-to-string
+                (concat "eg --no-color --pager-cmd cat " command))
+               "\n")
+              "\n"))
+  (goto-char (point-min))
+  (help-mode))
+
+(use-package dash-docs
+  :straight
+  (:type git :host github :repo "gilbertw1/dash-docs")
+  :custom
+  (dash-docs-docsets-path "~/code/docsets")
+  (dash-docs-browser-func #'eww)
+  (dash-docs-common-docsets '("Bash"
+                              "CSS"
+                              "ClojureDocs"
+                              "ClojureScript"
+                              "Docker"
+                              "Emacs Lisp"
+                              "Hammerspoon"
+                              "JavaScript"
+                              "Lua"
+                              "NodeJS"
+                              "PouchDB"
+                              "Python 3"
+                              "React"
+                              "SQLite"
+                              "caniuse"
+                              "jsdoc"
+                              "use-package")))
+
+(use-package counsel-dash
   :ensure-system-package
-  ("/Applications/Dash.app" . "brew cask install dash")
-  :config
-  (seq-do (curry #'add-to-list 'dash-at-point-mode-alist)
-          '((clojure-mode . "clojuredocs")
-            (clojurec-mode . "clojuredocs")
-            (clojurescript-mode . "clojuredocs")
-            (fish-mode . "fish")
-            (inferior-emacs-lisp-mode . "elisp")
-            (lisp-mode . "lisp")
-            (lisp-interaction-mode . "elisp")
-            (lua-mode . "lua")
-            (sh-mode . "bash")
-            (slime-repl-mode . "lisp")))
+  sqlite3
+  :straight
+  (:type git :host github :repo "gilbertw1/counsel-dash")
+  :commands
+  (counsel-dash counsel-dash-at-point counsel-dash-install-docset)
   :bind
-  ("M-s-." . dash-at-point))
+  ("M-s-l" . counsel-dash)
+  ("M-s-." . counsel-dash-at-point))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Buffer Navigation and Management
@@ -899,17 +1072,65 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; scratch
 (setq initial-scratch-message nil
-      initial-major-mode 'org-mode)
+      initial-major-mode 'lisp-interaction-mode)
 
 (defun new-scratch-buffer ()
-  "Create or go to a scratch buffer."
+  "Create or go to a scratch buffer. Try these things in succession:
+
+1. Select an existing window containing the scratch buffer.
+2. Switch to an existing scratch buffer.
+3. Create a new scratch buffer and switch to it."
   (interactive)
-  (switch-to-buffer (get-buffer-create "<untitled>"))
-  (setq buffer-file-name "untitled")
-  (org-mode))
+  (let ((bn "<untitled>"))
+    (cond
+     (current-prefix-arg
+      (let ((bn (generate-new-buffer bn))))
+      (switch-to-buffer bn)
+      (setq buffer-file-name bn)
+      (funcall initial-major-mode))
+     ((get-buffer-window bn) (select-window (get-buffer-window bn)))
+     ((get-buffer bn) (switch-to-buffer bn))
+     (t (switch-to-buffer (get-buffer-create bn))
+        (setq buffer-file-name "untitled")
+        (funcall initial-major-mode)))))
 
 (bind-keys ("s-n" . new-scratch-buffer)
            ("C-c C-n . new-scratch-buffer"))
+
+;; (internal-complete-buffer "*help" #'match-buffer-name t)
+
+;; (setq special-display-regexps-help
+;;       (rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*")))
+
+;; (defun m-special-display-function (buffer &optional args)
+;;   "Pop up a window displaying BUFFER and return said window. ARGS
+;; is an alist with additional parameters."
+;;   (let ((name "*Help*"))
+;;     (or (cond
+;;          ((string-match-p special-display-regexps-help name)
+;;           (-some (lambda (w)
+;;                    (if (string-match-p special-display-regexps-help (buffer-name (window-buffer w)))
+;;                        w))
+;;                  (window-list))))
+;;         (pop-to-buffer buffer))))
+
+;; (setq special-display-function #'m-special-display-function)
+
+;; (setq special-display-buffer-names '("*Help*"))
+
+;; (add-to-list 'same-window-regexps "\\*helpful ")
+;; (add-multiple-to-list 'same-window-buffer-names
+;;                       '("*Help*" "*Apropos*" "*Summary*" "*info*"))
+
+(setq display-buffer-alist
+      `((,(rx bos
+              (or "*Apropos*" "*eww*" "*Help*" "*helpful" "*info*" "*Summary*")
+              (0+ not-newline))
+         (display-buffer-reuse-mode-window display-buffer-pop-up-window)
+         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+
+;; (setq special-display-buffer-names '("*Apropos*" "*Help*" "*info*" "*Summary*")
+;;       special-display-regexps '("*helpful"))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -961,9 +1182,7 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; Create friendly names for buffers with the same name
 (setq uniquify-buffer-name-style 'forward
       uniquify-separator "/"
-                                        ; rename after killing uniquified
       uniquify-after-kill-buffer-p t
-                                        ; don't muck with special buffers
       uniquify-ignore-buffers-re "^\\*")
 
 (defadvice server-visit-files (before parse-numbers-in-lines (files proc &optional nowait) activate)
@@ -1004,11 +1223,6 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 (use-package ace-window
   :bind
   (("M-o" . ace-window)))
-
-(use-package auto-dim-other-buffers
-  :config
-  (auto-dim-other-buffers-mode t)
-  (set-face-attribute 'auto-dim-other-buffers-face nil :background "#1F1F1F"))
 
 (use-package winum
   :custom
@@ -1074,9 +1288,10 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
   :commands
   (backup-walker-start))
 
-(use-package backups-mode
-  :config
-  (backups-minor-mode))
+;; Automatically save files kind of like Apple Mac apps.
+;; (use-package backups-mode
+;;   :config
+;;   (backups-minor-mode))
 
 ;; Wrap text.
 (setq-default fill-column 80)
@@ -1244,8 +1459,10 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
            ("s-X" . move-region-to-other-window))
 
 (use-package elisp-slime-nav
+  :commands
+  (elisp-slime-nav-mode)
   :hook
-  (emacs-lisp-mode . ($ (elisp-slime-nav-mode t))))
+  ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
 
 ;; (use-package undo-tree
 ;;   :init
@@ -1355,20 +1572,21 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   (outline-next-visible-heading 1)
   (outline-show-subtree))
 
-;; outline-mode for folding sections (in lisps that is defined by `;;;')
+;; outline-mode extension for navigating by sections. in Emacs Lisp that is defined by
+;; `;;; ', `;;;; ', etc. Everywhere else it is like `;; * ' `;; ** ', and so on.
 (use-package outshine
-  :custom
-  (outline-minor-mode-prefix "\M-#")
+  :init
+  (defvar outline-minor-mode-prefix "\M-#")
   :config
   ;; Narrowing now works within the headline rather than requiring to be on it
   (advice-add 'outshine-narrow-to-subtree :before
               (lambda (&rest args) (unless (outline-on-heading-p t)
                                      (outline-previous-visible-heading 1))))
+  :commands
+  (outshine-mode outshine-hook-function)
   :hook
   ((prog-mode . outline-minor-mode)
    (outline-minor-mode . outshine-hook-function))
-  :commands
-  (outshine-hook-function)
   :bind
   (:map outline-minor-mode-map
         ;; Don't shadow smarparens or org bindings
@@ -1419,6 +1637,9 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   (("C-c C-s" . yas-insert-snippet)))
 
 (use-package yasnippet-snippets
+  :defer 2)
+
+(use-package react-snippets
   :defer 2)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1547,64 +1768,74 @@ ID, ACTION, CONTEXT."
   :config
   (bind-key [remap kill-line] #'sp-kill-hybrid-sexp smartparens-mode-map
             (apply #'derived-mode-p sp-lisp-modes))
-  ;; (sp-with-modes
-  ;;     '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
-  ;;              python-mode java-mode sh-mode web-mode)
-  ;;   (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-  ;;   (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
-  ;;   (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
-  ;; (sp-with-modes
-  ;;     '(python-mode)
-  ;;   (sp-local-pair "\"\"\"" "\"\"\""
-  ;;                  :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
-  ;; (sp-with-modes
-  ;;     '(sh-mode)
-  ;;   (sp-local-pair "do" "done"
-  ;;                  :when '(("SPC" "RET"))
-  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-  ;;                  :actions '(insert navigate)
-  ;;                  :pre-handlers '(sp-sh-pre-handler)
-  ;;                  :post-handlers '(sp-sh-block-post-handler))
-  ;;   (sp-local-pair "then" "fi"
-  ;;                  :when '(("SPC" "RET"))
-  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-  ;;                  :actions '(insert navigate)
-  ;;                  :pre-handlers '(sp-sh-pre-handler)
-  ;;                  :post-handlers '(sp-sh-block-post-handler))
-  ;;   (sp-local-pair "case" "esac"
-  ;;                  :when '(("SPC" "RET"))
-  ;;                  :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
-  ;;                  :actions '(insert navigate)
-  ;;                  :pre-handlers '(sp-sh-pre-handler)
-  ;;                  :post-handlers '(sp-sh-block-post-handler)))
+  (sp-with-modes
+      '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
+               python-mode java-mode sh-mode web-mode)
+    (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
+    (sp-local-pair "(" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  (sp-with-modes
+      '(python-mode)
+    (sp-local-pair "\"\"\"" "\"\"\""
+                   :post-handlers '((sp-create-newline-and-enter-sexp "RET"))))
+  (sp-with-modes
+      '(sh-mode)
+    (sp-local-pair "do" "done"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler))
+    (sp-local-pair "then" "fi"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler))
+    (sp-local-pair "case" "esac"
+                   :when '(("SPC" "RET"))
+                   :unless '(sp-in-string-p sp-in-comment-p sp-in-docstring-p)
+                   :actions '(insert navigate)
+                   :pre-handlers '(sp-sh-pre-handler)
+                   :post-handlers '(sp-sh-block-post-handler)))
   :hook
   (smartparens-mode . (lambda ()
                         (require 'smartparens-config)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
-  ((emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
-  (clojure-mode . (lambda () (require 'smartparens-clojure)
+  ((css-mode emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
+  (clojure-mode . (lambda ()
+                    (require 'smartparens-clojure)
                     (turn-on-smartparens-mode)))
-  ((ruby-mode enh-ruby-mode) . (lambda () (require 'smartparens-ruby)
+  ((ruby-mode enh-ruby-mode) . (lambda ()
+                                 (require 'smartparens-ruby)
                                  (turn-on-smartparens-mode)))
-  ((javascript-mode js2-mode) . (lambda () (require 'smartparens-javascript)
-                                  (turn-on-smartparens-mode)))
-  (lua-mode . (lambda () (require 'smartparens-lua)
+  ((javascript-mode js2-mode json-mode rjsx-mode) .
+   (lambda ()
+     (require 'smartparens-javascript)
+     (turn-on-smartparens-mode)))
+  (lua-mode . (lambda ()
+                (require 'smartparens-lua)
                 (turn-on-smartparens-mode)))
-  (markdown-mode . (lambda () (require 'smartparens-markdown)
+  (markdown-mode . (lambda ()
+                     (require 'smartparens-markdown)
                      (turn-on-smartparens-mode)))
-  (org-mode . (lambda () (require 'smartparens-org)
+  (org-mode . (lambda ()
+                (require 'smartparens-org)
                 (turn-on-smartparens-mode)))
-  ((python-mode elpy-mode) . (lambda () (require 'smartparens-python)
+  ((python-mode elpy-mode) . (lambda ()
+                               (require 'smartparens-python)
                                (turn-on-smartparens-mode)))
-  (text-mode . (lambda () (require 'smartparens-text)
+  (text-mode . (lambda ()
+                 (require 'smartparens-text)
                  (turn-on-smartparens-mode)))
-  (web-mode . (lambda () (require 'smartparens-html)
+  (web-mode . (lambda ()
+                (require 'smartparens-html)
                 (turn-on-smartparens-mode)))
   :bind
   (:map smartparens-mode-map
-        ;; Causes problems in `clojure-mode'
-        ;; ("RET" . sp-newline)
+        ("C-M-k" . sp-kill-sexp)
+        ("C-M-<backspace>" . sp-backward-kill-sexp)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
 (use-package parinfer
@@ -1628,6 +1859,8 @@ ID, ACTION, CONTEXT."
         ("C-," . parinfer-toggle-mode)
         ;; Don't interfere with smartparens quote handling
         ("\"" . nil)
+        ;; sp-newline seems to offer a better experience for lisps
+        ("RET" . sp-newline)
         :map parinfer-region-mode-map
         ("C-i" . indent-for-tab-command)
         ("<tab>" . parinfer-smart-tab:dwim-right)
@@ -1664,6 +1897,19 @@ ID, ACTION, CONTEXT."
     (message "Opening %s..." file)
     (os-open-file file)))
 
+(defun dired-dotfiles-toggle ()
+  "Show/hide dot-files"
+  (interactive)
+  (when (equal major-mode 'dired-mode)
+    (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
+        (progn 
+          (set (make-local-variable 'dired-dotfiles-show-p) nil)
+          (message "h")
+          (dired-mark-files-regexp "^\\\.")
+          (dired-do-kill-lines))
+      (progn (revert-buffer) ; otherwise just revert to re-show
+             (set (make-local-variable 'dired-dotfiles-show-p) t)))))
+
 (setq dired-recursive-deletes 'always
       dired-recursive-copies 'always
       dired-listing-switches "-alh"
@@ -1678,8 +1924,9 @@ ID, ACTION, CONTEXT."
  ("C-x d" . dired)
  :map dired-mode-map
  ("C-c o" . dired-open-file)
- ("C-x f" . find-file-literally-at-point)
- ("T" . touch))
+ ("C-x M-f" . find-file-at-point)
+ ("T" . touch)
+ ("C-." . dired-dotfiles-toggle))
 
 (use-package diredfl
   :config
@@ -1687,12 +1934,15 @@ ID, ACTION, CONTEXT."
 
 (use-package dired-subtree
   :bind
-  ("C-, i" . dired-subtree-insert)
-  ("C-, r" . dired-subtree-remove)
-  ("C-, R" . dired-subtree-revert)
-  ("C-, n" . dired-subtree-narrow)
-  ("C-, ^" . dired-subtree-up)
-  ("C-, v" . dired-subtree-down))
+  (:map dired-mode-map
+        ("I" . dired-subtree-cycle)
+        ("TAB" . dired-subtree-cycle)
+        ("C-, i" . dired-subtree-insert)
+        ("C-, r" . dired-subtree-remove)
+        ("C-, R" . dired-subtree-revert)
+        ("C-, n" . dired-subtree-narrow)
+        ("C-, ^" . dired-subtree-up)
+        ("C-, v" . dired-subtree-down)))
 
 (use-package dired-rsync
   :bind
@@ -1709,10 +1959,19 @@ ID, ACTION, CONTEXT."
   (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
   (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
   :bind
-  (("C-x C-j" . dired-sidebar-toggle-sidebar)))
+  (("C-x M-d" . dired-sidebar-toggle-sidebar)))
+
+(use-package dired-du
+  :custom
+  ;; Human readable file sizes.
+  (dired-du-size-format t)
+  (dired-du-used-space-program '("du" "sb"))
+  (dired-du-update-headers t)
+  :commands
+  (dired-du-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Shell, SSH, Tramp
+;;; Shell, Terminal, SSH, Tramp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'tramp)
@@ -1764,9 +2023,9 @@ ID, ACTION, CONTEXT."
             (apply-partially #'string-match "^/sshx\?:\\([a-z]+\\):")
             recentf-list))))
 
-(defun ssh-choose-host ()
+(defun ssh-choose-host (&optional prompt)
   "Make a list of recent ssh hosts and interactively choose one."
-  (completing-read "SSH to Host: "
+  (completing-read (or prompt "SSH to Host: ")
                    (-distinct
                     (append
                      (list-hosts-from-recentf)
@@ -1826,10 +2085,29 @@ ID, ACTION, CONTEXT."
 (setq explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login"))
 (defun ssh-dtach (host)
   "Open SSH connection to remote host and attach to dtach session."
-  (interactive "MSSH using dtach to host: ")
+  (interactive (list (ssh-choose-host "SSH using dtach to host: ")))
   (let ((explicit-shell-file-name "dtach")
-        (default-directory (format  "/sshx:%s:" host)))
-    (shell (format "*ssh %s*" host))))
+        (default-directory (format  "/sshx:%s:" host))
+        (explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login")))
+    (shell (format "*ssh (dtach) %s*" host))))
+
+;; https://www.emacswiki.org/emacs/ShellMode
+(defun term-switch-to-shell-mode ()
+  (interactive)
+  (if (equal major-mode 'term-mode)
+      (progn
+        (shell-mode)
+        (set-process-filter  (get-buffer-process (current-buffer)) 'comint-output-filter)
+        (local-set-key (kbd "C-M-j") 'term-switch-to-shell-mode)
+        (compilation-shell-minor-mode 1)
+        (comint-send-input))
+    (progn
+      (compilation-shell-minor-mode -1)
+      (font-lock-mode -1)
+      (set-process-filter  (get-buffer-process (current-buffer)) 'term-emulate-terminal)
+      (term-mode)
+      (term-char-mode)
+      (term-send-raw-string (kbd "C-l")))))
 
 ;; Apply colors to `shell-command' minibuffer output.
 ;; Adapted from https://stackoverflow.com/a/42666026/1588358
@@ -1854,7 +2132,12 @@ ID, ACTION, CONTEXT."
          :map term-raw-map
          ("M-o" . other-window)
          ("M-p" . term-send-up)
-         ("M-n" . term-send-down)))
+         ("M-n" . term-send-down)
+         ("C-M-j" . term-switch-to-shell-mode)))
+
+(add-to-list 'load-path "~/code/emacs-libvterm")
+(let (vterm-install)
+  (require 'vterm))
 
 ;; xterm colors
 (use-package xterm-color
@@ -2149,15 +2432,26 @@ initialize the Eshell environment."
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
 
   ;; Commands that use curses get launched in their own `term' buffer
-  (seq-do (curry #'add-to-list 'eshell-visual-commands)
-          '("htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux" "top" "vim" "w3m"))
-  (seq-do (curry #'add-to-list 'eshell-visual-subcommands)
+  (seq-do (-partial #'add-to-list 'eshell-visual-commands)
+          '("dasht" "htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux"
+            "top" "vim" "w3m"))
+  (seq-do (-partial #'add-to-list 'eshell-visual-subcommands)
           '(("git" "log" "diff" "show")
             ("dw" "log" "runshell" "shell")))
 
   ;; Load the Eshell versions of `su' and `sudo'
   (require 'em-tramp)
   (add-to-list 'eshell-modules-list 'eshell-tramp))
+
+(defun ibuffer-show-eshell-buffers ()
+  "Open an ibuffer window and display all Eshell buffers."
+  (interactive)
+  (ibuffer nil "Eshell Buffers" '((mode . eshell-mode)) nil t nil
+           '(((name 16 16 :left)
+              " "
+              (process 24 24 :left)
+              " "
+              (filename 0 -1 :right)))))
 
 (use-package eshell
   :custom
@@ -2179,6 +2473,7 @@ initialize the Eshell environment."
   (("s-e" . eshell)
    ("C-c e" . eshell)
    ("s-E" . eshell-other-window)
+   ("C-s-e" . ibuffer-show-eshell-buffers)
    ("C-c E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
@@ -2498,8 +2793,10 @@ Inserted by installing org-mode or when a release is made."
 
 ;; Doesn't seem to work. Probably API changed?
 ;; (use-package org-wunderlist
-;;   :bind
-;;   ("C-c o w" . org-wunderlist-fetch))
+;;   :commands
+;;   (org-wunderlist-fetch))
+  ;; :bind
+  ;; ("C-c o w" . org-wunderlist-fetch))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Log files
@@ -2592,14 +2889,14 @@ _R_ebuild package |_P_ull package  |_V_ersions thaw  |_W_atcher quit    |pru_n_e
 
 (defhydra hydra-window ()
   "
-Movement^^        ^Split^         ^Switch^		^Resize^
+Movement^^        ^Split^         ^Switch^    ^Resize^
 ----------------------------------------------------------------
-_h_ ←       	_v_ertical    	_b_uffer		_q_ X←
-_j_ ↓        	_x_ horizontal	_f_ind files	_w_ X↓
-_k_ ↑        	_z_ undo      	_a_ce 1		_e_ X↑
-_l_ →        	_Z_ reset      	_s_wap		_r_ X→
-_F_ollow		_D_lt Other   	_S_ave		max_i_mize
-_SPC_ cancel	_o_nly this   	_d_elete	
+_h_ ←         _v_ertical      _b_uffer    _q_ X←
+_j_ ↓         _x_ horizontal  _f_ind files  _w_ X↓
+_k_ ↑         _z_ undo        _a_ce 1   _e_ X↑
+_l_ →         _Z_ reset       _s_wap    _r_ X→
+_F_ollow    _D_lt Other     _S_ave    max_i_mize
+_SPC_ cancel  _o_nly this     _d_elete
 "
   ("h" windmove-left)
   ("j" windmove-down)
@@ -2617,17 +2914,17 @@ _SPC_ cancel	_o_nly this   	_d_elete
          (ace-window 1)
          (add-hook 'ace-window-end-once-hook
                    'hydra-window/body)))
-   
+
   ("v" (lambda ()
          (interactive)
          (split-window-right)
          (windmove-right)))
-   
+
   ("x" (lambda ()
          (interactive)
          (split-window-below)
          (windmove-down)))
-   
+
   ("s" (lambda ()
          (interactive)
          (ace-window 4)
@@ -2640,16 +2937,15 @@ _SPC_ cancel	_o_nly this   	_d_elete
          (ace-window 16)
          (add-hook 'ace-window-end-once-hook
                    'hydra-window/body)))
-   
+
   ("o" delete-other-windows)
   ("i" ace-maximize-window)
   ("z" (progn
          (winner-undo)
          (setq this-command 'winner-undo)))
-   
+
   ("Z" winner-redo)
   ("SPC" nil))
-  
 
 (defhydra hydra-multiple-cursors (:hint nil)
   "
@@ -2744,7 +3040,7 @@ _q_ quit
         regexp-history)
   (call-interactively 'occur))
 
-;; Keeps focus on *Occur* window, even when when target is visited via RETURN key.
+;; Keeps focus on *Occur* window, even when target is visited via RETURN key.
 ;; See hydra-occur-dwim for more options.
 (defadvice occur-mode-goto-occurrence (after occur-mode-goto-occurrence-advice activate)
   (other-window 1)
@@ -2938,6 +3234,9 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (reb-re-syntax 'string))
 
 (use-package wgrep
+  :custom
+  ;; Save changed buffers immediately when exiting wgrep mode
+  (wgrep-auto-save-buffer t)
   :bind
   (("C-c C-p" . wgrep-change-to-wgrep-mode)))
 
@@ -2989,12 +3288,18 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (:map prog-mode-map
         ("<tab>" . company-indent-or-complete-common)
         :map company-active-map
-        ;; * TODO: The inconsistency between C-n and M-n to select company
+        ;; TODO: The inconsistency between C-n and M-n to select company
         ;; completion in different contexts (e.g `emacs-lisp-mode' and
         ;; `eshell-mode') is aggravating. Not sure about the solution though.
         ;; ("C-n" . company-select-next) ("C-p" . company-select-previous)
-        ("C-d" . company-show-doc-buffer)
         ("M-." . company-show-location)))
+
+(use-package company-quickhelp
+  :bind
+  (:map company-active-map
+        ("C-c h" . company-quickhelp-manual-begin))
+  :hook
+  (global-company-mode . company-quickhelp-mode))
 
 (use-package company-shell
   :config
@@ -3013,9 +3318,10 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   ;; (ivy-use-virtual-buffers t)
   :config
   (ivy-mode 1)
-  :bind ("C-c C-r" . ivy-resume)
-        ("s-b" . ivy-switch-buffer)
-        ("s-B" . ivy-switch-buffer-other-window))
+  :bind
+  ("C-c C-r" . ivy-resume)
+  ("s-b" . ivy-switch-buffer)
+  ("s-B" . ivy-switch-buffer-other-window))
 
 (use-package ivy-hydra
   :defer 1)
@@ -3188,14 +3494,29 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   "Run `git add' on the selected files in a dired buffer"
   (interactive)
   (let ((files (dired-get-marked-files)))
-    (dired-do-shell-command "git add" nil files)
-    (message "Finished running git add on files: %s" files)))
+    (message "> git add %s" files)
+    (dired-do-shell-command "git add" nil files)))
 
 (bind-key ";" #'dired-git-add dired-mode-map)
 
+;; Magit dependencies. Unless these are included here, they don't get loaded.
+;; Haven't investigated why.
+(use-package graphql)
+(use-package treepy)
+
+(use-package magit
+  :requires
+  (graphql treepy)
+  :custom
+  (magit-completing-read-function 'ivy-completing-read)
+  :commands
+  (magit-call-git)
+  :bind
+  (("C-x g" . magit-status)
+   ("C-x C-g" . magit-dispatch-popup)))
+
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
-  (require 'magit)
   (interactive (list (read-directory-name "Gitdir: ")
                      (read-directory-name "Worktree: ")))
   (with-temp-file (expand-file-name ".git" worktree)
@@ -3242,6 +3563,10 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
                          (expand-file-name (match-string 1)))
                        (getenv "HOME")))
 
+(bind-keys
+ ("C-c M-l" . git-home-link)
+ ("C-c M-u" . git-home-unlink))
+
 (defun projectile-git-ls-files (&optional dir)
   "List all the tracked files in the current git repo, optionally
 specified by DIR."
@@ -3258,20 +3583,6 @@ git repo, optionally specified by DIR."
     (rename-buffer (format "*git ls-files %s*" dir))))
 
 (bind-key "C-x G" #'projectile-git-ls-files-dired)
-
-;; Magit dependencies. Unless these are included here, they don't get loaded.
-;; Haven't investigated why.
-(use-package graphql)
-(use-package treepy)
-
-(use-package magit
-  :requires
-  (graphql treepy)
-  :custom
-  (magit-completing-read-function 'ivy-completing-read)
-  :bind
-  (("C-x g" . magit-status)
-   ("C-x C-g" . magit-dispatch-popup)))
 
 (use-package git-timemachine
   :bind
@@ -3304,8 +3615,8 @@ git repo, optionally specified by DIR."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package eww
-  :hook
-  (eww-mode . (lambda () (text-scale-set 2))))
+  :commands
+  (eww))
 
 (use-package shr-tag-pre-highlight
   :after shr
@@ -3313,7 +3624,7 @@ git repo, optionally specified by DIR."
   (add-to-list 'shr-external-rendering-functions '(pre . shr-tag-pre-highlight)))
 
 (use-package w3m
-  :ensure-system-package t
+  :ensure-system-package w3m
   :custom
   (w3m-search-default-engine "duckduckgo")
   :commands
@@ -3358,20 +3669,88 @@ git repo, optionally specified by DIR."
 ;;; Emacs Lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(bind-keys :map emacs-lisp-mode-map
+(use-package crux
+  :bind
+  ("C-c O" . crux-open-with)
+  ("C-x f" . crux-recentf-find-file)
+  ("C-c C-e" . crux-eval-and-replace)
+  ("C-c D" . crux-delete-file-and-buffer)
+  ("C-c d" . crux-duplicate-current-line-or-region)
+  ("C-c R" . crux-rename-file-and-buffer)
+  ("M-s-r" . crux-rename-file-and-buffer)
+  ("C-c k" . crux-kill-other-buffers)
+  ("C-M-X" . crux-indent-defun)
+  ("C-c I" . crux-find-user-init-file)
+  ("C-c S" . crux-find-shell-init-file)
+  ("C-<backspace>" . crux-kill-line-backwards))
+
+(defun eval-last-sexp-other-window (eval-last-sexp-arg-internal)
+  "Run `eval-last-sexp' in the other window."
+  (interactive "P")
+  (save-window-excursion
+    (other-window 1)
+    (eval-last-sexp eval-last-sexp-arg-internal)))
+
+(defun expression-to-register (register)
+  "Interactively store an Emacs Lisp expression in a REGISTER. If
+  region is active, store that. Otherwise, store the sexp at
+  point."
+  (interactive (list (register-read-with-preview "Copy expression to register: ")))
+  (set-register register
+                (if (region-active-p)
+                    (buffer-substring (mark) (point))
+                  (destructuring-bind (start . end) (bounds-of-thing-at-point 'sexp)
+                    (buffer-substring start end))))
+  (setq deactivate-mark t)
+  (when (called-interactively-p 'interactive) (indicate-copied-region)))
+
+(defun eval-register (register)
+  "Evaluate contents of register REGISTER (which hopefully
+contains a string) as an Emacs Lisp expression. REGISTER is a
+character and its contents are a string.
+
+If called with a prefix arg, then insert the return value at
+point.
+
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (progn
+                 (barf-if-buffer-read-only)
+                 (list (register-read-with-preview "Eval register: ")
+                       current-prefix-arg)))
+  (print arg)
+  (let* ((val (get-register register))
+         (res (eval (car (read-from-string (format "(progn %s)" val))))))
+    (when arg (register-val-insert res))))
+
+(defun replace-last-sexp ()
+  (interactive)
+  (let ((value (eval (preceding-sexp))))
+    (kill-sexp -1)
+    (insert (format "%S" value))))
+
+(bind-keys ("C-c C-j" . replace-last-sexp)
+           :map lisp-mode-shared-map
            ("s-<return>" . eval-last-sexp)
+           ("C-s-<return>" . eval-last-sexp-other-window)
            ("C-c C-k" . eval-buffer)
            ("C-x C-r" . eval-region)
-           :map lisp-interaction-mode-map
-           ("s-<return>" . eval-last-sexp)
-           ("C-c C-k" . eval-buffer)
-           ("C-x C-r" . eval-region))
+           ("C-x r E" . expression-to-register)
+           ("C-x r e" . eval-register))
 
 (add-to-list 'auto-mode-alist '("Cask\\'" . emacs-lisp-mode))
 
 (use-package elisp-format
   :commands
   (elisp-format-buffer elisp-format-file elisp-format-region))
+
+(use-package lively
+  :commands
+  (lively-shell-command)
+  :bind
+  ("C-c C-l l" . lively)
+  ("C-c C-l r" . lively-region)
+  ("C-c C-l u" . lively-update)
+  ("C-c C-l s" . lively-stop))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Clojure
@@ -3471,7 +3850,7 @@ of problems in that context."
 buffers, not just `inf-clojure-mode' ones. This function
 reinstates default behavior. See:
 https://github.com/clojure-emacs/inf-clojure/issues/154"
-  (unless inf-clojure-minor-mode
+  (unless (bound-and-true-p inf-clojure-minor-mode)
     (setq-local comint-input-sender 'comint-simple-send)))
 
 (use-package inf-clojure
@@ -3558,7 +3937,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package docker
   :bind
-  ("C-c d" . docker))
+  ("C-c M-d" . docker))
 
 (use-package docker-tramp
   :defer 2)
@@ -3567,9 +3946,11 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :mode "\\.csv\\'")
 
 (use-package nginx-mode
-  :mode "\\`Caddyfile\\'"
   :custom
   (nginx-indent-level tab-width))
+
+(use-package caddyfile-mode
+  :mode "\\`Caddyfile\\'")
 
 (use-package yaml-mode
   :mode "\\.ya\?ml\\'")
@@ -3596,6 +3977,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
    "\\.djhtml\\'"
    "\\.html?\\'")
   :custom
+  (sgml-basic-offset tab-width)
   (web-mode-markup-indent-offset tab-width)
   (web-mode-css-indent-offset tab-width)
   (web-mode-code-indent-offset tab-width)
@@ -3606,8 +3988,22 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :hook
   (web-mode . m-web-mode-hook))
 
-(use-package js2-mode
-  :mode "\\.js\\'"
+;; CSS config
+(setq-default css-indent-offset tab-width)
+
+(defun toggle-sp-newline ()
+  "Toggle whether `RET' is bound to `newline' or `sp-newline'."
+  (interactive)
+  (let* ((f (key-binding (kbd "RET")))
+         (newf (if (eq f 'sp-newline) #'newline #'sp-newline)))
+    (bind-key "RET" newf smartparens-mode-map)
+    (message "<RET> now invokes to %s" newf)))
+
+(bind-key "C-c C-<return>" #'toggle-sp-newline)
+
+;; Pulls in js2-mode because it is built on top of it
+(use-package rjsx-mode
+  :mode "\\.jsx?\\'"
   :custom
   (js2-basic-offset tab-width)
   ;; Set tab width for js-mode and json-mode
@@ -3615,11 +4011,29 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :hook
   (js2-mode . js2-imenu-extras-mode))
 
-(use-package rjsx-mode
-  :mode "\\.jsx\\'")
+(use-package js2-refactor
+  :hook
+  (js2-mode . js2-refactor-mode)
+  :bind
+  (:map js2-mode-map
+        ("C-k" . js2r-kill)))
 
-;; (use-package indium
-;;   :defer 1)
+(use-package xref-js2
+  :hook
+  (js2-mode . (lambda ()
+                (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+  :bind
+  (:map js-mode-map
+        ;; Don't shadow js2-mode-map
+        ("M-." . nil)))
+
+(use-package company-tern
+  :ensure-system-package
+  (tern . "npm install -g tern")
+  :config
+  (add-to-list 'company-backends 'company-tern)
+  :hook
+  (js2-mode . (lambda () (tern-mode) (company-mode-on))))
 
 ;; (use-package nodejs-repl
 ;;   :bind
@@ -3642,12 +4056,23 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :config
   (add-to-list 'company-backends 'company-restclient))
 
-;; (use-package elpy
-;;   :config
-;;   (elpy-enable)
-;;   (when (require 'flycheck nil t)
-;;     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-;;     (add-hook 'elpy-mode-hook 'flycheck-mode)))
+(use-package elpy
+  ;; :ensure-system-package
+  ;; (jedi . "pip install jedi flake8 autopep8 yapf")
+  :interpreter ("python3?" . python-mode)
+  :custom
+  ;; (python-shell-interpreter "ipython")
+  ;; (python-shell-interpreter-args "-i --simple-prompt")
+  (gud-pdb-command-name "python -m pdb")
+  :config
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  :hook
+  (python-mode . (lambda ()
+                   (unless (bound-and-true-p elpy-version)
+                     (elpy-enable))))
+  :bind
+  (:map python-mode-map
+        ("s-<return>" . py-execute-expression)))
 
 ;; (use-package py-autopep8
 ;;   :hook
@@ -3655,9 +4080,8 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 ;; (use-package python-mode
 ;;   :mode "\\.py\\'"
-;;   :custom
-;;   (python-indent-offset tab-width)
-;;   (py-indent-offset tab-width)
+;;   ;; :custom
+;;   ;; (python-indent-offset 4)
 ;;   :bind
 ;;   (:map python-mode-map
 ;;         ("s-<return>" . py-execute-expression)))
@@ -3678,11 +4102,6 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (:map inf-ruby-minor-mode-map
         ("s-<return>". ruby-send-last-sexp)
         ("C-M-x" . ruby-send-block)))
-
-(use-package robe
-  :hook enh-ruby-mode
-  :config
-  (eval-after-load 'company '(push 'company-robe company-backends)))
 
 (use-package lua-mode
   :mode "\\.lua\\'")

@@ -1,4 +1,2 @@
-(require-macros '[closh.core :refer [sh-str]])
-
 (defn closh-prompt []
-  (sh-str fish -c fish_prompt))
+  (str (sh-str "pwd") "\n() "))

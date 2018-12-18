@@ -17,14 +17,14 @@ Included are configurations for some programs, such as:
 * Install
 This procedure will establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at ~$HOME~. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under ~$HOME~). Then we explicitly add just the files we want.
 
-This is inspired by the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit because it allows any git-based program to interact with the repo). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that our dotfiles are in their proper locations and we explicitly choose which files to track and everything else is ignored by git. No symlinks, no duplication, no scripts.
+This is inspired by the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit because it allows any git-based program to interact with the repo). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that our dotfiles are in their proper locations and we explicitly choose which files to track and everything else is ignored by git. No symlinks, no duplication, no scripts to manage the repo.
 
 Further, we can have multiple repos tracking different sets of files, all with their workdirs pointing to ~$HOME~. I use this to merge my private settings with my public ones.
 ** The Short Version
 *** Set up a new computer
 We already have a repo and we know what we're doing. No need to back anything up. Overwrite existing files.
 #+BEGIN_SRC sh
-wget 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' -O - | sh
+wget 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' -O - | sh -s 'https://gitlab.com/mnewt/dotfiles.git'
 #+END_SRC
 Or on Windows:
 #+BEGIN_SRC powershell
@@ -56,7 +56,7 @@ env GITDIR~$HOME/.config/repos/dotfiles git config --local status.showUntrackedF
 *** Back up conflicting dotfiles
 If there are conflicting files between the repo and the existing files in ~$HOME~ then the ~git reset~ above will not have populated all the files in the branch. So, back up the conflicting files.
 #+BEGIN_SRC sh
-modified~$(git diff --name-status | awk '/^M/{print $2}')
+modified=$(git diff --name-status | awk '/^M/{print $2}')
 [ -n "$modified" ] && mkdir -p $HOME/.dotfiles-backup && cp -R $modified $HOME/.dotfiles-backup
 #+END_SRC
 *** Remove symlinks to the old repository
@@ -69,18 +69,26 @@ find -L $HOME -maxdepth 3 -type l -exec unlink -- "{}" \;
 #+END_SRC
 **** Delete all symlinks
 #+BEGIN_SRC sh
-# Find links that we may want to delete
-find $HOME -maxdepth 1 -type l -print
-# Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
-find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -print
-# Delete them
-find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -delete
+  # Find links that we may want to delete
+  find $HOME -maxdepth 1 -type l -print
+  # Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
+  find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -print
+  # Delete them
+  find $HOME -maxdepth 3 -type l -not -path $HOME/Library/*" -delete
 #+END_SRC
 *** Overwrite conflicting files
 If there were conflicting files or links and we've taken care of them, reset hard to overwrite.
 #+BEGIN_SRC sh
 git reset --hard HEAD
 #+END_SRC
+  git-home-link "$repo"
+  for f in $(git ls-files); do
+    rm "$f"
+    dir="$(dirname "$f")"
+    [ -z "$(ls -A "$dir")" ] && rmdir "$dir"
+  done
+  rm -rf "$HOME/.config/repos/$repo"
+#+end_src
 *** Link to a repo from the ~$HOME~ workdir
 The ~git-home-link~ function creates writes a .git file in ~$HOME~ pointing to one of the repos. By using this function, we can "activate" one of the repos such that we can use normal git comamnds in ~$HOME~ without specifying ~GITDIR~.
 
@@ -108,8 +116,20 @@ git commit -m "add .bashrc to new dotfiles repo"
 git push -u origin master
 rm $HOME/.git
 #+END_SRC
+*** Delete a repo and its files
+To delete a repo and all its files:
+#+begin_src sh
+  repo="dotfiles"
+  git-home-link "$repo"
+  for f in $(git ls-files); do
+    rm "$f"
+    dir="$(dirname "$f")"
+    [ -z "$(ls -A "$dir")" ] && rmdir "$dir"
+  done
+  rm -rf "$HOME/.config/repos/$repo"
+#+end_src
 *** Working in Emacs
-There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ that make it easy to work with this setup in Magit and Projectile.
+There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ in ~init.el~. They make it easy to work with this setup in git tools such as Magit, Projectile.
 * Update scripts
   There are set of update scripts in the ~bin~ directory to keep all the
   different software on a given system up to date.
