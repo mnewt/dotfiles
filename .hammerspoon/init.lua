@@ -121,7 +121,7 @@ hs.hotkey.showHotkeys(mash, "/")
 hs.console.smartInsertDeleteEnabled(false)
 hs.console.darkMode(true)
 if hs.console.darkMode() then
-   hs.preferences.darkMode(true)
+   hs.preferencesDarkMode(true)
    hs.console.outputBackgroundColor({ white = 0 })
    hs.console.consoleCommandColor({ white = 1 })
 else

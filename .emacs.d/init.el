@@ -204,10 +204,6 @@ Do not merge packages listed in `m-pinned-packages'."
 (source-sh "~/.bin/start-ssh-agent")
 (set-path)
 
-(setq m-code-directory "~/code")
-(if (not (file-directory-p m-code-directory))
-    (make-directory m-code-directory))
-
 (defun expand-environment-variable ()
   "Insert contents of an envionment variable at point."
   (interactive)
@@ -748,10 +744,10 @@ Version 2017-12-04"
         ("C-c C-o" . goto-address-at-point)))
 
 (defun config-unix ()
-  "Configure Emacs for common Unix (Linux and macOS) settings."
+  "Configure Emacs for common Unix (Linux and macOS) settings.")
   ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
-  (setq-default shell-file-name (executable-find "bash")
-                explicit-shell-file-name shell-file-name))
+  ;; (setq-default shell-file-name (executable-find "bash")
+  ;;               explicit-shell-file-name shell-file-name))
 
 (defun config-linux ()
   "Configure Emacs for Linux."
@@ -913,6 +909,12 @@ When using Homebrew, install it using \"brew install trash\"."
    ("C-h M" . helpful-macro)
    ("C-h M-s" . helpful-symbol)
    ("C-h v" . helpful-variable)))
+
+(use-package elisp-demos
+  :straight
+  (:type git :host github :repo "xuchunyang/elisp-demos" :files ("elisp-demos.*"))
+  :config
+  (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 
 (use-package which-key
   :demand t
@@ -1921,11 +1923,10 @@ ID, ACTION, CONTEXT."
 (setq dired-recursive-deletes 'always
       dired-recursive-copies 'always
       dired-listing-switches "-alh"
-      dired-dwim-target t)
+      dired-dwim-target t
+      wdired-allow-to-change-permissions t)
 
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (dired-hide-details-mode t)))
+(add-hook 'dired-mode-hook (lambda () (dired-hide-details-mode t)))
 
 (bind-keys
  ("C-x C-d" . dired-to-default-directory)
@@ -1973,7 +1974,7 @@ ID, ACTION, CONTEXT."
   :custom
   ;; Human readable file sizes.
   (dired-du-size-format t)
-  (dired-du-used-space-program '("du" "sb"))
+  (dired-du-used-space-program '("du" "-sb"))
   (dired-du-update-headers t)
   :commands
   (dired-du-mode))
@@ -2455,11 +2456,9 @@ initialize the Eshell environment."
   "Open an ibuffer window and display all Eshell buffers."
   (interactive)
   (ibuffer nil "Eshell Buffers" '((mode . eshell-mode)) nil t nil
-           '(((name 16 16 :left)
+           '(((name 64 64 :left)
               " "
-              (process 24 24 :left)
-              " "
-              (filename 0 -1 :right)))))
+              (process 0 -1 :right)))))
 
 (use-package eshell
   :custom
@@ -2479,13 +2478,13 @@ initialize the Eshell environment."
                              (setq xterm-color-preserve-properties t)))
    (eshell-post-command . (lambda ()
                             (rename-buffer
-                             (generate-new-buffer-name
-                              (concat "*eshell: " default-directory "*"))))))
+                             (format "*Eshell: %s*" default-directory) t))))
   :bind
   (("s-e" . eshell)
    ("C-c e" . eshell)
    ("s-E" . eshell-other-window)
    ("C-s-e" . ibuffer-show-eshell-buffers)
+   ("C-c M-e" . ibuffer-show-eshell-buffers)
    ("C-c E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
@@ -4101,7 +4100,10 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package hy-mode
   :ensure-system-package
   (hy . "pip install git+https://github.com/hylang/hy.git")
-  :mode "\\.hy\\'")
+  :mode "\\.hy\\'"
+  :bind
+  (:map hy-mode-map
+        ("s-<return>" . hy-shell-eval-last-sexp)))
 
 (use-package enh-ruby-mode
   :mode "\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'")
