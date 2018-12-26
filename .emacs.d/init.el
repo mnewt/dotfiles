@@ -236,47 +236,6 @@ Do not merge packages listed in `m-pinned-packages'."
 ;; eww uses this as its default font, among others.
 (set-face-font 'variable-pitch "Georgia-18")
 
-;; Base faces for modeline
-(defface m-inactive0 '((t (:inherit mode-line-inactive)))
-  "Powerline inactive face 0."
-  :group 'powerline)
-
-(defface m-active0 '((t (:inherit default)))
-  "Powerline active face 0."
-  :group 'powerline)
-
-(defface m-inactive1 '((t (:inherit mode-line-inactive)))
-  "Powerline inactive face 1."
-  :group 'powerline)
-
-(defface m-active1 '((t (:inherit default)))
-  "Powerline active face 1."
-  :group 'powerline)
-
-(defface m-inactive2 '((t (:inherit mode-line-inactive)))
-  "Powerline inactive face 2."
-  :group 'powerline)
-
-(defface m-active2 '((t (:inherit default)))
-  "Powerline active face 2."
-  :group 'powerline)
-
-(defface m-inactive3 '((t (:inherit mode-line-inactive)))
-  "Powerline inactive face 3."
-  :group 'powerline)
-
-(defface m-active3 '((t (:inherit default)))
-  "Powerline active face 3."
-  :group 'powerline)
-
-(defface m-inactive4 '((t (:inherit mode-line-inactive)))
-  "Powerline inactive face 4."
-  :group 'powerline)
-
-(defface m-active4 '((t (:inherit default)))
-  "Powerline active face 4."
-  :group 'powerline)
-
 ;; `a-theme'
 (defvar a-theme-hook '()
   "Run whenever a theme is activated.")
@@ -366,7 +325,7 @@ Example usage:
   "Switch the current Emacs theme to THEME. Handle some
 housekeeping that comes with switching themes and try to prevent
 Emacs from barfing on your screen."
-  (mapc #'disable-theme custom-enabled-themes)
+  (custom-set-variables '(custom-enabled-themes nil))
   (load-theme (if (stringp theme) (intern theme) theme) t)
   (let* ((opts (alist-get theme a-theme-themes))
          (default-face (face-spec-choose (a-theme-get-face 'default)))
@@ -394,7 +353,11 @@ Emacs from barfing on your screen."
             a-theme-specs-common
             (reverse (alist-get-all 'specs opts))))
     (let-alist opts
-      (when (boundp '.mouse-color) (set-mouse-color .mouse-color))
+      (set-mouse-color
+       (cond
+        ((boundp '.mouse-color) .mouse-color)
+        ((equal 'dark (frame-parameter nil 'background-mode)) "white")
+        (t "black")))
       (when (boundp '.hook) (mapc #'funcall .hook)))
     (when (fboundp #'powerline-reset) (powerline-reset))))
 
@@ -448,14 +411,9 @@ activate it."
       (let* ((active (powerline-selected-window-active))
              (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
              (mode-line (if active 'mode-line 'mode-line-inactive))
-             ;; (face0 (if active 'm-active0 'm-inactive0))
-             ;; (face1 (if active 'm-active1 'm-inactive1))
-             ;; (face2 (if active 'm-active2 'm-inactive2))
-             ;; (face3 (if active 'm-active3 'm-inactive3))
-             ;; (face4 (if active 'm-active4 'm-inactive4))
              (face0 (if active 'powerline-active0 'powerline-inactive0))
-             (face1 (if active 'powerline-active1 'powerline-inactive1))
-             (face2 (if active 'powerline-active2 'powerline-inactive2))
+             (face1 (if active 'powerline-active1 'powerline-inactive0))
+             (face2 (if active 'powerline-active2 'powerline-inactive0))
              (face3 (if active 'outline-1 'powerline-inactive1))
              (face4 (if active 'outline-2 'powerline-inactive1))
              (lhs (list (powerline-raw " " face1)
@@ -485,7 +443,7 @@ activate it."
              (rhs (if active
                       (list (if (and (boundp 'outline-minor-mode)
                                      outline-minor-mode)
-                                (powerline-raw "o" face0))
+                                (powerline-raw " o" face0))
                             (if (and (boundp 'hs-minor-mode)
                                      hs-minor-mode)
                                 (powerline-raw "h" face0))
@@ -3538,8 +3496,7 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
                   "core.worktree" (file-relative-name worktree gitdir))
   ;; Configure projectile to only look at tracked files
   (if (boundp 'projectile-git-command)
-      (setq projectile-git-command "git ls-files -zc --exclude-standard"))
-  (message "Linked worktree: %s from gitdir: %s" worktree gitdir))
+      (setq projectile-git-command "git ls-files -zc --exclude-standard")))
 
 (defun git-worktree-unlink (gitdir worktree)
   (interactive (list (read-directory-name "Gitdir: ")
@@ -3566,15 +3523,18 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   ;; (let ((default-directory (file-name-as-directory repo)))
   ;;   (magit-set "false" "core.bare"))
   ;; Regular link.
-  (git-worktree-link repo (getenv "HOME")))
+  (git-worktree-link repo (getenv "HOME"))
+  (message "Linked repo at %s" repo))
 
 (defun git-home-unlink ()
   (interactive)
-  (git-worktree-unlink (with-temp-buffer
-                         (insert-file-contents (expand-file-name ".git" (getenv "HOME")))
-                         (re-search-forward "gitdir: \\(.+\\)")
-                         (expand-file-name (match-string 1)))
-                       (getenv "HOME")))
+  (let ((f (expand-file-name ".git" (getenv "HOME"))))
+    (git-worktree-unlink (with-temp-buffer
+                           (insert-file-contents f)
+                           (re-search-forward "gitdir: \\(.+\\)")
+                           (expand-file-name (match-string 1)))
+                         (getenv "HOME"))
+    (message "Unlinked repo at %s" f)))
 
 (bind-keys
  ("C-c M-l" . git-home-link)
