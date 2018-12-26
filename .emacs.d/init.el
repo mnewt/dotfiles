@@ -379,13 +379,7 @@ activate it."
    'doom-dracula)
 
  a-theme-specs-common
- '((cursor ((t :background "#F60"))))
-
- a-theme-presets
- '((light ((specs . a-theme-specs-light)
-           (mouse-color . "black")))
-   (dark ((specs . a-theme-specs-dark)
-          (mouse-color . "white")))))
+ '((cursor ((t :background "#F60")))))
 
 (add-hook 'a-theme-hook #'doom-themes-visual-bell-config)
 (add-hook 'a-theme-hook #'doom-themes-org-config)
@@ -414,49 +408,47 @@ activate it."
              (face0 (if active 'powerline-active0 'powerline-inactive0))
              (face1 (if active 'powerline-active1 'powerline-inactive0))
              (face2 (if active 'powerline-active2 'powerline-inactive0))
-             (face3 (if active 'outline-1 'powerline-inactive1))
-             (face4 (if active 'outline-2 'powerline-inactive1))
-             (lhs (list (powerline-raw " " face1)
-                        (powerline-major-mode face2 'l)
-                        (powerline-raw " " face2)
-                        ;; (powerline-vc face1 'r)
-                        (powerline-raw "%*" face1 'l)
-                        (if (eq major-mode 'term-mode)
-                            (powerline-raw
-                             (cond
-                              ((term-in-char-mode) " (char-mode) ")
-                              ((term-in-line-mode) " (line-mode) ")
-                              (t ""))
-                             face1))))
-             (center (list (powerline-raw
-                            (if (file-remote-p default-directory)
-                                (concat " "
-                                        (tramp-file-name-host
-                                         (tramp-dissect-file-name
-                                          default-directory))
-                                        " ")
-                              "")
-                            face4)
+             (face3 (if active 'outline-1 'powerline-inactive0))
+             (face4 (if active 'outline-2 'powerline-inactive0))
+             (lhs (when active
+                    (list (powerline-raw " " face1)
+                          (powerline-major-mode face2 'l)
+                          (powerline-raw " " face2)
+                          ;; (powerline-vc face1 'r)
+                          (powerline-raw "%*" face1 'l)
+                          (if (eq major-mode 'term-mode)
+                              (powerline-raw
+                               (cond
+                                ((term-in-char-mode) " (char-mode) ")
+                                ((term-in-line-mode) " (line-mode) ")
+                                (t ""))
+                               face1)))))
+             (center (list (when (file-remote-p default-directory)
+                             (powerline-raw
+                              (concat " "
+                                      (tramp-file-name-host
+                                       (tramp-dissect-file-name
+                                        default-directory))
+                                      " ")
+                              face4))
                            (powerline-raw " " face3)
                            (powerline-raw (buffer-name) face3 'm)
                            (powerline-raw " " face3)))
-             (rhs (if active
-                      (list (if (and (boundp 'outline-minor-mode)
-                                     outline-minor-mode)
-                                (powerline-raw " o" face0))
-                            (if (and (boundp 'hs-minor-mode)
-                                     hs-minor-mode)
-                                (powerline-raw "h" face0))
-                            (powerline-narrow face0)
-                            (powerline-raw " " face0)
-                            (if (fboundp #'eyebrowse-mode-line-indicator)
-                                (eyebrowse-mode-line-indicator))
-                            (powerline-raw global-mode-string face0 'r)
-                            (powerline-raw " " face0)
-                            (powerline-raw "%l" face1 'r)
-                            (powerline-raw ":" face1)
-                            (powerline-raw "%c" face1 'r)
-                            (powerline-hud face3 face1)))))
+             (rhs (when active
+                    (list (when (bound-and-true-p outline-minor-mode)
+                            (powerline-raw " o" face0))
+                          (when (bound-and-true-p hs-minor-mode)
+                            (powerline-raw " h" face0))
+                          (powerline-narrow face0)
+                          (powerline-raw " " face0)
+                          (if (fboundp #'eyebrowse-mode-line-indicator)
+                              (eyebrowse-mode-line-indicator))
+                          (powerline-raw global-mode-string face0 'r)
+                          (powerline-raw " " face0)
+                          (powerline-raw "%l" face1 'r)
+                          (powerline-raw ":" face1)
+                          (powerline-raw "%c" face1 'r)
+                          (powerline-hud face3 face1)))))
         (concat (powerline-render lhs)
                 (powerline-fill-center face1 (/ (powerline-width center) 2.0))
                 (powerline-render center)
