@@ -302,7 +302,7 @@ Do not merge packages listed in `m-pinned-packages'."
 
 (a-theme a-theme-current-theme)")
 
-(defvar a-theme-specs '()
+(defvar a-theme-specs-common '()
   "List of default face specs to apply when a theme is being
   activated. 
 
@@ -328,47 +328,75 @@ TESTFN is an equality function, *not* an alist function as with
                    (lambda (e) (funcall testfn key (car e)))
                    alist)))
     (if matches
-        (mapcar #'cdr matches)
+        (car (mapcar #'cadr matches))
       default)))
 
 (defun maybe-expand-symbol (x)
   "If X is a symbol, return its value. Else, return X."
   (if (symbolp x) (symbol-value x) x))
 
+(defun a-theme-get-attr (attribute name)
+  "Get the ATTRIBUTE identified by NAME from the current theme settings.
+
+Example usage:
+
+(plist-get
+  (face-spec-choose (a-theme-get-attr 'theme-face 'smerge-lower))
+  :background)
+"
+  (when (stringp name) (setq face (intern name)))
+  (some (lambda (e) (when (and (eq attribute (car e)) (eq name (cadr e)))
+                      (cadddr e)))
+        (get (car custom-enabled-themes) 'theme-settings)))
+
+(defun a-theme-get-face (face)
+  "Get the FACE from the current theme. See `a-theme-get-attr'."
+  (a-theme-get-attr 'theme-face face))
+
+(defun a-theme-get-value (value)
+  "Get the VALUE from the current theme. See `a-theme-get-attr'."
+  (a-theme-get-attr 'theme-value value))
+
+(defun a-theme-search-attrs (regexp)
+  "Search for an attribute in the current theme whose name matches the REGEXP."
+  (seq-filter (lambda (e) (string-match-p regexp (symbol-name (cadr e))))
+              (get (car custom-enabled-themes) 'theme-settings)))
+
 (defun a-theme-activate (theme)
   "Switch the current Emacs theme to THEME. Handle some
-housekeeping that comes with switching themes to try to prevent
+housekeeping that comes with switching themes and try to prevent
 Emacs from barfing on your screen."
-  (let* ((theme (if (stringp theme) (intern theme) theme))
-         (opts (let ((opts (alist-get theme a-theme-themes)))
-                 (if (functionp opts)
-                     (progn
-                       (setq hook opts)
-                       '())
-                   opts)))
-         ;; Append presets to tail of `opts' alist
-         (preset (alist-get 'preset (car opts)))
-         (opts (append opts (car (alist-get preset a-theme-presets))))
-         (set-faces-fn (if (fboundp #'doom-themes-set-faces)
-                           #'doom-themes-set-faces
-                         #'custom-theme-set-faces)))
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme (if (stringp theme) (intern theme) theme) t)
+  (let* ((opts (alist-get theme a-theme-themes))
+         (default-face (face-spec-choose (a-theme-get-face 'default)))
+         (active-color (plist-get default-face :background))
+         (inactive-color (doom-blend active-color
+                                     (plist-get default-face :foreground)
+                                     0.9)))
+    ;; Append presets to tail of `opts' alist
+    ;; (setq preset (alist-get 'preset opts))
+
+    ;; Dynamically set up window highlight mode.
+    (when (bound-and-true-p window-highlight-mode)
+      (setq opts (append opts
+                         `((specs
+                            ((default
+                               ((t :background ,inactive-color)))
+                             (fringe
+                              ((t :background ,inactive-color)))
+                             (window-highlight-focused-window
+                              ((t :background ,active-color)))))))))
+    ;; Feed face specs to `custom-set-faces' in reverse because last
+    ;; write wins.
+    (apply #'custom-set-faces
+           (append
+            a-theme-specs-common
+            (reverse (alist-get-all 'specs opts))))
     (let-alist opts
-      (progn
-        (mapc #'disable-theme custom-enabled-themes)
-        (load-theme theme t)
-        (mapc #'funcall a-theme-hook)
-        (unless (boundp 'specs) (setq specs '()))
-        ;; Feed face specs to `custom-set-faces' in reverse because last
-        ;; write wins.
-        (apply #'custom-set-faces
-         (-mapcat #'maybe-expand-symbol
-                  (append
-                   (list a-theme-specs-common)
-                   (reverse (alist-get-all 'specs opts)))))
-        (when (boundp 'mouse-color) (set-mouse-color mouse-color))
-        (when (fboundp 'hook) (funcall hook))
-        (when (fboundp #'powerline-reset) (powerline-reset))))
-    (setq a-theme-current-theme theme)))
+      (when (boundp '.mouse-color) (set-mouse-color .mouse-color))
+      (when (boundp '.hook) (mapc #'funcall .hook)))
+    (when (fboundp #'powerline-reset) (powerline-reset))))
 
 (defun a-theme-choose ()
   "Interactively choose a theme from `a-theme-themes' and
@@ -390,63 +418,25 @@ activate it."
  a-theme-specs-common
  '((cursor ((t :background "#F60"))))
 
- a-theme-specs-dark
- (let ((active-color "#282828")
-       (inactive-color "#3D3D3D")
-       (where '((type x w32 ns))))
-   `((default ((,where :background ,inactive-color)))
-     (fringe ((,where :background ,inactive-color)))
-     (window-highlight-focused-window ((,where :background ,active-color)))
-     (m-inactive0 ((t :background "#262834" :foreground "#565861")))
-     (m-active0 ((t :background "#565861" :foreground "#9E9FA5")))
-     (m-inactive1 ((t :background "#262834" :foreground "#565861")))
-     (m-active1 ((t :background "#565861" :foreground "#E6E7E8")))
-     (m-inactive2 ((t :background "#262834" :foreground "#565861")))
-     (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-     (m-inactive3 ((t :background "#565861" :foreground "#9E9FA5")))
-     (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-     (m-inactive4 ((t :background "#565861" :foreground "#9E9FA5")))
-     (m-active4 ((t :background "#00e5e5" :foreground "#262834")))
-     (mode-line-emphasis ((t :foreground "orange")))))
-
- a-theme-specs-light
- (let ((active-color "#EDE8D7")
-       (inactive-color "#CECFD2")
-       (where '((type x w32 ns))))
-   `((default ((,where :background ,inactive-color)))
-     (fringe ((,where :background ,inactive-color)))
-     (window-highlight-focused-window ((,where :background ,active-color)))
-     (m-inactive0 ((t :background "#CECFD2" :foreground "#EDE8D7")))
-     (m-active0 ((t :background "#9E9FA5" :foreground "#E6E7E8")))
-     (m-inactive1 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-     (m-active1 ((t :background "#9E9FA5" :foreground "#EDE8D7")))
-     (m-inactive2 ((t :background "#EDE8D7" :foreground "#EDE8D7")))
-     (m-active2 ((t :background "#CECFD2" :foreground "#565861")))
-     (m-inactive3 ((t :background "#EDE8D7" :foreground "#9E9FA5")))
-     (m-active3 ((t :background "#A863C9" :foreground "#FFFFFF")))
-     (m-inactive4 ((t :background "#CECFD2" :foreground "#9E9FA5")))
-     (m-active4 ((t :background "#00E5E5" :foreground "#262834")))))
-
  a-theme-presets
  '((light ((specs . a-theme-specs-light)
            (mouse-color . "black")))
    (dark ((specs . a-theme-specs-dark)
           (mouse-color . "white")))))
 
-(add-hook 'a-theme-hook (lambda ()
-                          (doom-themes-visual-bell-config)
-                          (doom-themes-org-config)))
+(add-hook 'a-theme-hook #'doom-themes-visual-bell-config)
+(add-hook 'a-theme-hook #'doom-themes-org-config)
 
 (use-package doom-themes
   :config
   (add-multiple-to-list 'a-theme-themes
-                        '((doom-one ((preset . dark)))
-                          (doom-vibrant ((preset . dark)))
-                          (doom-one-light ((preset . light)))
-                          (doom-solarized-light ((preset . light)))
-                          (doom-dracula ((preset . dark)))
-                          (doom-molokai ((preset . dark)))
-                          (doom-tomorrow-day ((preset . light))))))
+                        '((doom-one)
+                          (doom-vibrant)
+                          (doom-one-light)
+                          (doom-solarized-light)
+                          (doom-dracula)
+                          (doom-molokai)
+                          (doom-tomorrow-day))))
 
 (use-package powerline
   :custom
@@ -458,11 +448,16 @@ activate it."
       (let* ((active (powerline-selected-window-active))
              (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
              (mode-line (if active 'mode-line 'mode-line-inactive))
-             (face0 (if active 'm-active0 'm-inactive0))
-             (face1 (if active 'm-active1 'm-inactive1))
-             (face2 (if active 'm-active2 'm-inactive2))
-             (face3 (if active 'm-active3 'm-inactive3))
-             (face4 (if active 'm-active4 'm-inactive4))
+             ;; (face0 (if active 'm-active0 'm-inactive0))
+             ;; (face1 (if active 'm-active1 'm-inactive1))
+             ;; (face2 (if active 'm-active2 'm-inactive2))
+             ;; (face3 (if active 'm-active3 'm-inactive3))
+             ;; (face4 (if active 'm-active4 'm-inactive4))
+             (face0 (if active 'powerline-active0 'powerline-inactive0))
+             (face1 (if active 'powerline-active1 'powerline-inactive1))
+             (face2 (if active 'powerline-active2 'powerline-inactive2))
+             (face3 (if active 'outline-1 'powerline-inactive1))
+             (face4 (if active 'outline-2 'powerline-inactive1))
              (lhs (list (powerline-raw " " face1)
                         (powerline-major-mode face2 'l)
                         (powerline-raw " " face2)
@@ -1881,6 +1876,7 @@ ID, ACTION, CONTEXT."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'dired)
+(require 'dired-x)
 
 ;; try to use GNU ls on macOS since BSD ls doesn't explicitly support Emacs
 (setq insert-directory-program (or (executable-find "gls")
@@ -1924,9 +1920,15 @@ ID, ACTION, CONTEXT."
       dired-recursive-copies 'always
       dired-listing-switches "-alh"
       dired-dwim-target t
-      wdired-allow-to-change-permissions t)
+      wdired-allow-to-change-permissions t
+      dired-omit-mode t
+      dired-omit-files "\\`[#.].*")
+
+(setq-default dired-omit-files-p t)
 
 (add-hook 'dired-mode-hook (lambda () (dired-hide-details-mode t)))
+
+(add-hook 'dired-load-hook '(lambda () (require 'dired-x)))
 
 (bind-keys
  ("C-x C-d" . dired-to-default-directory)
@@ -1935,7 +1937,7 @@ ID, ACTION, CONTEXT."
  ("C-c o" . dired-open-file)
  ("C-x M-f" . find-file-at-point)
  ("T" . touch)
- ("C-." . dired-dotfiles-toggle))
+ ("C-." . dired-omit-mode))
 
 (use-package diredfl
   :config
