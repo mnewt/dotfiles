@@ -237,6 +237,56 @@ Do not merge packages listed in `m-pinned-packages'."
 (set-face-font 'variable-pitch "Georgia-18")
 
 ;; `a-theme'
+(defface a-theme-active-0
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-inactive-0
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-active-1
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-inactive-1
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-active-2
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-inactive-2
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-active-3
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-inactive-3
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-active-4
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
+(defface a-theme-inactive-4
+  '((t (:inherit default)))
+  ""
+  :group 'a-theme)
+
 (defvar a-theme-hook '()
   "Run whenever a theme is activated.")
 
@@ -282,7 +332,7 @@ dumb.
 
 TESTFN is an equality function, *not* an alist function as with
 `alist-get'. Default is `eq'."
-  (let* ((testfn #'eq)
+  (let* ((testfn (or testfn #'eq))
          (matches (seq-filter
                    (lambda (e) (funcall testfn key (car e)))
                    alist)))
@@ -321,33 +371,55 @@ Example usage:
   (seq-filter (lambda (e) (string-match-p regexp (symbol-name (cadr e))))
               (get (car custom-enabled-themes) 'theme-settings)))
 
+(defun a-theme-generate-specs (face1 face2 face3 face4)
+  "Generate additional theme specs based on the specified FACE."
+  (let* ((face1 (face-spec-choose (a-theme-get-face face1)))
+         (face2 (face-spec-choose (a-theme-get-face face2)))
+         (face3 (face-spec-choose (a-theme-get-face face3)))
+         (face4 (face-spec-choose (a-theme-get-face face4)))
+         (active-bg (plist-get face1 :background))
+         (active-fg (plist-get face1 :foreground))
+         (inactive-bg (doom-blend active-bg active-fg 0.95))
+         (inactive-fg (doom-blend active-bg active-fg 0.4)))
+    `((default ((t :background ,inactive-bg)))
+      (fringe ((t :background ,inactive-bg)))
+      (window-highlight-focused-window ((t :background ,active-bg)))
+      (a-theme-active-0 ((t :background ,inactive-bg
+                            :foreground ,(doom-blend active-fg active-bg 0.9))))
+      (a-theme-active-1 ((t :background ,(doom-blend active-fg active-bg 0.8)
+                            :foreground ,inactive-bg)))
+      (a-theme-active-2 ((t :background ,(plist-get face2 :foreground)
+                            :foreground ,active-bg)))
+      (a-theme-active-3 ((t :background ,(plist-get face3 :foreground)
+                            :foreground ,active-bg)))
+      (a-theme-active-4 ((t :background ,(plist-get face4 :foreground)
+                            :foreground ,active-bg)))
+      (a-theme-inactive-0 ((t :background ,inactive-bg
+                              :foreground ,inactive-fg)))
+      (a-theme-inactive-1 ((t :background ,inactive-bg
+                              :foreground ,inactive-bg))))))
+
 (defun a-theme-activate (theme)
   "Switch the current Emacs theme to THEME. Handle some
 housekeeping that comes with switching themes and try to prevent
 Emacs from barfing on your screen."
   (custom-set-variables '(custom-enabled-themes nil))
   (load-theme (if (stringp theme) (intern theme) theme) t)
-  (let* ((opts (alist-get theme a-theme-themes))
-         (default-face (face-spec-choose (a-theme-get-face 'default)))
-         (active-color (plist-get default-face :background))
-         (inactive-color (doom-blend active-color
-                                     (plist-get default-face :foreground)
-                                     0.9)))
+  (let* ((opts (alist-get theme a-theme-themes)))
     ;; Append presets to tail of `opts' alist
     ;; (setq preset (alist-get 'preset opts))
 
     ;; Dynamically set up window highlight mode.
     (when (bound-and-true-p window-highlight-mode)
       (setq opts (append opts
-                         `((specs
-                            ((default
-                               ((t :background ,inactive-color)))
-                             (fringe
-                              ((t :background ,inactive-color)))
-                             (window-highlight-focused-window
-                              ((t :background ,active-color)))))))))
-    ;; Feed face specs to `custom-set-faces' in reverse because last
-    ;; write wins.
+                         `((specs ,(a-theme-generate-specs 'default
+                                                            'outline-1
+                                                            'outline-2
+                                                            'outline-3))))))
+    
+    ;; Feed face specs to `custom-set-faces' in reverse because last write wins.
+    ;; We do it this way so additional specs can be specified when adding the
+    ;; theme to `a-theme-themes'.
     (apply #'custom-set-faces
            (append
             a-theme-specs-common
@@ -405,24 +477,24 @@ activate it."
       (let* ((active (powerline-selected-window-active))
              (mode-line-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))
              (mode-line (if active 'mode-line 'mode-line-inactive))
-             (face0 (if active 'powerline-active0 'powerline-inactive0))
-             (face1 (if active 'powerline-active1 'powerline-inactive0))
-             (face2 (if active 'powerline-active2 'powerline-inactive0))
-             (face3 (if active 'outline-1 'powerline-inactive0))
-             (face4 (if active 'outline-2 'powerline-inactive0))
+             (face0 (if active 'a-theme-active-0 'a-theme-inactive-1))
+             (face1 (if active 'a-theme-active-1 'a-theme-inactive-1))
+             (face2 (if active 'a-theme-active-2 'a-theme-inactive-1))
+             (face3 (if active 'a-theme-active-3 'a-theme-inactive-0))
+             (face4 (if active 'a-theme-active-4 'a-theme-inactive-1))
              (lhs (when active
                     (list (powerline-raw " " face1)
-                          (powerline-major-mode face2 'l)
-                          (powerline-raw " " face2)
+                          (powerline-major-mode face1 'l)
+                          (powerline-raw " " face1)
                           ;; (powerline-vc face1 'r)
                           (powerline-raw "%*" face1 'l)
-                          (if (eq major-mode 'term-mode)
-                              (powerline-raw
-                               (cond
-                                ((term-in-char-mode) " (char-mode) ")
-                                ((term-in-line-mode) " (line-mode) ")
-                                (t ""))
-                               face1)))))
+                          (when (eq major-mode 'term-mode)
+                            (powerline-raw
+                             (cond
+                              ((term-in-char-mode) " (char-mode) ")
+                              ((term-in-line-mode) " (line-mode) ")
+                              (t ""))
+                             face1)))))
              (center (list (when (file-remote-p default-directory)
                              (powerline-raw
                               (concat " "
@@ -436,23 +508,23 @@ activate it."
                            (powerline-raw " " face3)))
              (rhs (when active
                     (list (when (bound-and-true-p outline-minor-mode)
-                            (powerline-raw " o" face0))
+                            (powerline-raw " o" face1))
                           (when (bound-and-true-p hs-minor-mode)
-                            (powerline-raw " h" face0))
-                          (powerline-narrow face0)
-                          (powerline-raw " " face0)
+                            (powerline-raw " h" face1))
+                          (powerline-narrow face1)
+                          (powerline-raw " " face1)
                           (if (fboundp #'eyebrowse-mode-line-indicator)
                               (eyebrowse-mode-line-indicator))
-                          (powerline-raw global-mode-string face0 'r)
-                          (powerline-raw " " face0)
+                          (powerline-raw global-mode-string face1 'r)
+                          (powerline-raw " " face1)
                           (powerline-raw "%l" face1 'r)
                           (powerline-raw ":" face1)
                           (powerline-raw "%c" face1 'r)
-                          (powerline-hud face3 face1)))))
+                          (powerline-hud face3 face3)))))
         (concat (powerline-render lhs)
-                (powerline-fill-center face1 (/ (powerline-width center) 2.0))
+                (powerline-fill-center mode-line (/ (powerline-width center) 2.0))
                 (powerline-render center)
-                (powerline-fill face1 (powerline-width rhs))
+                (powerline-fill mode-line (powerline-width rhs))
                 (powerline-render rhs))))))
   :init
   (set-face-attribute 'mode-line nil :box nil))
@@ -1577,7 +1649,7 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 
 (use-package rainbow-mode
   :hook
-  ((sass-mode emacs-lisp-mode) . rainbow-mode))
+  ((emacs-lisp-mode help-mode sass-mode) . rainbow-mode))
 
 (use-package hl-todo
   :commands
@@ -2229,11 +2301,15 @@ ID, ACTION, CONTEXT."
                    'font-lock-face (cdr list)
                    'front-sticky '(font-lock-face read-only)
                    'rear-nonsticky '(font-lock-face read-only))))
-   `(,(when (not (eshell-exit-success-p))
+   `(,(unless (eshell-exit-success-p)
         `(,(number-to-string eshell-last-command-status)
           :background "red" :foreground "white" :weight bold))
      (,(abbreviate-file-name (eshell/pwd)) :background "cyan" :foreground "black")
-     (,(if (zerop (user-uid)) "\n(#)" "\n()") :foreground "white" :weight bold))
+     (,(if (zerop (user-uid)) "\n(#)" "\n()")
+      :foreground (if (equal 'light (frame-parameter nil 'background-mode))
+                      "black"
+                    "white")
+      :weight bold))
    ""))
 
 (defun eshell/s (hostname)
@@ -2427,10 +2503,9 @@ initialize the Eshell environment."
   ((eshell-mode . eshell/init)
    ;; For using xterm-256color properties in the prompt
    (eshell-before-prompt . (lambda ()
-                             (setq xterm-color-preserve-properties t)))
-   (eshell-post-command . (lambda ()
-                            (rename-buffer
-                             (format "*Eshell: %s*" default-directory) t))))
+                             (setq xterm-color-preserve-properties t)
+                             (rename-buffer
+                              (format "*Eshell: %s*" default-directory) t))))
   :bind
   (("s-e" . eshell)
    ("C-c e" . eshell)
@@ -2458,7 +2533,7 @@ initialize the Eshell environment."
   :config
   (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
   ;; TODO: Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
-  (if (not (eq system-type 'windows-nt))
+  (unless (eq system-type 'windows-nt)
       (pinentry-start)))
 
 (defun sshd-sudo (path)
@@ -2475,7 +2550,7 @@ initialize the Eshell environment."
          (dir (if colon
                   (substring path (+ 1 colon))
                 ":/")))
-    (find-file (concat "/sshx:" user host "|sudo:root@" host dir))))
+    (find-file (concat "/ssh:" user host "|sudo:root@" host dir))))
 
 (defun sudo-toggle--add-sudo (f)
   "Add sudo to file path string"
@@ -4073,6 +4148,13 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package lua-mode
   :mode "\\.lua\\'")
+
+(use-package go-mode
+  :mode "\\.go\\'")
+
+(use-package company-go
+  :hook
+  (go-mode . (lambda () (set (make-local-variable 'company-backends) '(company-go)))))
 
 (use-package sass-mode
   :mode "\\.sa?c?ss\\'")
