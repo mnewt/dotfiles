@@ -110,7 +110,7 @@ hs.alert.show("Config loaded")
 hs.hotkey.bind(mash, 'r', hs.reload)
 
 -- ** Open Hammerspoon console
-hs.hotkey.bind(mash, "'", hs.openConsole)
+hs.hotkey.bind(mash, "`", hs.openConsole)
 
 -- ** Open Hammerspoon preferences
 hs.hotkey.bind(mash, ",", hs.openPreferences)

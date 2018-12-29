@@ -485,9 +485,8 @@ activate it."
              (lhs (when active
                     (list (powerline-raw " " face1)
                           (powerline-major-mode face1 'l)
-                          (powerline-raw " " face1)
                           ;; (powerline-vc face1 'r)
-                          (powerline-raw "%*" face1 'l)
+                          (powerline-raw " %* " face1 'l)
                           (when (eq major-mode 'term-mode)
                             (powerline-raw
                              (cond
