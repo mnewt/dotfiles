@@ -2487,6 +2487,52 @@ initialize the Eshell environment."
               " "
               (process 0 -1 :right)))))
 
+(defun filter-buffers-by-name (regexp)
+  "Return a list of buffers whose names match REGEXP."
+  (seq-filter (lambda (b) (string-match-p regexp (buffer-name b)))
+              (buffer-list)))
+
+(defun some-buffer (regexp)
+  "Return the first buffer found with a name matching REGEXP, or nil."
+  (some (lambda (b) (when (string-match-p regexp (buffer-name b)) b))
+        (buffer-list)))
+
+(defun eshell-create-in-background ()
+  "Create a new Eshell buffer but don't display it."
+  (let ((eshell-buffer-name (generate-new-buffer "*Eshell*")))
+    (save-window-excursion (eshell))))
+
+(defun eshell-get-or-create ()
+  "Get or create an Eshell buffer."
+  (interactive)
+  (or (when current-prefix-arg (eshell-create-in-background))
+      (some-buffer "*Eshell")
+      (eshell-create-in-background)))
+
+(defun eshell-switch-to-buffer ()
+  "Switch to the most recent Eshell buffer or create a new one.
+This is different than the normal `eshell' command in my setup
+because I dynamically rename the buffer according to
+`default-directory'."
+  (interactive)
+  (switch-to-buffer (eshell-get-or-create)))
+
+(defun eshell-switch-to-buffer-other-window ()
+  "Get or create an Eshell buffer, then switch to it."
+  (interactive)
+  (switch-to-buffer-other-window (eshell-get-or-create)))
+
+(defun eshell-choose-buffer ()
+  "Interactively choose an Eshell buffer."
+  (interactive)
+  (ivy-read "Eshell buffer: "
+            (mapcar #'buffer-name (filter-buffers-by-name "*Eshell"))
+            :keymap ivy-switch-buffer-map
+            :action #'ivy--switch-buffer-action
+            :matcher #'ivy--switch-buffer-matcher
+            ;; Use the `ivy-switch-buffer' hydra.
+            :caller #'ivy-switch-buffer))
+
 (use-package eshell
   :custom
   (eshell-banner-message "")
@@ -2506,12 +2552,13 @@ initialize the Eshell environment."
                              (rename-buffer
                               (format "*Eshell: %s*" default-directory) t))))
   :bind
-  (("s-e" . eshell)
-   ("C-c e" . eshell)
-   ("s-E" . eshell-other-window)
-   ("C-s-e" . ibuffer-show-eshell-buffers)
+  (("s-e" . eshell-switch-to-buffer)
+   ("C-c e" . eshell-switch-to-buffer)
+   ("s-E" . eshell-switch-to-buffer-other-window)
+   ("C-c E" . eshell-switch-to-buffer-other-window)
+   ("C-s-e" . eshell-choose-buffer)
+   ("M-E" . ibuffer-show-eshell-buffers)
    ("C-c M-e" . ibuffer-show-eshell-buffers)
-   ("C-c E" . eshell-other-window)
    :map prog-mode-map
    ("M-P" . eshell-send-previous-input)))
 
