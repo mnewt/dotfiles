@@ -2156,8 +2156,12 @@ ID, ACTION, CONTEXT."
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
 
+(add-to-list 'load-path "~/code/emacs-libvterm")
+(let (vterm-install)
+  (require 'vterm))
+
 (use-package term
-  :bind (("C-c t" . term)
+  :bind (("C-c t" . vterm)
          :map term-mode-map
          ("M-p" . term-send-up)
          ("M-n" . term-send-down)
@@ -2166,10 +2170,6 @@ ID, ACTION, CONTEXT."
          ("M-p" . term-send-up)
          ("M-n" . term-send-down)
          ("C-M-j" . term-switch-to-shell-mode)))
-
-(add-to-list 'load-path "~/code/emacs-libvterm")
-(let (vterm-install)
-  (require 'vterm))
 
 ;; xterm colors
 (use-package xterm-color
@@ -2205,10 +2205,8 @@ ID, ACTION, CONTEXT."
   :custom
   ;; So that it doesn't sometimes insert a space ('\ ') after the file name.
   (bash-completion-nospace t)
-  :init
-  (add-hook 'shell-dynamic-complete-functions 'bash-completion-dynamic-complete)
-  :commands
-  (bash-completion-dynamic-complete))
+  :hook
+  (shell-dynamic-complete-functions . bash-completion-dynamic-complete))
 
 (use-package fish-mode
   :custom (fish-indent-offset tab-width)

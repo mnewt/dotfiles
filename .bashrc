@@ -35,17 +35,16 @@ source_if "$HOME/.env"
 source_if "$HOME/.aliases"
 source_if "$HOME/.bin/__prompt"
 
-source_if "/usr/local/share/bash-completion/bash_completion"
-
 # iTerm2
 [ "$TERM_PROGRAM" = "iTerm.app" ] && \
   source_if "$HOME/.iterm2/iterm2_shell_integration.bash"
 
 # `bash-completion` and `emacs-bash-completion`
 # brew install bash-completion@2
-if [[ ( -z "$INSIDE_EMACS" || "$EMACS_BASH_COMPLETE" = "t" ) &&\
-        -f /etc/bash_completion ]]; then
-  . /etc/bash_completion
+if [[ -z "$INSIDE_EMACS" || "$EMACS_BASH_COMPLETE" = "t" ]]; then
+  source_if "/usr/local/share/bash-completion/bash_completion"
+  source_if "/usr/local/etc/bash_completion"
+  source_if "/etc/bash_completion"
 fi
 
 # direnv

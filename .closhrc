@@ -1,2 +1,21 @@
+;; -*- clojure -*-
+
+(def bright-cyan "\033[1;36m")
+(def background-bright-cyan "\033[46;1m")
+(def black "\033[30;1m")
+(def reset-color "\033[0m")
+
+(def colors
+  {:reset "\033[0m"
+   :bright-black "\033[30;1m"
+   :bright-red "\033[31;1m"
+   :bright-green "\033[32;1m"
+   :bright-yellow "\033[33;1m"
+   :bright-blue "\033[34;1m"
+   :bright-magenta "\033[35;1m"
+   
+   :bright-cyan "\033[1;36m"
+   })
+
 (defn closh-prompt []
-  (str (sh-str "pwd") "\n() "))
+  (str background-bright-cyan black " " (sh-str "pwd") " " reset-color "\n() "))
