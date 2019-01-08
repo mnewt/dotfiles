@@ -13,9 +13,7 @@
    :bright-yellow "\033[33;1m"
    :bright-blue "\033[34;1m"
    :bright-magenta "\033[35;1m"
-   
-   :bright-cyan "\033[1;36m"
-   })
+   :bright-cyan "\033[1;36m"})
 
 (defn closh-prompt []
   (str background-bright-cyan black " " (sh-str "pwd") " " reset-color "\n() "))
