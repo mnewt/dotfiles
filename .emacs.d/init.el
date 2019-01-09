@@ -2911,7 +2911,7 @@ shell is left intact."
 ;;; Hydra
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (use-package hydra)
+(use-package hydra)
 
 ;; (defhydra hydra-straight-helper (:hint nil)
 ;;   "
@@ -3034,85 +3034,85 @@ shell is left intact."
 ;;   ("Z" winner-redo)
 ;;   ("SPC" nil))
 
-;; (defhydra hydra-multiple-cursors (:hint nil)
-;;   "
-;;      ^Up^            ^Down^        ^Other^
-;; ----------------------------------------------
-;; [_p_]   Next    [_n_]   Next    [_l_] Edit lines
-;; [_P_]   Skip    [_N_]   Skip    [_a_] Mark all
-;; [_M-p_] Unmark  [_M-n_] Unmark  [_r_] Mark by regexp
-;; ^ ^             ^ ^             [_q_] Quit
-;; "
-;;   ("l" mc/edit-lines :exit t)
-;;   ("a" mc/mark-all-like-this :exit t)
-;;   ("n" mc/mark-next-like-this)
-;;   ("N" mc/skip-to-next-like-this)
-;;   ("M-n" mc/unmark-next-like-this)
-;;   ("p" mc/mark-previous-like-this)
-;;   ("P" mc/skip-to-previous-like-this)
-;;   ("M-p" mc/unmark-previous-like-this)
-;;   ("r" mc/mark-all-in-region-regexp :exit t)
-;;   ("q" nil)
-;;   ("<mouse-1>" mc/add-cursor-on-click)
-;;   ("<down-mouse-1>" ignore)
-;;   ("<drag-mouse-1>" ignore))
+(defhydra hydra-multiple-cursors (:hint nil)
+  "
+     ^Up^            ^Down^        ^Other^
+----------------------------------------------
+[_p_]   Next    [_n_]   Next    [_l_] Edit lines
+[_P_]   Skip    [_N_]   Skip    [_a_] Mark all
+[_M-p_] Unmark  [_M-n_] Unmark  [_r_] Mark by regexp
+^ ^             ^ ^             [_q_] Quit
+"
+  ("l" mc/edit-lines :exit t)
+  ("a" mc/mark-all-like-this :exit t)
+  ("n" mc/mark-next-like-this)
+  ("N" mc/skip-to-next-like-this)
+  ("M-n" mc/unmark-next-like-this)
+  ("p" mc/mark-previous-like-this)
+  ("P" mc/skip-to-previous-like-this)
+  ("M-p" mc/unmark-previous-like-this)
+  ("r" mc/mark-all-in-region-regexp :exit t)
+  ("q" nil)
+  ("<mouse-1>" mc/add-cursor-on-click)
+  ("<down-mouse-1>" ignore)
+  ("<drag-mouse-1>" ignore))
 
-;; (defhydra hydra-outline (:color pink :hint nil)
-;;   "
-;; Outline
+(defhydra hydra-outline (:color pink :hint nil)
+  "
+Outline
 
-;; ^Hide^             ^Show^           ^Move
-;; ^^^^^^------------------------------------------------------
-;; _q_ sublevels     _a_ all         _u_ up
-;; _t_ body          _e_ entry       _n_ next visible
-;; _o_ other         _i_ children    _p_ previous visible
-;; _c_ entry         _k_ branches    _f_ forward same level
-;; _l_ leaves        _s_ subtree     _b_ backward same level
-;; _d_ subtree
+^Hide^             ^Show^           ^Move
+^^^^^^------------------------------------------------------
+_q_ sublevels     _a_ all         _u_ up
+_t_ body          _e_ entry       _n_ next visible
+_o_ other         _i_ children    _p_ previous visible
+_c_ entry         _k_ branches    _f_ forward same level
+_l_ leaves        _s_ subtree     _b_ backward same level
+_d_ subtree
 
-;; "
-;;   ;; Hide
-;;   ("q" hide-sublevels)    ; Hide everything but the top-level headings
-;;   ("t" hide-body)         ; Hide everything but headings (all body lines)
-;;   ("o" hide-other)        ; Hide other branches
-;;   ("c" hide-entry)        ; Hide this entry's body
-;;   ("l" hide-leaves)       ; Hide body lines in this entry and sub-entries
-;;   ("d" hide-subtree)      ; Hide everything in this entry and sub-entries
-;;   ;; Show
-;;   ("a" show-all)          ; Show (expand) everything
-;;   ("e" show-entry)        ; Show this heading's body
-;;   ("i" show-children)     ; Show this heading's immediate child sub-headings
-;;   ("k" show-branches)     ; Show all sub-headings under this heading
-;;   ("s" show-subtree)      ; Show (expand) everything in this heading & below
-;;   ;; Move
-;;   ("u" outline-up-heading)                ; Up
-;;   ("n" outline-next-visible-heading)      ; Next
-;;   ("p" outline-previous-visible-heading)  ; Previous
-;;   ("f" outline-forward-same-level)        ; Forward - same level
-;;   ("b" outline-backward-same-level)       ; Backward - same level
-;;   ("z" nil "leave"))
+"
+  ;; Hide
+  ("q" hide-sublevels)    ; Hide everything but the top-level headings
+  ("t" hide-body)         ; Hide everything but headings (all body lines)
+  ("o" hide-other)        ; Hide other branches
+  ("c" hide-entry)        ; Hide this entry's body
+  ("l" hide-leaves)       ; Hide body lines in this entry and sub-entries
+  ("d" hide-subtree)      ; Hide everything in this entry and sub-entries
+  ;; Show
+  ("a" show-all)          ; Show (expand) everything
+  ("e" show-entry)        ; Show this heading's body
+  ("i" show-children)     ; Show this heading's immediate child sub-headings
+  ("k" show-branches)     ; Show all sub-headings under this heading
+  ("s" show-subtree)      ; Show (expand) everything in this heading & below
+  ;; Move
+  ("u" outline-up-heading)                ; Up
+  ("n" outline-next-visible-heading)      ; Next
+  ("p" outline-previous-visible-heading)  ; Previous
+  ("f" outline-forward-same-level)        ; Forward - same level
+  ("b" outline-backward-same-level)       ; Backward - same level
+  ("z" nil "leave"))
 
-;; (defhydra hydra-hs (:color pink :hint nil)
-;;   "
-;; Hideshow
+(defhydra hydra-hs (:color pink :hint nil)
+  "
+Hideshow
 
-;; Hide^^            ^Show^            ^Toggle^    ^Navigation^
-;; ----------------------------------------------------------------
-;; _h_ hide all      _s_ show all      _t_ toggle    _n_ next line
-;; _d_ hide block    _a_ show block                _p_ previous line
-;; _l_ hide level
+Hide^^            ^Show^            ^Toggle^    ^Navigation^
+----------------------------------------------------------------
+_h_ hide all      _s_ show all      _t_ toggle    _n_ next line
+_d_ hide block    _a_ show block                _p_ previous line
+_l_ hide level
 
-;; _q_ quit
-;; "
-;;   ("s" hs-show-all)
-;;   ("h" hs-hide-all)
-;;   ("a" hs-show-block)
-;;   ("d" hs-hide-block)
-;;   ("t" hs-toggle-hiding)
-;;   ("l" hs-hide-level)
-;;   ("n" forward-line)
-;;   ("p" (forward-line -1))
-;;   ("q" nil))
+_q_ quit
+"
+  ("s" hs-show-all)
+  ("h" hs-hide-all)
+  ("a" hs-show-block)
+  ("d" hs-hide-block)
+  ("t" hs-toggle-hiding)
+  ("l" hs-hide-level)
+  ("n" forward-line)
+  ("p" (forward-line -1))
+  ("q" nil))
 
 (defun occur-dwim ()
   "Call `occur' with a sane default, chosen as the thing under point or selected region"
@@ -3410,8 +3410,8 @@ shell is left intact."
   ("s-b" . ivy-switch-buffer)
   ("s-B" . ivy-switch-buffer-other-window))
 
-;; (use-package ivy-hydra
-;;   :defer 1)
+(use-package ivy-hydra
+  :defer 1)
 
 (defun replace-regexp-entire-buffer (pattern replacement)
   "Perform regular-expression replacement immedately throughout the buffer."
@@ -4124,15 +4124,9 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :hook
   (js2-mode . (lambda () (tern-mode) (company-mode-on))))
 
-;; (use-package nodejs-repl
-;;   :bind
-;;   (:map
-;;    js2-mode-map
-;;    ("C-x C-e" . nodejs-repl-send-last-expression)
-;;    ("C-c C-j" . nodejs-repl-send-line)
-;;    ("C-c C-r" . nodejs-repl-send-region)
-;;    ("C-c C-l" . nodejs-repl-load-file)
-;;    ("C-c C-z" . nodejs-repl-switch-to-repl)))
+(use-package indium
+  :commands
+  (indium-connect indium-launch))
 
 (use-package know-your-http-well
   :defer 2)
