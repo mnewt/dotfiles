@@ -1,7 +1,0 @@
-#!/bin/bash
-":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
-(pop argv)  ; Remove the -- separator
-
-;; (load "~/.emacs.d/init.el")
-;; (update-emcas)
-;; (kill-emacs 0)

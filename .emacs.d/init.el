@@ -797,7 +797,7 @@ Version 2017-12-04"
   (defun system-move-file-to-trash (file)
     "Use \"trash\" to move FILE to the system trash.
 When using Homebrew, install it using \"brew install trash\"."
-    (call-process (executable-find "trash")
+    (call-process (or (executable-find "trash") (executable-find "rm"))
                   nil 0 nil
                   file))
 
