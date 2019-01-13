@@ -1658,17 +1658,15 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 ;;   :config
 ;;   (global-hl-todo-mode))
 
-;; (use-package yasnippet
-;;   :config
-;;   (yas-global-mode 1)
-;;   :bind
-;;   (("C-c C-s" . yas-insert-snippet)))
+(use-package yasnippet
+  :defer 2
+  :config
+  (yas-global-mode 1)
+  :bind
+  (("C-c C-s" . yas-insert-snippet)))
 
-;; (use-package yasnippet-snippets
-;;   :defer 2)
-
-;; (use-package react-snippets
-;;   :defer 2)
+(use-package yasnippet-snippets
+  :defer 2)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; S-Expressions, Parentheses, Brackets
@@ -1831,7 +1829,7 @@ ID, ACTION, CONTEXT."
                         (require 'smartparens-config)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
-  ((css-mode emacs-lisp-mode hy-mode sh-mode) . turn-on-smartparens-mode)
+  ((css-mode emacs-lisp-mode hy-mode sass-mode sh-mode stylus-mode) . turn-on-smartparens-mode)
   (clojure-mode . (lambda ()
                     (require 'smartparens-clojure)
                     (turn-on-smartparens-mode)))
@@ -3402,13 +3400,16 @@ _q_ quit
 (use-package ivy
   :custom
   (enable-recursive-minibuffers t)
-  ;; (ivy-use-virtual-buffers t)
   :config
   (ivy-mode 1)
   :bind
-  ("C-c C-r" . ivy-resume)
-  ("s-b" . ivy-switch-buffer)
-  ("s-B" . ivy-switch-buffer-other-window))
+  (:map ivy-mode-map
+   ("C-c C-r" . ivy-resume)
+   ("s-b" . ivy-switch-buffer)
+   ("s-B" . ivy-switch-buffer-other-window)
+   :map ivy-minibuffer-map
+   ("C-e" . ivy-partial-or-done)))
+  
 
 (use-package ivy-hydra
   :defer 1)
@@ -4070,6 +4071,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (web-mode-markup-indent-offset tab-width)
   (web-mode-css-indent-offset tab-width)
   (web-mode-code-indent-offset tab-width)
+  (web-mode-enable-css-colorization t)
   (web-mode-enable-current-element-highlight t)
   (web-mode-enable-current-column-highlight t)
   (web-mode-ac-sources-alist '(("css" . (ac-source-css-property))
@@ -4192,7 +4194,12 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (go-mode . (lambda () (set (make-local-variable 'company-backends) '(company-go)))))
 
 (use-package sass-mode
-  :mode "\\.sa?c?ss\\'")
+  :mode "\\(?:s\\(?:[ac]ss\\)\\)")
+
+(use-package stylus-mode
+  :straight
+  (:type git :host github :repo "vladh/stylus-mode")
+  :mode "\\.\\(?:\\(?:s\\(?:ss\\|tyl\\)\\)\\)")
 
 (use-package flycheck
   :bind
