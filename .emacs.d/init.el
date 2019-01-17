@@ -2802,8 +2802,6 @@ shell is left intact."
 (use-package ox-hugo
   :after ox)
 
-(add-hook 'org-mode-hook #'init-org)
-
 ;; Calendar and Journal
 
 (require 'calendar)
@@ -3525,9 +3523,10 @@ _q_ quit
   (projectile-keymap-prefix (kbd "C-c p"))
   (projectile-completion-system 'ivy)
   (projectile-project-search-path '("~/code"))
+  (projectile-switch-project-action 'projectile-dired)
   ;; Exclude untracked files because we use git workdirs in $HOME. Listing all
   ;; files takes too long.
-  (projectile-git-command "git ls-files -zc --exclude-standard")
+  ;; (projectile-git-command "git ls-files -zc --exclude-standard")
   ;; (frame-title-format
   ;;  '(""
   ;;    (:eval
@@ -4129,6 +4128,9 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package indium
   :commands
   (indium-connect indium-launch))
+
+(use-package json-mode
+  :mode "\\.json\\'")
 
 (use-package know-your-http-well
   :defer 2)
