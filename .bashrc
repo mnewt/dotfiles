@@ -23,6 +23,10 @@ __prompt_fg=255
 
 export PS1="\[\033[48;5;${__prompt_cmdstatus_bg}m\033[38;5;${__prompt_cmdstatus_fg}m\]\$(s=\$? && [ \$s != 0 ] && echo "[\$s]")\[\033[48;5;${__prompt_ssh_username_bg}m\033[38;5;${__prompt_ssh_username_fg}m\] \u \[\033[48;5;${__prompt_hostname_bg}m\033[38;5;${__prompt_hostname_fg}m\] \h \[\033[48;5;${__prompt_left_directory_bg}m\033[38;5;${__prompt_left_directory_fg}m\] \w \[\033[48;5;${__prompt_bg}m\033[38;5;${__prompt_fg}m\]\n\$\[\033[0m\] "
 
+# Bind M-p and M-n to help with Emacs muscle memory.
+bind '"\ep":previous-history'
+bind '"\en":next-history'
+
 source_if () {
   [ -e "$1" ] && . "$1"
 }
