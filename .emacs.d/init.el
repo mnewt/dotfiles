@@ -116,7 +116,7 @@
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
 ;; Anonymous function macro
-;; * TODO: Doesn't work inside `use-package'
+;; TODO: Doesn't work inside `use-package'
 ;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
 (defmacro $ (&rest body)
   (cl-labels ((collect-vars
@@ -740,6 +740,7 @@ Version 2017-12-04"
  ("s-a" . mark-whole-buffer)
  ("s-g" . isearch-repeat-forward)
  ("s-G" . isearch-repeat-backward)
+ ("C-S-s" . isearch-forward-symbol-at-point)
  ("s-l" . select-current-line)
  ("C-S-L" . select-current-line)
  ("s-\`" . other-frame)
@@ -1941,9 +1942,10 @@ ID, ACTION, CONTEXT."
       dired-recursive-copies 'always
       dired-listing-switches "-alh"
       dired-dwim-target t
-      wdired-allow-to-change-permissions t
       dired-omit-mode t
-      dired-omit-files "\\`[#.].*")
+      dired-omit-files "\\`[#.].*"
+      wdired-allow-to-change-permissions t
+      wdired-create-parent-directories t)
 
 (setq-default dired-omit-files-p t)
 
@@ -2653,8 +2655,21 @@ shell is left intact."
   :hook
   (find-file . tramp-disable-file-accesses))
 
+(defun tramp-term--create-vterm (new-buffer-name cmd &rest switches)
+  "Create a vterm and ignore all parameters."
+  (vterm)
+  (rename-buffer new-buffer-name)
+  (insert (mapconcat 'identity (cons cmd switches) " "))
+  (insert "\n"))
+
+(use-package tramp-term
+  :config
+  (advice-add :around tramp-term--create-term #'tramp-term--create-vterm)
+  :commands
+  (tramp-term))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Mount  
+;;; Mount
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; These functions execute the `mnt' utility, which uses config
@@ -3408,7 +3423,6 @@ _q_ quit
    :map ivy-minibuffer-map
    ("C-e" . ivy-partial-or-done)))
   
-
 (use-package ivy-hydra
   :defer 1)
 
@@ -3467,8 +3481,9 @@ _q_ quit
    `(("c" ,(given-file #'copy-file "Copy") "copy")
      ("m" ,(reloading (given-file #'rename-file "Move")) "move")
      ("b" counsel-find-file-cd-bookmark-action "cd bookmark")))
+  (setenv "FZF_DEFAULT_COMMAND" "rg --files")
   :bind
-  (("C-h C-b" . counsel-descbinds)
+  (("C-h C-k" . counsel-descbinds)
    ("s-F" . counsel-rg)
    ("s-f" . counsel-grep-or-swiper)
    ("M-x" . counsel-M-x)
@@ -3481,7 +3496,6 @@ _q_ quit
    ("C-c o" . counsel-outline)
    ("M-s-v" . counsel-yank-pop)
    ("M-Y" . counsel-yank-pop)
-   ;; ([remap isearch-forward] . counsel-grep-or-swiper)
    ([remap find-file] . counsel-find-file)
    :map ivy-minibuffer-map
    ("M-y" . ivy-next-line-and-call)
