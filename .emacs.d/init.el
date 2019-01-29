@@ -1669,6 +1669,30 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (use-package yasnippet-snippets
   :defer 2)
 
+;; use local eslint from node_modules before global
+;; http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
+(defun flycheck-use-eslint-from-node-modules ()
+  (let* ((root (locate-dominating-file
+                (or (buffer-file-name) default-directory)
+                "node_modules"))
+         (eslint (and root
+                      (expand-file-name "node_modules/eslint/bin/eslint.js"
+                                        root))))
+    (when (and eslint (file-executable-p eslint))
+      (setq-local flycheck-javascript-eslint-executable eslint))))
+
+(use-package flycheck
+  :custom
+  (flycheck-check-syntax-automatically '(save mode-enable))
+  :config
+  ;; (setq-default flycheck-disabled-checkers (append flycheck-disabled-checkers
+  ;;                                                  '(javascript-jshint)))
+  ;; (flycheck-add-mode 'javascript-eslint 'rjsx-mode)
+  :hook ((flycheck-mode . flycheck-use-eslint-from-node-modules)
+         (js2-mode . flycheck-mode))
+  :bind
+  (("C-c ! !" . flycheck-mode)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; S-Expressions, Parentheses, Brackets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4105,7 +4129,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (bind-key "C-c C-<return>" #'toggle-sp-newline)
 
-;; Pulls in js2-mode because it is built on top of it
+;; Pulls in `js2-mode' because it is derived from it.
 (use-package rjsx-mode
   :mode "\\.jsx?\\'"
   :custom
@@ -4131,13 +4155,20 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
         ;; Don't shadow js2-mode-map
         ("M-." . nil)))
 
-(use-package company-tern
-  ;; :ensure-system-package
-  ;; (tern . "npm install -g tern")
-  :config
-  (add-to-list 'company-backends 'company-tern)
-  :hook
-  (js2-mode . (lambda () (tern-mode) (company-mode-on))))
+(use-package tide
+  :custom
+  (tide-format-options '(:indentSize 2 :tabSize 2))
+  :hook (((js2-mode typescript-mode) . tide-setup)
+         ((js2-mode typescript-mode) . tide-hl-identifier-mode)
+         (before-save . tide-format-before-save)))
+
+;; (use-package company-tern
+;;   ;; :ensure-system-package
+;;   ;; (tern . "npm install -g tern")
+;;   :config
+;;   (add-to-list 'company-backends 'company-tern)
+;;   :hook
+;;   (js2-mode . (lambda () (tern-mode) (company-mode-on))))
 
 (use-package indium
   :commands
@@ -4216,10 +4247,6 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :straight
   (:type git :host github :repo "vladh/stylus-mode")
   :mode "\\.\\(?:\\(?:s\\(?:ss\\|tyl\\)\\)\\)")
-
-(use-package flycheck
-  :bind
-  (("C-c ! !" . flycheck-mode)))
 
 (use-package powershell
   :mode "\\.ps1\\'"
