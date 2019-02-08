@@ -25,7 +25,6 @@ if installed brew; then
   fi
   brew cask upgrade
   brew cleanup
-  brew prune
   brew doctor
 else
   echo "Hombrew is not installed, skipping"
