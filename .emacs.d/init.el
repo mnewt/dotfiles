@@ -589,7 +589,9 @@ activate it."
       ;; use mouse to kill/yank
       mouse-yank-at-point t
       mouse-drag-and-drop-region t
-      mouse-drag-and-drop-region-cut-when-buffers-differ t)
+      mouse-drag-and-drop-region-cut-when-buffers-differ t
+      ;; No GUI dialogs
+      use-dialog-box nil)
 
 ;; Highlight current line
 (global-hl-line-mode 1)
@@ -751,7 +753,9 @@ Version 2017-12-04"
  ("s-C-w" . delete-frame)
  ("s-/" . comment-toggle)
  ("s-h" . ns-do-hide-emacs)
- ("s-H" . ns-do-hide-others))
+ ("s-H" . ns-do-hide-others)
+ ("s-i" . os-reveal-file)
+ ("C-c i" . os-reveal-file))
 
 (use-package goto-addr
   :hook
@@ -766,8 +770,16 @@ Version 2017-12-04"
   (:map goto-address-highlight-keymap
         ("C-c C-o" . goto-address-at-point)))
 
-(defun config-unix ()
-  "Configure Emacs for common Unix (Linux and macOS) settings.")
+(defvar os-open-file-executable nil)
+
+(defun os-open-file (file)
+  "Open a file using the operating system's GUI file opener."
+  (interactive)
+  (message "Opening %s..." file)
+  (call-process os-open-file-executable nil 0 nil file))
+
+(defun config-unix ())
+"Configure Emacs for common Unix (Linux and macOS) settings."
   ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
   ;; (setq-default shell-file-name (executable-find "bash")
   ;;               explicit-shell-file-name shell-file-name))
@@ -787,7 +799,8 @@ Version 2017-12-04"
         ns-right-control-modifier 'left
         ns-function-modifier 'hyper
         ;; Open files from Finder in same frame.
-        ns-pop-up-frames nil)
+        ns-pop-up-frames nil
+        os-open-file-executable "open")
   (when window-system (menu-bar-mode +1))
   (set-face-font 'default "Monaco-13")
   (set-face-attribute 'default nil
@@ -795,6 +808,7 @@ Version 2017-12-04"
   ;; Use system trash
   (setq delete-by-moving-to-trash t
         trash-directory "~/.Trash")
+  
   (defun system-move-file-to-trash (file)
     "Use \"trash\" to move FILE to the system trash.
 When using Homebrew, install it using \"brew install trash\"."
@@ -803,28 +817,26 @@ When using Homebrew, install it using \"brew install trash\"."
                   file))
 
   (use-package reveal-in-osx-finder
-    :bind
-    ("s-i" . reveal-in-osx-finder)))
+    :config
+    (defalias 'os-reveal-file #'reveal-in-osx-finder)))
 
 (defun config-windows ()
   "Configure Emacs for Windows."
   (menu-bar-mode -1)
   (setq w32-lwindow-modifier 'super
         w32-rwindow-modifier 'super
-        directory-free-space-program nil)
+        directory-free-space-program nil
+        os-open-file-executable "explorer")
   (set-face-font 'default "Lucida Console-12")
 
-  (defun os-open-file (file)
+  (defun reveal-in-windows-explorer (&optional file)
+    "Reveal the current file in the operating system's file manager."
     (interactive)
-    (message "Opening %s..." file)
-    (call-process "explorer" nil 0 nil file))
+    (unless file (setq file buffer-file-name))
+    (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" file))))
+  
+  (defalias 'os-reveal-file #'reveal-in-windows-explorer))
 
-  (defun reveal-in-windows-explorer ()
-    "Reveal the current file in Windows Explorer."
-    (interactive)
-    (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" buffer-file-name))))
-
-  (bind-key "C-c i" #'reveal-in-windows-explorer))
 
 ;; OS specific configuration
 (pcase system-type
@@ -1414,6 +1426,10 @@ the end of each line."
 ;;   https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
 ;;   (interactive) (set-buffer-file-coding-system 'unix))
 
+(use-package string-inflection
+  :bind
+  ("C-c C-u" . string-inflection-all-cycle))
+
 (defun unix2dos ()
   "Convert Unix encoded buffer to DOS encoding.
 https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
@@ -1490,48 +1506,42 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (bind-keys ("s-C" . copy-region-to-other-window)
            ("s-X" . move-region-to-other-window))
 
-;; (use-package elisp-slime-nav
-;;   :commands
-;;   (elisp-slime-nav-mode)
-;;   :hook
-;;   ((emacs-lisp-mode ielm-mode) . elisp-slime-nav-mode))
+(use-package undo-tree
+  :init
+  ;; Keep region when undoing in region.
+  ;; http://whattheemacsd.com/my-misc.el-02.html
+  (defadvice undo-tree-undo (around keep-region activate)
+    (if (use-region-p)
+        (let ((m (set-marker (make-marker) (mark)))
+              (p (set-marker (make-marker) (point))))
+          ad-do-it
+          (goto-char p)
+          (set-mark m)
+          (set-marker p nil)
+          (set-marker m nil))
+      ad-do-it))
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
+  (undo-tree-visualizer-timestamps t)
+  (undo-tree-visualizer-diff t)
+  :config
+  (global-undo-tree-mode)
+  :bind
+  (("s-z" . undo-tree-undo)
+   ("s-Z" . undo-tree-redo)
+   ("s-y" . undo-tree-redo)
+   ("M-s-z" . undo-tree-visualize)))
 
-;; (use-package undo-tree
-;;   :init
-;;   ;; Keep region when undoing in region.
-;;   ;; http://whattheemacsd.com/my-misc.el-02.html
-;;   (defadvice undo-tree-undo (around keep-region activate)
-;;     (if (use-region-p)
-;;         (let ((m (set-marker (make-marker) (mark)))
-;;               (p (set-marker (make-marker) (point))))
-;;           ad-do-it
-;;           (goto-char p)
-;;           (set-mark m)
-;;           (set-marker p nil)
-;;           (set-marker m nil))
-;;       ad-do-it))
-;;   :custom
-;;   (undo-tree-auto-save-history t)
-;;   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
-;;   (undo-tree-visualizer-timestamps t)
-;;   (undo-tree-visualizer-diff t)
-;;   :config
-;;   (global-undo-tree-mode)
-;;   :bind
-;;   (("s-z" . undo-tree-undo)
-;;    ("s-Z" . undo-tree-redo)
-;;    ("s-y" . undo-tree-redo)
-;;    ("M-s-z" . undo-tree-visualize)))
+(use-package easy-kill
+  :bind
+  (([remap kill-ring-save] . easy-kill)
+   ([remap mark-sexp] . easy-mark)))
 
-;; (use-package easy-kill
-;;   :bind
-;;   (([remap kill-ring-save] . easy-kill)
-;;    ([remap mark-sexp] . easy-mark)))
-
-;; (use-package ace-jump-zap
-;;   :bind
-;;   (("M-z" . ace-jump-zap-up-to-char-dwim)
-;;    ("C-M-z" . ace-jump-zap-to-char-dwim)))
+(use-package ace-jump-zap
+  :bind
+  (("M-z" . ace-jump-zap-up-to-char-dwim)
+   ("C-M-z" . ace-jump-zap-to-char-dwim)))
 
 (use-package mwim
   :bind
@@ -1651,7 +1661,7 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 
 (use-package rainbow-mode
   :hook
-  ((emacs-lisp-mode help-mode sass-mode) . rainbow-mode))
+  ((emacs-lisp-mode help-mode sass-mode stylus-mode) . rainbow-mode))
 
 ;; (use-package hl-todo
 ;;   :commands
@@ -1849,40 +1859,22 @@ ID, ACTION, CONTEXT."
                    :actions '(insert navigate)
                    :pre-handlers '(sp-sh-pre-handler)
                    :post-handlers '(sp-sh-block-post-handler)))
+  (smartparens-global-mode)
   :hook
   (smartparens-mode . (lambda ()
                         (require 'smartparens-config)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
   ((css-mode emacs-lisp-mode hy-mode sass-mode sh-mode stylus-mode) . turn-on-smartparens-mode)
-  (clojure-mode . (lambda ()
-                    (require 'smartparens-clojure)
-                    (turn-on-smartparens-mode)))
-  ((ruby-mode enh-ruby-mode) . (lambda ()
-                                 (require 'smartparens-ruby)
-                                 (turn-on-smartparens-mode)))
-  ((javascript-mode js2-mode json-mode rjsx-mode) .
-   (lambda ()
-     (require 'smartparens-javascript)
-     (turn-on-smartparens-mode)))
-  (lua-mode . (lambda ()
-                (require 'smartparens-lua)
-                (turn-on-smartparens-mode)))
-  (markdown-mode . (lambda ()
-                     (require 'smartparens-markdown)
-                     (turn-on-smartparens-mode)))
-  (org-mode . (lambda ()
-                (require 'smartparens-org)
-                (turn-on-smartparens-mode)))
-  ((python-mode elpy-mode) . (lambda ()
-                               (require 'smartparens-python)
-                               (turn-on-smartparens-mode)))
-  (text-mode . (lambda ()
-                 (require 'smartparens-text)
-                 (turn-on-smartparens-mode)))
-  (web-mode . (lambda ()
-                (require 'smartparens-html)
-                (turn-on-smartparens-mode)))
+  (clojure-mode . (lambda () (require 'smartparens-clojure)))
+  ((ruby-mode enh-ruby-mode) . (lambda () (require 'smartparens-ruby)))
+  ((javascript-mode js2-mode json-mode rjsx-mode) . (lambda () (require 'smartparens-javascript)))
+  (lua-mode . (lambda () (require 'smartparens-lua)))
+  (markdown-mode . (lambda () (require 'smartparens-markdown)))
+  (org-mode . (lambda () (require 'smartparens-org)))
+  ((python-mode elpy-mode) . (lambda () (require 'smartparens-python)))
+  (text-mode . (lambda () (require 'smartparens-text)))
+  (web-mode . (lambda () (require 'smartparens-html)))
   :bind
   (:map smartparens-mode-map
         ("C-M-k" . sp-kill-sexp)
@@ -1984,7 +1976,8 @@ ID, ACTION, CONTEXT."
  ("C-c o" . dired-open-file)
  ("C-x M-f" . find-file-at-point)
  ("T" . touch)
- ("C-." . dired-omit-mode))
+ ("C-." . dired-omit-mode)
+ ("C-c C-p" . wdired-change-to-wdired-mode))
 
 (use-package diredfl
   :config
@@ -2092,27 +2085,21 @@ ID, ACTION, CONTEXT."
                      (list-hosts-from-etc-hosts)))
                    nil t))
 
-;; (defun ssh (host)
-;;   "Choose an ssh HOST and then ssh to it."
-;;   (interactive (list (ssh-choose-host)))
-;;   (setq-local explicit-ssh-args (list "a"))
-;;   (let ((explicit-shell-file-name (executable-find "ssh")))
-;;     (shell "*ssh a*")))
-
-(defun sshd (host)
+(defun tramp-dired (host)
   "Choose an ssh host and then open it with dired."
-  (interactive (list (ssh-choose-host)))
-  (find-file (concat "/sshx:" host ":")))
+  (interactive (list (ssh-choose-host "Hostname or tramp string: ")))
+  (find-file
+   (if (tramp-file-name-p host)
+       host
+     (find-file (concat "/ssh:" host ":")))))
 
-;; (use-package ssh
-;;   :custom
-;;   (ssh-directory-tracking-mode 'ftp)
-;;   :hook
-;;   (ssh-mode . (lambda ()
-;;                 (shell-dirtrack-mode t)
-;;                 (setq dirtrackp nil)))
-;;   :commands
-;;   (ssh))
+(defun tramp-dired-sudo (host)
+  "ssh to host, sudo to root, open dired"
+  (interactive (list (ssh-choose-host "Hostname or tramp string: ")))
+  (find-file
+   (if (tramp-file-name-p host)
+       host
+     (concat "/ssh:" host "|sudo:root@" host ":"))))
 
 (eval-after-load 'sh
   (lambda ()
@@ -2141,12 +2128,13 @@ ID, ACTION, CONTEXT."
 ;; dtach (https://github.com/crigler/dtach)
 ;; https://emacs.stackexchange.com/questions/2283/attach-to-running-remote-shell-with-eshell-tramp-dtach
 (setq explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login"))
+
 (defun ssh-dtach (host)
   "Open SSH connection to remote host and attach to dtach session."
   (interactive (list (ssh-choose-host "SSH using dtach to host: ")))
   (let ((explicit-shell-file-name "dtach")
         (default-directory (format  "/sshx:%s:" host))
-        (explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login")))
+        (explicit-dtach-args explicit-dtach-args))
     (shell (format "*ssh (dtach) %s*" host))))
 
 ;; https://www.emacswiki.org/emacs/ShellMode
@@ -2238,11 +2226,11 @@ ID, ACTION, CONTEXT."
   :custom (fish-indent-offset tab-width)
   :mode "\\.fish\\'")
 
-;; (use-package fish-completion
-;;   :custom
-;;   (fish-completion-fallback-on-bash-p t)
-;;   :config
-;;   (global-fish-completion-mode))
+(use-package fish-completion
+  :custom
+  (fish-completion-fallback-on-bash-p t)
+  :config
+  (global-fish-completion-mode))
 
 (defun eshell-other-window (arg)
   "Opens an eshell in another window. Prefix argument opens a new eshell named for `default-directory'"
@@ -2329,9 +2317,9 @@ ID, ACTION, CONTEXT."
           :background "red" :foreground "white" :weight bold))
      (,(abbreviate-file-name (eshell/pwd)) :background "cyan" :foreground "black")
      (,(if (zerop (user-uid)) "\n(#)" "\n()")
-      :foreground (if (equal 'light (frame-parameter nil 'background-mode))
-                      "black"
-                    "white")
+      :foreground ,(if (equal 'light (frame-parameter nil 'background-mode))
+                       "black"
+                     "white")
       :weight bold))
    ""))
 
@@ -2605,22 +2593,6 @@ because I dynamically rename the buffer according to
   ;; TODO: Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
   (unless (eq system-type 'windows-nt)
       (pinentry-start)))
-
-(defun sshd-sudo (path)
-  "ssh to host, sudo to root, open dired"
-  (interactive "M [User@] Hostname: ")
-  (let* ((at (string-match "@" path))
-         (colon (string-match ":" path))
-         (user (if at
-                   (concat (substring path 0 at) "@")
-                 ""))
-         (host (if at
-                   (substring path (+ 1 at))
-                 path))
-         (dir (if colon
-                  (substring path (+ 1 colon))
-                ":/")))
-    (find-file (concat "/ssh:" user host "|sudo:root@" host dir))))
 
 (defun sudo-toggle--add-sudo (f)
   "Add sudo to file path string"
@@ -3414,6 +3386,8 @@ _q_ quit
         ;; completion in different contexts (e.g `emacs-lisp-mode' and
         ;; `eshell-mode') is aggravating. Not sure about the solution though.
         ;; ("C-n" . company-select-next) ("C-p" . company-select-previous)
+        ("RET" . nil)
+        ("C-e" . company-complete-selection)
         ("M-." . company-show-location)))
 
 (use-package company-quickhelp
@@ -4171,6 +4145,9 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 ;;   (js2-mode . (lambda () (tern-mode) (company-mode-on))))
 
 (use-package indium
+  :custom
+  (indium-chrome-executable "/Applications/Chromium.app/Contents/MacOS/Chromium")
+  (indium-chrome-use-temporary-profile nil)
   :commands
   (indium-connect indium-launch))
 
