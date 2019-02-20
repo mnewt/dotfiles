@@ -2012,14 +2012,13 @@ ID, ACTION, CONTEXT."
   :bind
   (("C-x M-d" . dired-sidebar-toggle-sidebar)))
 
-;; (use-package dired-du
-;;   :custom
-;;   ;; Human readable file sizes.
-;;   (dired-du-size-format t)
-;;   (dired-du-used-space-program '("du" "-sb"))
-;;   (dired-du-update-headers t)
-;;   :commands
-;;   (dired-du-mode))
+(use-package disk-usage
+  :straight
+  (:type git :host gitlab :repo "Ambrevar/emacs-disk-usage")
+  :bind
+  (:map dired-mode-map
+        (")" . disk-usage-here)
+        ("C-)" . disk-usage)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell, Terminal, SSH, Tramp
