@@ -24,7 +24,7 @@ Further, we can have multiple repos tracking different sets of files, all with t
 *** Set up a new computer
 We already have a repo and we know what we're doing. No need to back anything up. Overwrite existing files.
 #+BEGIN_SRC sh
-wget 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' -O - | sh -s 'https://gitlab.com/mnewt/dotfiles.git'
+curl 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' | bash -s 'https://gitlab.com/mnewt/dotfiles.git'
 #+END_SRC
 Or on Windows:
 #+BEGIN_SRC powershell
