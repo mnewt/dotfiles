@@ -216,11 +216,7 @@
 
 (bind-key "C-c C-v" 'expand-environment-variable)
 
-(use-package server
-  :defer 1
-  :config
-  (unless (server-running-p)
-    (server-start)))
+(add-hook 'after-init-hook (lambda () (unless (server-running-p) (server-start))))
 
 (use-package restart-emacs
   :commands
@@ -2169,9 +2165,11 @@ ID, ACTION, CONTEXT."
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
 
-(add-to-list 'load-path "~/code/emacs-libvterm")
-(let (vterm-install)
-  (require 'vterm))
+(let ((vterm-dir "~/code/emacs-libvterm"))
+  (when (file-exists-p vterm-dir)
+    (add-to-list 'load-path "~/code/emacs-libvterm")
+    (let (vterm-install)
+      (require 'vterm))))
 
 (use-package term
   :bind (("C-c t" . vterm)
@@ -3529,11 +3527,13 @@ _q_ quit
       (load p)
       (message "%s" (concat "Loaded project settings from: " p)))))
 
+(setq code-directory (if (file-exists-p "~/code") "~/code" "~"))
+
 (use-package projectile
   :custom
   (projectile-keymap-prefix (kbd "C-c p"))
   (projectile-completion-system 'ivy)
-  (projectile-project-search-path '("~/code"))
+  (projectile-project-search-path (list code-directory))
   (projectile-switch-project-action 'projectile-dired)
   ;; Exclude untracked files because we use git workdirs in $HOME. Listing all
   ;; files takes too long.
