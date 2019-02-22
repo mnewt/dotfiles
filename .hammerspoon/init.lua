@@ -5,6 +5,7 @@
 -- The Karabiner Elements config remaps caps lock to {"cmd", "alt", "ctrl"}
 local mash = {"cmd", "alt", "ctrl"}
 local mashshift = {"cmd", "alt", "ctrl", "shift"}
+local bind = hs.hotkey.bind
 
 --------------------------------------------------------------------------------
 -- * Utility functions
@@ -85,7 +86,7 @@ function dofile_if(name)
 end
 
 -- ** Defeat paste blocking
-hs.hotkey.bind(mash, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
+bind(mash, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
 
 --------------------------------------------------------------------------------
 -- * Hammerspoon config utlities
@@ -107,13 +108,13 @@ end
 hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 hs.alert.show("Config loaded")
 
-hs.hotkey.bind(mash, 'r', hs.reload)
+bind(mash, 'r', hs.reload)
 
 -- ** Open Hammerspoon console
-hs.hotkey.bind(mash, "`", hs.openConsole)
+bind(mash, "`", hs.openConsole)
 
 -- ** Open Hammerspoon preferences
-hs.hotkey.bind(mash, ",", hs.openPreferences)
+bind(mash, ",", hs.openPreferences)
 
 hs.hotkey.showHotkeys(mash, "/")
 
@@ -136,12 +137,12 @@ end
 
 -- ** Undo
 local undo = require 'undo'
-hs.hotkey.bind(mash, "z", function() undo:undo() end)
+bind(mash, "z", function() undo:undo() end)
 
 -- disable animations
 hs.window.animationDuration = 0
 
-hs.hotkey.bind(mash, "F", function()
+bind(mash, "F", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -155,7 +156,7 @@ hs.hotkey.bind(mash, "F", function()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind(mash, "Left", function()
+bind(mash, "Left", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -169,7 +170,7 @@ hs.hotkey.bind(mash, "Left", function()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind(mash, "Right", function()
+bind(mash, "Right", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -183,7 +184,7 @@ hs.hotkey.bind(mash, "Right", function()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind(mash, "Up", function()
+bind(mash, "Up", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -197,7 +198,7 @@ hs.hotkey.bind(mash, "Up", function()
       win:setFrame(f)
 end)
 
-hs.hotkey.bind(mash, "Down", function()
+bind(mash, "Down", function()
       local win = hs.window.focusedWindow()
       local f = win:frame()
       local screen = win:screen()
@@ -222,70 +223,70 @@ hs.grid.GRIDHEIGHT = 18
 hs.grid.GRIDWIDTH = 18
 
 -- ** Alter gridsize
-hs.hotkey.bind(mashshift, '=', function()
+bind(mashshift, '=', function()
                   undo:addToStack() hs.grid.adjustHeight(1)
 end)
-hs.hotkey.bind(mashshift, '-', function()
+bind(mashshift, '-', function()
                   undo:addToStack()
                   hs.grid.adjustHeight(-1)
 end)
-hs.hotkey.bind(mash, '=', function()
+bind(mash, '=', function()
                   undo:addToStack()
                   hs.grid.adjustWidth(1)
 end)
-hs.hotkey.bind(mash, '-', function()
+bind(mash, '-', function()
                   undo:addToStack()
                   hs.grid.adjustWidth(-1)
 end)
 
 -- ** Snap windows
-hs.hotkey.bind(mash, ';', function()
+bind(mash, ';', function()
                   undo:addToStack()
                   hs.grid.snap(hs.window.focusedWindow())
 end)
-hs.hotkey.bind(mash, "'", function()
+bind(mash, "'", function()
                   undo:addToStack()
                   hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap)
 end)
 
 -- ** Move windows
-hs.hotkey.bind(mash, 'j', function()
+bind(mash, 'j', function()
                   undo:addToStack()
                   hs.grid.pushWindowDown()
 end)
-hs.hotkey.bind(mash, 'k', function()
+bind(mash, 'k', function()
                   undo:addToStack()
                   hs.grid.pushWindowUp()
 end)
-hs.hotkey.bind(mash, 'h', function()
+bind(mash, 'h', function()
                   undo:addToStack()
                   hs.grid.pushWindowLeft()
 end)
-hs.hotkey.bind(mash, 'l', function()
+bind(mash, 'l', function()
                   undo:addToStack()
                   hs.grid.pushWindowRight()
 end)
 
 -- ** Resize windows
-hs.hotkey.bind(mashshift, 'k', function()
+bind(mashshift, 'k', function()
                   undo:addToStack()
                   hs.grid.resizeWindowShorter()
 end)
-hs.hotkey.bind(mashshift, 'j', function()
+bind(mashshift, 'j', function()
                   undo:addToStack()
                   hs.grid.resizeWindowTaller()
 end)
-hs.hotkey.bind(mashshift, 'l', function()
+bind(mashshift, 'l', function()
                   undo:addToStack()
                   hs.grid.resizeWindowWider()
 end)
-hs.hotkey.bind(mashshift, 'h', function()
+bind(mashshift, 'h', function()
                   undo:addToStack()
                   hs.grid.resizeWindowThinner()
 end)
 
 -- ** Toggle window zoom (acts like Alt+Shift+GreenPlusButton)
-hs.hotkey.bind(mash, "m", function()
+bind(mash, "m", function()
                   local win = hs.window.focusedWindow()
                   local frame = win:frame()
                   local id = win:id()
@@ -312,8 +313,8 @@ expose = hs.expose.new(nil,{showThumbnails=true}) -- default windowfilter
 expose_app = hs.expose.new(nil,{onlyActiveApplication=true}) -- show windows for the current application
 expose_space = hs.expose.new(nil,{includeOtherSpaces=false}) -- only windows in the current Mission Control Space
 
-hs.hotkey.bind(mash, 'x', 'Expose',function() expose:toggleShow() end)
-hs.hotkey.bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
+bind(mash, 'x', 'Expose',function() expose:toggleShow() end)
+bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
 
 --------------------------------------------------------------------------------
 -- * Spaces
@@ -324,29 +325,38 @@ hs.hotkey.bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
 
 -- Unsupported Spaces extension. Uses private APIs
 -- (http://github.com/asmagill/hammerspoon_asm.undocumented)
-spaces = require("hs._asm.undocumented.spaces")
+-- local spaces = require("hs._asm.undocumented.spaces")
 
-currentSpace = tostring(spaces.currentSpace())
+-- move current window to the space sp
+-- function moveCurrentWindowToSpace(sp)
+--    local win = hs.window.focusedWindow()      -- current window
+--    local uuid = win:screen():spacesUUID()     -- uuid for current screen
+--    local spaceID = spaces.layout()[uuid][sp]  -- internal index for sp
+--    spaces.moveWindowToSpace(win:id(), spaceID) -- move window to new space
+--    spaces.changeToSpace(spaceID)              -- follow window to new space
+-- end
 
--- ** Switch to space
-hs.hotkey.bind(mash, '1', function()
-                  undo:addToStack()
-                  spaces.changeToSpace("1")
-end)
-hs.hotkey.bind(mash, '2', function()
-                  undo:addToStack()
-                  spaces.changeToSpace("2")
-end)
+-- spaces = require("hs._asm.undocumented.spaces")
 
--- ** Move window to space
-hs.hotkey.bind(mashshift, '1', function()
-                  undo:addToStack()
-                  spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "1")
-end)
-hs.hotkey.bind(mashshift, '2', function()
-                  undo:addToStack()
-                  spaces.moveWindowToSpace(hs.window.focusedWindow():id(), "2")
-end)
+-- -- ** Switch to space
+-- bind(mash, '1', function()
+--                   undo:addToStack()
+--                   spaces.changeToSpace("1")
+-- end)
+-- bind(mash, '2', function()
+--                   undo:addToStack()
+--                   spaces.changeToSpace("2")
+-- end)
+
+-- -- ** Move window to space
+-- bind(mashshift, '1', function()
+--                   undo:addToStack()
+--                   moveCurrentWindowToSpace(1)
+-- end)
+-- bind(mashshift, '2', function()
+--                   undo:addToStack()
+--                   moveCurrentWindowToSpace(1)
+-- end)
 
 --------------------------------------------------------------------------------
 -- * Caffeinate
@@ -354,7 +364,7 @@ end)
 -- Stolen from
 -- https://github.com/songchenwen/dotfiles/blob/master/hammerspoon/init.lua
 
-hs.hotkey.bind(mash, 'c', function() 
+bind(mash, 'c', function() 
       local c = hs.caffeinate
       if not c then return end
       if c.get('displayIdle') or c.get('systemIdle') or c.get('system') then

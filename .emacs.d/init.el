@@ -2807,9 +2807,6 @@ shell is left intact."
 ;;   :commands
 ;;   (org-preview-html-mode))
 
-(use-package ox-hugo
-  :after ox)
-
 ;; Calendar and Journal
 
 (require 'calendar)
