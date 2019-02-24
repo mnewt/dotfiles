@@ -110,7 +110,8 @@ defaults write com.apple.Safari AutoFillMiscellaneousForms -bool false
 ###############################################################################
 
 # Don't load remote images
-echo "Mail.app -> Preferences -> Viewing -> UNCHECK Load remote content in messages"
+echo "
+Mail.app -> Preferences -> Viewing -> UNCHECK Load remote content in messages"
 
 # Copy email addresses as `foo@example.com` instead of `Foo Bar <foo@example.com>` in Mail.app
 defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
