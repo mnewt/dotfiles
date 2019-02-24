@@ -844,6 +844,38 @@ When using Homebrew, install it using \"brew install trash\"."
 ;; Enable ido for the few functions that don't have ivy coverage.
 (setq ido-enable-flex-matching t)
 
+(use-package ryo-modal
+  :commands ryo-modal-mode
+  :bind
+  ("s-m" . ryo-modal-mode)
+  :config
+  (ryo-modal-keys
+   ("," ryo-modal-repeat)
+   ("q" ryo-modal-mode)
+   ("b" backward-char)
+   ("n" next-line)
+   ("p" previous-line)
+   ("f" forward-char)
+   ("h" backward-char)
+   ("j" next-line)
+   ("k" previous-line)
+   ("l" forward-char))
+
+  (ryo-modal-keys
+   ;; First argyment to ryo-modal-keys may be a list of keywords.
+   ;; These keywords will be applied to all keybindings.
+   (:norepeat t)
+   ("0" "M-0")
+   ("1" "M-1")
+   ("2" "M-2")
+   ("3" "M-3")
+   ("4" "M-4")
+   ("5" "M-5")
+   ("6" "M-6")
+   ("7" "M-7")
+   ("8" "M-8")
+   ("9" "M-9")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Persistence
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
