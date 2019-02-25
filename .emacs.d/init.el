@@ -216,11 +216,7 @@
 
 (bind-key "C-c C-v" 'expand-environment-variable)
 
-(use-package server
-  :defer 1
-  :config
-  (unless (server-running-p)
-    (server-start)))
+(add-hook 'after-init-hook (lambda () (unless (server-running-p) (server-start))))
 
 (use-package restart-emacs
   :commands
@@ -877,6 +873,38 @@ When using Homebrew, install it using \"brew install trash\"."
 
 ;; Enable ido for the few functions that don't have ivy coverage.
 (setq ido-enable-flex-matching t)
+
+(use-package ryo-modal
+  :commands ryo-modal-mode
+  :bind
+  ("s-m" . ryo-modal-mode)
+  :config
+  (ryo-modal-keys
+   ("," ryo-modal-repeat)
+   ("q" ryo-modal-mode)
+   ("b" backward-char)
+   ("n" next-line)
+   ("p" previous-line)
+   ("f" forward-char)
+   ("h" backward-char)
+   ("j" next-line)
+   ("k" previous-line)
+   ("l" forward-char))
+
+  (ryo-modal-keys
+   ;; First argyment to ryo-modal-keys may be a list of keywords.
+   ;; These keywords will be applied to all keybindings.
+   (:norepeat t)
+   ("0" "M-0")
+   ("1" "M-1")
+   ("2" "M-2")
+   ("3" "M-3")
+   ("4" "M-4")
+   ("5" "M-5")
+   ("6" "M-6")
+   ("7" "M-7")
+   ("8" "M-8")
+   ("9" "M-9")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Persistence
@@ -2199,9 +2227,11 @@ ID, ACTION, CONTEXT."
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
 
-(add-to-list 'load-path "~/code/emacs-libvterm")
-(let (vterm-install)
-  (require 'vterm))
+(let ((vterm-dir "~/code/emacs-libvterm"))
+  (when (file-exists-p vterm-dir)
+    (add-to-list 'load-path "~/code/emacs-libvterm")
+    (let (vterm-install)
+      (require 'vterm))))
 
 (use-package term
   :bind (("C-c t" . vterm)
@@ -2838,9 +2868,6 @@ shell is left intact."
 ;; (use-package org-preview-html
 ;;   :commands
 ;;   (org-preview-html-mode))
-
-(use-package ox-hugo
-  :after ox)
 
 ;; Calendar and Journal
 
@@ -3559,11 +3586,13 @@ _q_ quit
       (load p)
       (message "%s" (concat "Loaded project settings from: " p)))))
 
+(setq code-directory (if (file-exists-p "~/code") "~/code" "~"))
+
 (use-package projectile
   :custom
   (projectile-keymap-prefix (kbd "C-c p"))
   (projectile-completion-system 'ivy)
-  (projectile-project-search-path '("~/code"))
+  (projectile-project-search-path (list code-directory))
   (projectile-switch-project-action 'projectile-dired)
   ;; Exclude untracked files because we use git workdirs in $HOME. Listing all
   ;; files takes too long.

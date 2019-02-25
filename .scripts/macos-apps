@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install bash fish libvterm lua node ripgrep
+brew cask install 1password dropbox hammerspoon iina karabiner-elements
