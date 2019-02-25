@@ -757,6 +757,36 @@ Version 2017-12-04"
  ("s-i" . os-reveal-file)
  ("C-c i" . os-reveal-file))
 
+(use-package ryo-modal
+  :config
+  (ryo-modal-keys
+   ("," ryo-modal-repeat)
+   ("q" ryo-modal-mode)
+   ("b" backward-char)
+   ("h" backward-char)
+   ("n" next-line)
+   ("j" next-line)
+   ("p" previous-line)
+   ("k" previous-line)
+   ("f" forward-char)
+   ("l" forward-char))
+
+  (ryo-modal-keys
+   ;; First argyment to ryo-modal-keys may be a list of keywords.
+   ;; These keywords will be applied to all keybindings.
+   (:norepeat t)
+   ("0" "M-0")
+   ("1" "M-1")
+   ("2" "M-2")
+   ("3" "M-3")
+   ("4" "M-4")
+   ("5" "M-5")
+   ("6" "M-6")
+   ("7" "M-7")
+   ("8" "M-8")
+   ("9" "M-9"))
+  :bind ("C-c SPC" . ryo-modal-mode))
+
 (use-package goto-addr
   :hook
   ((compilation-mode . goto-address-mode)
@@ -4153,16 +4183,22 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package json-mode
   :mode "\\.json\\'")
 
+(use-package graphql-mode
+  :mode "\\(?:\\.g\\(?:\\(?:raph\\)?ql\\)\\)\\'")
+
 (use-package know-your-http-well
-  :defer 2)
+  :commands
+  (http-header http-method http-relation http-status-code))
 
 (use-package restclient
-  :defer 2)
+  :mode "\\.restclient\\'"
+  :commands
+  (restclient-mode restclient-outline-mode))
 
 (use-package company-restclient
-  :defer 2
-  :config
-  (add-to-list 'company-backends 'company-restclient))
+  :hook
+  (restclient-mode . (lambda () 
+                       (add-to-list 'company-backends 'company-restclient))))
 
 (use-package elpy
   ;; :ensure-system-package
