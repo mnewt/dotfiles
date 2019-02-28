@@ -83,9 +83,9 @@
   (straight-fetch-all)
   (straight-merge-all))
 
-;; (use-package epkg
-;;   :commands
-;;   (epkg epkg-describe-package epkg-list-packages))
+(use-package epkg
+  :commands
+  (epkg epkg-describe-package epkg-list-packages))
 
 ;; (use-package use-package-ensure-system-package)
 
@@ -946,7 +946,8 @@ When using Homebrew, install it using \"brew install trash\"."
   nil)
 (add-hook 'dired-after-readin-hook #'recentd-track-opened-file)
 
-;; Store all backup and autosave files in their own directory.
+;; Store all backup and autosave files in their own directory since it is bad to
+;; clutter project directories.
 (setq backup-directory-alist '((".*" . "~/.emacs.d/backup"))
       ;; Don't clobber symlinks.
       backup-by-copying t
@@ -959,13 +960,17 @@ When using Homebrew, install it using \"brew install trash\"."
       ;; Keep all versions forever.
       delete-old-versions -1
       auto-save-list-file-prefix "~/.emacs.d/autosave/"
-      auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
+      auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t))
+      ;; Don't create `#filename' lockfiles in $PWD. Lockfiles are useful but it
+      ;; generates too much activity from tools watching for changes during
+      ;; development.
+      create-lockfiles nil)
 
 ;; Desktop
-(desktop-save-mode 1)
-
+(require 'desktop)
 (add-to-list 'desktop-globals-to-save 'kill-ring)
 (add-to-list 'desktop-globals-to-save 'a-theme-current-theme)
+(desktop-save-mode 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Help!
@@ -1146,7 +1151,51 @@ display as if from a terminal."
 ;;; Buffer Navigation and Management
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(bind-key "C-x C-b" #'ibuffer)
+(defun filter-buffers-by-name (regexp)
+  "Return a list of buffers whose names match REGEXP."
+  (seq-filter (lambda (b) (string-match-p regexp (buffer-name b)))
+              (buffer-list)))
+
+(defun filter-buffers-by-mode (mode)
+  "Return a list of buffers whose major mode is `mode'."
+  (when (stringp mode) (setq mode (intern mode)))
+  (seq-filter (lambda (b) (eq (buffer-local-value 'major-mode b) mode))
+              (buffer-list)))
+
+(defun some-buffer (regexp)
+  "Return the first buffer found with a name matching REGEXP, or nil."
+  (some (lambda (b) (when (string-match-p regexp (buffer-name b)) b))
+        (buffer-list)))
+
+(defun list-buffer-major-modes ()
+  "Return a list of all major modes currently in use in open buffers."
+  (delete-dups
+   (loop for b in (buffer-list)
+         collect (buffer-local-value 'major-mode b))))
+
+(defun switch-to-buffer-by-mode (mode)
+  "Choose from a buffer by major mode."
+  (interactive
+   (list (ivy-read "Choose buffers for major mode: "
+                   (list-buffer-major-modes)
+                   :history 'switch-buffer-by-mode-history
+                   :action 'switch-buffer-by-mode)))
+  (when (stringp mode) (setq mode (intern mode)))
+  (setq buffers (mapcar #'buffer-name (filter-buffers-by-mode mode)))
+  (ivy-read (format "%s buffers: " mode) buffers
+            :keymap ivy-switch-buffer-map
+            :action #'ivy--switch-buffer-action
+            :matcher #'ivy--switch-buffer-matcher
+            :preselect (when (eq major-mode mode) (cadr buffers))
+            ;; Use the `ivy-switch-buffer' hydra.
+            :caller #'ivy-switch-buffer))
+
+;; Quick switch buffers
+(bind-keys ("C-x C-b" #'ibuffer)
+           ("s-}" . next-buffer)
+           ("C-c }" . next-buffer)
+           ("s-{" . previous-buffer)
+           ("C-c {" . previous-buffer))
 
 (setq windmove-wrap-around t)
 (bind-keys ("H-a" . windmove-left)
@@ -1165,12 +1214,6 @@ display as if from a terminal."
            ("C-c ," . pop-to-mark-command)
            ("s-," . pop-global-mark)
            ("C-c C-," . pop-global-mark))
-
-;; Quick switch buffers
-(bind-keys ("s-}" . next-buffer)
-           ("C-c }" . next-buffer)
-           ("s-{" . previous-buffer)
-           ("C-c {" . previous-buffer))
 
 ;; scratch
 (setq initial-scratch-message nil
@@ -2558,16 +2601,6 @@ initialize the Eshell environment."
               " "
               (process 0 -1 :right)))))
 
-(defun filter-buffers-by-name (regexp)
-  "Return a list of buffers whose names match REGEXP."
-  (seq-filter (lambda (b) (string-match-p regexp (buffer-name b)))
-              (buffer-list)))
-
-(defun some-buffer (regexp)
-  "Return the first buffer found with a name matching REGEXP, or nil."
-  (some (lambda (b) (when (string-match-p regexp (buffer-name b)) b))
-        (buffer-list)))
-
 (defun eshell-create-in-background ()
   "Create a new Eshell buffer but don't display it."
   (let ((eshell-buffer-name (generate-new-buffer "*Eshell*")))
@@ -2593,16 +2626,10 @@ because I dynamically rename the buffer according to
   (interactive)
   (switch-to-buffer-other-window (eshell-get-or-create)))
 
-(defun eshell-choose-buffer ()
+(defun switch-to-eshell-buffer ()
   "Interactively choose an Eshell buffer."
   (interactive)
-  (ivy-read "Eshell buffer: "
-            (mapcar #'buffer-name (filter-buffers-by-name "*Eshell"))
-            :keymap ivy-switch-buffer-map
-            :action #'ivy--switch-buffer-action
-            :matcher #'ivy--switch-buffer-matcher
-            ;; Use the `ivy-switch-buffer' hydra.
-            :caller #'ivy-switch-buffer))
+  (switch-to-buffer-by-mode 'eshell-mode))
 
 (use-package eshell
   :custom
@@ -2627,7 +2654,7 @@ because I dynamically rename the buffer according to
    ("C-c e" . eshell-switch-to-buffer)
    ("s-E" . eshell-switch-to-buffer-other-window)
    ("C-c E" . eshell-switch-to-buffer-other-window)
-   ("C-s-e" . eshell-choose-buffer)
+   ("C-s-e" . switch-to-eshell-buffer)
    ("M-E" . ibuffer-show-eshell-buffers)
    ("C-c M-e" . ibuffer-show-eshell-buffers)
    :map prog-mode-map
@@ -2672,7 +2699,7 @@ because I dynamically rename the buffer according to
     (replace-regexp-in-string "|sudo:root@[^:]*" "" f))))
 
 (defun sudo-toggle ()
-  "Reopen the current file, directory, or shell as root.  For
+  "Reopen the current file, directory, or shell as root.  For))))
 files and dired buffers, the non-sudo buffer is replaced with a
 sudo buffer.  For shells, a sudo shell is opened but the non-sudo
 shell is left intact."
@@ -4190,17 +4217,11 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package tide
   :custom
   (tide-format-options '(:indentSize 2 :tabSize 2))
+  :config
+  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
   :hook (((js2-mode typescript-mode) . tide-setup)
          ((js2-mode typescript-mode) . tide-hl-identifier-mode)
          (before-save . tide-format-before-save)))
-
-;; (use-package company-tern
-;;   ;; :ensure-system-package
-;;   ;; (tern . "npm install -g tern")
-;;   :config
-;;   (add-to-list 'company-backends 'company-tern)
-;;   :hook
-;;   (js2-mode . (lambda () (tern-mode) (company-mode-on))))
 
 (use-package indium
   :custom
