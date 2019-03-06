@@ -1195,7 +1195,8 @@ display as if from a terminal."
            ("s-}" . next-buffer)
            ("C-c }" . next-buffer)
            ("s-{" . previous-buffer)
-           ("C-c {" . previous-buffer))
+           ("C-c {" . previous-buffer)
+           ("C-s-j" . switch-to-buffer-by-mode))
 
 (setq windmove-wrap-around t)
 (bind-keys ("H-a" . windmove-left)
@@ -1607,32 +1608,32 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (bind-keys ("s-C" . copy-region-to-other-window)
            ("s-X" . move-region-to-other-window))
 
-(use-package undo-tree
-  :init
-  ;; Keep region when undoing in region.
-  ;; http://whattheemacsd.com/my-misc.el-02.html
-  (defadvice undo-tree-undo (around keep-region activate)
-    (if (use-region-p)
-        (let ((m (set-marker (make-marker) (mark)))
-              (p (set-marker (make-marker) (point))))
-          ad-do-it
-          (goto-char p)
-          (set-mark m)
-          (set-marker p nil)
-          (set-marker m nil))
-      ad-do-it))
-  :custom
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
-  (undo-tree-visualizer-timestamps t)
-  (undo-tree-visualizer-diff t)
-  :config
-  (global-undo-tree-mode)
-  :bind
-  (("s-z" . undo-tree-undo)
-   ("s-Z" . undo-tree-redo)
-   ("s-y" . undo-tree-redo)
-   ("M-s-z" . undo-tree-visualize)))
+;; (use-package undo-tree
+;;   :init
+;;   ;; Keep region when undoing in region.
+;;   ;; http://whattheemacsd.com/my-misc.el-02.html
+;;   (defadvice undo-tree-undo (around keep-region activate)
+;;     (if (use-region-p)
+;;         (let ((m (set-marker (make-marker) (mark)))
+;;               (p (set-marker (make-marker) (point))))
+;;           ad-do-it
+;;           (goto-char p)
+;;           (set-mark m)
+;;           (set-marker p nil)
+;;           (set-marker m nil))
+;;       ad-do-it))
+;;   :custom
+;;   (undo-tree-auto-save-history t)
+;;   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
+;;   (undo-tree-visualizer-timestamps t)
+;;   (undo-tree-visualizer-diff t)
+;;   :config
+;;   (global-undo-tree-mode)
+;;   :bind
+;;   (("s-z" . undo-tree-undo)
+;;    ("s-Z" . undo-tree-redo)
+;;    ("s-y" . undo-tree-redo)
+;;    ("M-s-z" . undo-tree-visualize)))
 
 (use-package easy-kill
   :bind
@@ -2465,7 +2466,7 @@ Examples: > cd /etc -> /etc > cd :/etc -> /sshx:host:/etc > cd :
   (if-let* ((remote (file-remote-p default-directory)))
       (insert remote)))
 
-(bind-key "C-c f" #'tramp-insert-remote-part)
+(bind-key "C-:" #'tramp-insert-remote-part)
 
 (defun eshell/really-clear (&rest args)
   "Call `eshell/clear' with an argument to really clear the
@@ -4121,12 +4122,12 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package dockerfile-mode
   :mode "Dockerfile\\'")
 
-;; (use-package docker
-;;   :bind
-;;   ("C-c M-d" . docker))
+(use-package docker
+  :bind
+  ("C-c M-d" . docker))
 
-;; (use-package docker-tramp
-;;   :defer 2)
+(use-package docker-tramp
+  :defer 2)
 
 (use-package csv-mode
   :mode "\\.csv\\'")
@@ -4305,11 +4306,6 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package sass-mode
   :mode "\\(?:s\\(?:[ac]ss\\)\\)")
 
-(use-package stylus-mode
-  :straight
-  (:type git :host github :repo "vladh/stylus-mode")
-  :mode "\\.\\(?:\\(?:s\\(?:ss\\|tyl\\)\\)\\)")
-
 (use-package powershell
   :mode "\\.ps1\\'"
   :custom
@@ -4343,6 +4339,29 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 ;;    :map
 ;;    sh-mode-map
 ;;    ("s-<return>" . eir-eval-in-shell)))
+
+;; (use-package polymode
+;;   :config
+;;   (defcustom pm-host/rjsx
+;;     (pm-host-chunkmode :name "rjsx"
+;;                        :mode 'rjsx-mode)
+;;     "React JSX host chunkmode"
+;;     :group 'poly-hostmodes
+;;     :type 'object)
+;;   (defcustom pm-inner/graphql-fenced-code
+;;     (pm-inner-chunkmode :name "graphql"
+;;                         :head-matcher "graphql`"
+;;                         :tail-matcher "`"
+;;                         :mode 'graphql-mode
+;;                         :head-mode 'host
+;;                         :tail-mode 'host)
+;;     "GraphQL fenced code block"
+;;     :group 'poly-innermodes
+;;     :type 'object)
+;;   (define-polymode poly-rjsx-mode
+;;     :hostmode 'pm-host/rjsx
+;;     :innermodes '(pm-inner/graphql-fenced-code)))
+  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Other Packages
