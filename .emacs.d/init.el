@@ -1221,24 +1221,22 @@ display as if from a terminal."
       initial-major-mode 'lisp-interaction-mode)
 
 (defun new-scratch-buffer ()
-  "Create or go to a scratch buffer. Try these things in succession:
+  "Create or go to a scratch buffer in the current mode. If ARG
+  is provided then use `initial-major-mode'. Try these things in
+  succession:
 
 1. Select an existing window containing the scratch buffer.
 2. Switch to an existing scratch buffer.
 3. Create a new scratch buffer and switch to it."
   (interactive)
-  (let ((bn "<untitled>"))
+  (let* ((mode (if current-prefix-arg initial-major-mode major-mode))
+         (name (format "<%s>" (symbol-name mode)))
+         (win (get-buffer-window name)))
     (cond
-     (current-prefix-arg
-      (let ((bn (generate-new-buffer bn))))
-      (switch-to-buffer bn)
-      (setq buffer-file-name bn)
-      (funcall initial-major-mode))
-     ((get-buffer-window bn) (select-window (get-buffer-window bn)))
-     ((get-buffer bn) (switch-to-buffer bn))
-     (t (switch-to-buffer (get-buffer-create bn))
-        (setq buffer-file-name "untitled")
-        (funcall initial-major-mode)))))
+     (win (select-window win))
+     (t (switch-to-buffer (get-buffer-create name))
+        (setq buffer-file-name name)
+        (funcall mode)))))
 
 (bind-keys ("s-n" . new-scratch-buffer)
            ("C-c C-n . new-scratch-buffer"))
