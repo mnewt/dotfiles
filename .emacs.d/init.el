@@ -626,6 +626,8 @@ activate it."
 ;; was no unsaved changes in the corresponding buffer, just revert its
 ;; content to reflect what's on disk.
 (global-auto-revert-mode 1)
+;; Auto refresh dired
+(setq global-auto-revert-non-file-buffers t)
 
 ;; Full screen
 (defun fullscreen ()
@@ -2021,13 +2023,6 @@ ID, ACTION, CONTEXT."
                                    (executable-find "ls"))
       ;; don't prompt to kill buffers of deleted directories
       dired-clean-confirm-killing-deleted-buffers nil)
-
-;; Auto refresh buffers
-(global-auto-revert-mode 1)
-
-;; Also auto refresh dired, but be quiet about it
-(setq global-auto-revert-non-file-buffers t
-      auto-revert-verbose nil)
 
 (defun dired-to-default-directory ()
   "Open directory containing the current file."
