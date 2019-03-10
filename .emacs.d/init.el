@@ -1608,32 +1608,14 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (bind-keys ("s-C" . copy-region-to-other-window)
            ("s-X" . move-region-to-other-window))
 
-;; (use-package undo-tree
-;;   :init
-;;   ;; Keep region when undoing in region.
-;;   ;; http://whattheemacsd.com/my-misc.el-02.html
-;;   (defadvice undo-tree-undo (around keep-region activate)
-;;     (if (use-region-p)
-;;         (let ((m (set-marker (make-marker) (mark)))
-;;               (p (set-marker (make-marker) (point))))
-;;           ad-do-it
-;;           (goto-char p)
-;;           (set-mark m)
-;;           (set-marker p nil)
-;;           (set-marker m nil))
-;;       ad-do-it))
-;;   :custom
-;;   (undo-tree-auto-save-history t)
-;;   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
-;;   (undo-tree-visualizer-timestamps t)
-;;   (undo-tree-visualizer-diff t)
-;;   :config
-;;   (global-undo-tree-mode)
-;;   :bind
-;;   (("s-z" . undo-tree-undo)
-;;    ("s-Z" . undo-tree-redo)
-;;    ("s-y" . undo-tree-redo)
-;;    ("M-s-z" . undo-tree-visualize)))
+(use-package undohist
+  :config
+  (undohist-initialize)
+  :defer 1)
+
+(use-package undo-propose
+  :bind
+  ("C-s-z" . undo-propose))
 
 (use-package easy-kill
   :bind
@@ -1642,33 +1624,33 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 
 (use-package ace-jump-zap
   :bind
-  (("M-z" . ace-jump-zap-up-to-char-dwim)
-   ("C-M-z" . ace-jump-zap-to-char-dwim)))
+  ("M-z" . ace-jump-zap-up-to-char-dwim)
+  ("C-M-z" . ace-jump-zap-to-char-dwim))
 
 (use-package mwim
   :bind
-  (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
-   ([remap move-end-of-line] . mwim-end-of-code-or-line)))
+  ([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
+  ([remap move-end-of-line] . mwim-end-of-code-or-line))
 
 (use-package expand-region
   :init
   (setq expand-region-fast-keys-enabled nil)
   :bind
-  (("s-d" . er/expand-region)
-   ("C-=" . er/expand-region)
-   ("s-D" . er/contract-region)
-   ("C-M-=" . er/contract-region)))
+  ("s-d" . er/expand-region)
+  ("C-=" . er/expand-region)
+  ("s-D" . er/contract-region)
+  ("C-M-=" . er/contract-region))
 
 (use-package multiple-cursors
   :bind
-  (("C-S-c C-S-c" . mc/edit-lines)
-   ("M-s-m" . mc/edit-lines)
-   ("C->" . mc/mark-next-like-this)
-   ("C-<" . mc/unmark-next-like-this)
-   ("C-M-<" . mc/mark-previous-like-this)
-   ("C-M->" . mc/unmark-previous-like-this)
-   ("C-c >" . mc/mark-all-dwim)
-   ("C-c C-a"  . mc/mark-all-dwim)))
+  ("C-S-c C-S-c" . mc/edit-lines)
+  ("M-s-m" . mc/edit-lines)
+  ("C->" . mc/mark-next-like-this)
+  ("C-<" . mc/unmark-next-like-this)
+  ("C-M-<" . mc/mark-previous-like-this)
+  ("C-M->" . mc/unmark-previous-like-this)
+  ("C-c >" . mc/mark-all-dwim)
+  ("C-c C-a"  . mc/mark-all-dwim))
 
 (use-package mc-extras
   :bind
@@ -1746,14 +1728,9 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 ;;   :hook
 ;;   (hs-minor-mode . hs-hide-all))
 
-;; (use-package unfill
-;;   :bind
-;;   ("M-q" . unfill-toggle))
-
-(use-package goto-chg
+(use-package unfill
   :bind
-  (("C-." . goto-last-change)
-   ("C-;" . goto-last-change-reverse)))
+  ("M-q" . unfill-toggle))
 
 ;; (use-package visual-regexp-steroids
 ;;   :bind
@@ -1763,7 +1740,7 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 
 (use-package rainbow-mode
   :hook
-  ((emacs-lisp-mode help-mode sass-mode stylus-mode) . rainbow-mode))
+  ((css-mode emacs-lisp-mode help-mode sass-mode) . rainbow-mode))
 
 ;; (use-package hl-todo
 ;;   :commands
@@ -1965,9 +1942,10 @@ ID, ACTION, CONTEXT."
   :hook
   (smartparens-mode . (lambda ()
                         (require 'smartparens-config)
+                        (sp-use-smartparens-bindings)
                         (sp-use-paredit-bindings)
                         (turn-on-show-smartparens-mode)))
-  ((css-mode emacs-lisp-mode hy-mode sass-mode sh-mode stylus-mode) . turn-on-smartparens-mode)
+  ((css-mode emacs-lisp-mode hy-mode sass-mode sh-mode) . turn-on-smartparens-mode)
   (clojure-mode . (lambda () (require 'smartparens-clojure)))
   ((ruby-mode enh-ruby-mode) . (lambda () (require 'smartparens-ruby)))
   ((javascript-mode js2-mode json-mode rjsx-mode) . (lambda () (require 'smartparens-javascript)))
@@ -1980,7 +1958,8 @@ ID, ACTION, CONTEXT."
   :bind
   (:map smartparens-mode-map
         ("C-M-k" . sp-kill-sexp)
-        ("C-M-<backspace>" . sp-backward-kill-sexp)
+        ("C-s-<backspace>" . sp-backward-kill-sexp)
+        ("C-c <backspace>" . sp-backward-kill-sexp)
         ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
 
 (use-package parinfer
@@ -2546,7 +2525,7 @@ initialize the Eshell environment."
   (setq eshell-path-env (getenv "PATH"))
   ;; Path to shell executable. Set it this way to work with tramp.
   (setenv "ESHELL" "/bin/bash")
-  (setenv "TERM" "eterm-color")
+  ;; (setenv "TERM" "eterm-color")
   (setenv "EDITOR" "emacsclient")
   (setenv "PAGER" "cat")
   (setenv "MANPAGER" "cat")
@@ -4297,7 +4276,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (go-mode . (lambda () (set (make-local-variable 'company-backends) '(company-go)))))
 
 (use-package sass-mode
-  :mode "\\(?:s\\(?:[ac]ss\\)\\)")
+  :mode "\\(?:s\\(?:[ac]?ss\\)\\)")
 
 (use-package powershell
   :mode "\\.ps1\\'"
