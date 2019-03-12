@@ -102,7 +102,7 @@
 (require 'cl)
 (require 'seq)
 
-;; All external packages and many built in ones are configured using use-package. 
+;; All external packages and many built in ones are configured using use-package.
 (eval-when-compile
   (require 'use-package))
 (require 'bind-key)
@@ -227,7 +227,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; We don't set a frame title because Emacs on macOS renders the frame title
-;; face terribly. 
+;; face terribly.
 (setq frame-title-format nil)
 
 ;; Default frame settings. This is actually maximized, but not full screen.
@@ -314,7 +314,7 @@
 
 (defvar a-theme-specs-common '()
   "List of default face specs to apply when a theme is being
-  activated. 
+  activated.
 
 The attributes specified in `a-theme-themes' overrides
   these.
@@ -414,10 +414,10 @@ Emacs from barfing on your screen."
     (when (bound-and-true-p window-highlight-mode)
       (setq opts (append opts
                          `((specs ,(a-theme-generate-specs 'default
-                                                            'outline-1
-                                                            'outline-2
-                                                            'outline-3))))))
-    
+                                                           'outline-1
+                                                           'outline-2
+                                                           'outline-3))))))
+
     ;; Feed face specs to `custom-set-faces' in reverse because last write wins.
     ;; We do it this way so additional specs can be specified when adding the
     ;; theme to `a-theme-themes'.
@@ -529,7 +529,7 @@ activate it."
                 (powerline-render rhs))))))
   :init
   (set-face-attribute 'mode-line nil :box nil))
-                
+
 
 (use-package window-highlight
   :if (>= emacs-major-version 27)
@@ -648,7 +648,8 @@ activate it."
   (call-interactively 'indent-region))
 
 (defun cut-line-or-region ()
-  "Cut current line, or text selection.))))))))
+  "Cut current line, or text selection.
+
 When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
 
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
@@ -808,9 +809,9 @@ Version 2017-12-04"
 
 (defun config-unix ())
 "Configure Emacs for common Unix (Linux and macOS) settings."
-  ;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
-  ;; (setq-default shell-file-name (executable-find "bash")
-  ;;               explicit-shell-file-name shell-file-name))
+;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
+;; (setq-default shell-file-name (executable-find "bash")
+;;               explicit-shell-file-name shell-file-name))
 
 (defun config-linux ()
   "Configure Emacs for Linux."
@@ -836,7 +837,7 @@ Version 2017-12-04"
   ;; Use system trash
   (setq delete-by-moving-to-trash t
         trash-directory "~/.Trash")
-  
+
   (defun system-move-file-to-trash (file)
     "Use \"trash\" to move FILE to the system trash.
 When using Homebrew, install it using \"brew install trash\"."
@@ -862,7 +863,7 @@ When using Homebrew, install it using \"brew install trash\"."
     (interactive)
     (unless file (setq file buffer-file-name))
     (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" file))))
-  
+
   (defalias 'os-reveal-file #'reveal-in-windows-explorer))
 
 
@@ -1456,7 +1457,7 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
               tab-width 2
               tab-stop-list (number-sequence tab-width 120 tab-width))
 
-;; Replace `delete-horizontal-space' with the more useful `cycle-spacing'. 
+;; Replace `delete-horizontal-space' with the more useful `cycle-spacing'.
 (bind-key "M-\\" #'cycle-spacing)
 
 ;; sh-mode
@@ -1758,29 +1759,17 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 (use-package yasnippet-snippets
   :defer 2)
 
-;; use local eslint from node_modules before global
-;; http://emacs.stackexchange.com/questions/21205/flycheck-with-file-relative-eslint-executable
-(defun flycheck-use-eslint-from-node-modules ()
-  (let* ((root (locate-dominating-file
-                (or (buffer-file-name) default-directory)
-                "node_modules"))
-         (eslint (and root
-                      (expand-file-name "node_modules/eslint/bin/eslint.js"
-                                        root))))
-    (when (and eslint (file-executable-p eslint))
-      (setq-local flycheck-javascript-eslint-executable eslint))))
-
 (use-package flycheck
   :custom
   (flycheck-check-syntax-automatically '(save mode-enable))
-  :config
-  ;; (setq-default flycheck-disabled-checkers (append flycheck-disabled-checkers
-  ;;                                                  '(javascript-jshint)))
-  ;; (flycheck-add-mode 'javascript-eslint 'rjsx-mode)
-  :hook ((flycheck-mode . flycheck-use-eslint-from-node-modules)
-         (js2-mode . flycheck-mode))
+  :hook
+  (js2-mode . flycheck-mode)
   :bind
-  (("C-c ! !" . flycheck-mode)))
+  ("C-c ! !" . flycheck-mode))
+
+(use-package format-all
+  :commands
+  (format-all-buffer format-all-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; S-Expressions, Parentheses, Brackets
@@ -1944,6 +1933,8 @@ ID, ACTION, CONTEXT."
                         (require 'smartparens-config)
                         (sp-use-smartparens-bindings)
                         (sp-use-paredit-bindings)
+                        ;; Don't shadow global binding
+                        (bind-key "M-<backspace>" nil smartparens-mode-map)
                         (turn-on-show-smartparens-mode)))
   ((css-mode emacs-lisp-mode hy-mode sass-mode sh-mode) . turn-on-smartparens-mode)
   (clojure-mode . (lambda () (require 'smartparens-clojure)))
@@ -1964,7 +1955,7 @@ ID, ACTION, CONTEXT."
 
 (use-package parinfer
   :custom
-  (parinfer-extensions 
+  (parinfer-extensions
    '(defaults       ; should be included.
       pretty-parens ; different paren styles for different modes.
       smart-tab     ; C-b & C-f jump positions and smart shift with tab & S-tab.
@@ -2020,7 +2011,7 @@ ID, ACTION, CONTEXT."
   (interactive)
   (when (equal major-mode 'dired-mode)
     (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
-        (progn 
+        (progn
           (set (make-local-variable 'dired-dotfiles-show-p) nil)
           (message "h")
           (dired-mark-files-regexp "^\\\.")
@@ -2141,7 +2132,7 @@ ID, ACTION, CONTEXT."
   (-distinct
    (mapcar (lambda (s)
              (replace-regexp-in-string
-              ":.*" "" 
+              ":.*" ""
               (replace-regexp-in-string "^/sshx\?:" "" s)))
            (-filter
             (apply-partially #'string-match "^/sshx\?:\\([a-z]+\\):")
@@ -2195,7 +2186,7 @@ ID, ACTION, CONTEXT."
 
 (defun shell-command-exit-code (program &rest args)
   "Run PROGRAM with ARGS and return the exit code."
-  (with-temp-buffer 
+  (with-temp-buffer
     (apply 'call-process program nil (current-buffer) nil args)))
 
 ;; dtach (https://github.com/crigler/dtach)
@@ -2509,7 +2500,7 @@ buffer, then a second time to print the prompt."
          (newmap (or (cdr (assoc mode minor-mode-overriding-map-alist))
                      (let ((map (make-sparse-keymap)))
                        (set-keymap-parent map oldmap)
-                       (push `(,mode . ,map) minor-mode-overriding-map-alist) 
+                       (push `(,mode . ,map) minor-mode-overriding-map-alist)
                        map))))
     (define-key newmap key def)))
 
@@ -2651,7 +2642,7 @@ because I dynamically rename the buffer according to
   (setenv "INSIDE_EMACS" (format "%s,comint" emacs-version))
   ;; TODO: Don't know how to get pinentry to work with Windows. Maybe a TCP socket?
   (unless (eq system-type 'windows-nt)
-      (pinentry-start)))
+    (pinentry-start)))
 
 (defun sudo-toggle--add-sudo (f)
   "Add sudo to file path string"
@@ -2816,7 +2807,7 @@ shell is left intact."
           (mapcar (lambda (keywords)
                     (let ((todo-seq
                            (-map (lambda (x) (first (split-string  x "(")))
-                                 (rest keywords)))) 
+                                 (rest keywords))))
                       (cl-position-if (lambda (x) (string= x todo)) todo-seq)))
                   org-todo-keywords))))
 
@@ -2945,8 +2936,8 @@ shell is left intact."
 ;; (use-package org-wunderlist
 ;;   :commands
 ;;   (org-wunderlist-fetch))
-  ;; :bind
-  ;; ("C-c o w" . org-wunderlist-fetch))
+;; :bind
+;; ("C-c o w" . org-wunderlist-fetch))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Log files
@@ -3471,12 +3462,12 @@ _q_ quit
   (ivy-mode 1)
   :bind
   (:map ivy-mode-map
-   ("C-c C-r" . ivy-resume)
-   ("s-b" . ivy-switch-buffer)
-   ("s-B" . ivy-switch-buffer-other-window)
-   :map ivy-minibuffer-map
-   ("C-e" . ivy-partial-or-done)))
-  
+        ("C-c C-r" . ivy-resume)
+        ("s-b" . ivy-switch-buffer)
+        ("s-B" . ivy-switch-buffer-other-window)
+        :map ivy-minibuffer-map
+        ("C-e" . ivy-partial-or-done)))
+
 (use-package ivy-hydra
   :defer 1)
 
@@ -3672,6 +3663,9 @@ _q_ quit
   (("C-x g" . magit-status)
    ("C-x C-g" . magit-dispatch-popup)))
 
+(use-package forge
+  :after magit)
+
 ;; https://github.com/magit/magit/issues/460#issuecomment-36139308
 (defun git-worktree-link (gitdir worktree)
   (interactive (list (read-directory-name "Gitdir: ")
@@ -3747,11 +3741,11 @@ git repo, optionally specified by DIR."
   :bind
   (("C-x t" . git-timemachine)))
 
-(use-package magithub
-  :after magit
-  :config
-  (magithub-feature-autoinject t)
-  (setq magithub-clone-default-directory "~/code"))
+;; (use-package magithub
+;;   :after magit
+;;   :config
+;;   (magithub-feature-autoinject t)
+;;   (setq magithub-clone-default-directory "~/code"))
 
 (use-package gist
   :bind
@@ -4190,11 +4184,20 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package tide
   :custom
   (tide-format-options '(:indentSize 2 :tabSize 2))
-  :config
-  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
-  :hook (((js2-mode typescript-mode) . tide-setup)
-         ((js2-mode typescript-mode) . tide-hl-identifier-mode)
-         (before-save . tide-format-before-save)))
+  (tide-default-mode "JS")
+  :hook
+  ((js2-mode typescript-mode) . (lambda ()
+                                  (tide-setup)
+                                  (setq flycheck-checkers (remove 'jsx-tide flycheck-checkers))))
+  ((js2-mode typescript-mode) . tide-hl-identifier-mode))
+
+(use-package add-node-modules-path
+  :hook
+  (js2-mode . add-node-modules-path))
+
+(use-package prettier-js
+  :hook
+  (js2-mode  . prettier-js-mode))
 
 (use-package indium
   :custom
@@ -4220,7 +4223,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package company-restclient
   :hook
-  (restclient-mode . (lambda () 
+  (restclient-mode . (lambda ()
                        (add-to-list 'company-backends 'company-restclient))))
 
 (use-package elpy
@@ -4333,7 +4336,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 ;;   (define-polymode poly-rjsx-mode
 ;;     :hostmode 'pm-host/rjsx
 ;;     :innermodes '(pm-inner/graphql-fenced-code)))
-  
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Other Packages
