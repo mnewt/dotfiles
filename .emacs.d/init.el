@@ -1494,9 +1494,9 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
                              "touch ")))
   (shell-command cmd))
 
-;; (use-package editorconfig
-;;   :config
-;;   (editorconfig-mode 1))
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
 
 ;; Just set up 3 windows, no fancy frames or whatever
 (require 'ediff)
@@ -1855,6 +1855,41 @@ ID, ACTION, CONTEXT."
   :demand t
   :custom
   (sp-base-key-bindings 'paredit)
+  ;; smartparens does some weird stuff with bindings so you can't reliably use
+  ;; `use-package' to set them.
+  (sp-smartparens-bindings '(("C-M-f" . sp-forward-sexp)
+                             ("C-M-b" . sp-backward-sexp)
+                             ("C-M-d" . sp-down-sexp)
+                             ("C-M-a" . beginning-of-defun)
+                             ("C-S-d" . sp-beginning-of-sexp)
+                             ("C-S-a" . sp-end-of-sexp)
+                             ("C-M-e" . end-of-defun)
+                             ("C-M-u" . sp-backward-up-sexp)
+                             ("C-M-n" . sp-next-sexp)
+                             ("C-M-p" . sp-previous-sexp)
+                             ("C-M-k" . sp-kill-sexp)
+                             ("C-M-w" . sp-copy-sexp)
+                             ("M-<delete>" . sp-unwrap-sexp)
+                             ("M-<backspace>" . sp-backward-unwrap-sexp)
+                             ("C-<right>" . sp-forward-slurp-sexp)
+                             ("C-<left>" . sp-forward-barf-sexp)
+                             ("C-M-<left>" . sp-backward-slurp-sexp)
+                             ("C-M-<right>" . sp-backward-barf-sexp)
+                             ("M-D" . sp-splice-sexp)
+                             ("C-M-<delete>" . sp-splice-sexp-killing-forward)
+                             ("C-M-<backspace>" . sp-splice-sexp-killing-backward)
+                             ("C-S-<backspace>" . sp-splice-sexp-killing-around)
+                             ("C-]" . sp-select-next-thing-exchange)
+                             ("C-M-]" . sp-select-next-thing)
+                             ("C-M-SPC" . sp-mark-sexp)
+                             ("M-F" . sp-forward-symbol)
+                             ("M-B" . sp-backward-symbol)
+                             ("C-M-k" . sp-kill-sexp)
+                             ("C-s-<backspace>" . sp-backward-kill-sexp)
+                             ("C-c <backspace>" . sp-backward-kill-sexp)
+                             ("C-M-(" . sp-backward-slurp-into-previous-sexp)
+                             ("C-s-a" . sp-backward-down-sexp)
+                             ("C-s-e" . sp-up-sexp)))
   (sp-hybrid-kill-entire-symbol nil)
   ;; Don't disable autoskip when point moves backwards. (This lets you
   ;; open a sexp, type some things, delete some things, etc., and then
@@ -1912,18 +1947,7 @@ ID, ACTION, CONTEXT."
   (org-mode . (lambda () (require 'smartparens-org)))
   ((python-mode elpy-mode) . (lambda () (require 'smartparens-python)))
   (text-mode . (lambda () (require 'smartparens-text)))
-  (web-mode . (lambda () (require 'smartparens-html)))
-  :bind
-  (:map smartparens-mode-map
-        ("C-M-k" . sp-kill-sexp)
-        ("C-s-<backspace>" . sp-backward-kill-sexp)
-        ("C-c <backspace>" . sp-backward-kill-sexp)
-        ("C-M-(" . sp-backward-slurp-into-previous-sexp)
-        ("C-s-a" . sp-backward-down-sexp)
-        ("C-s-e" . sp-up-sexp)))
-
-(bind-keys ("C-M-a" . beginning-of-defun)
-           ("C-M-e" . end-of-defun))
+  (web-mode . (lambda () (require 'smartparens-html))))
 
 (use-package parinfer
   :custom
