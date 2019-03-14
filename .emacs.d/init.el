@@ -1,4 +1,4 @@
-;;; init.el --- Emacs init file --- -*- lexical-binding: t -*-
+;;; Init.el --- Emacs init file --- -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Single, monolithic Emacs init file. Uses straight.el for package management
@@ -14,7 +14,9 @@
 (setq gc-cons-threshold 1073741824)
 (run-with-idle-timer 30 t (lambda () (garbage-collect)))
 
-(setq tls-checktrust t
+(require 'gnutls)
+(require 'nsm)
+(setq gnutls-verify-error t
       network-security-level 'high
       load-prefer-newer t)
 
@@ -43,17 +45,20 @@
   (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
+(defvar straight-use-package-by-default)
 (setq straight-use-package-by-default t)
 
 ;; https://github.com/raxod502/straight.el/issues/41
+(defvar straight-check-for-modifications)
 (setq straight-check-for-modifications 'live)
 
 ;; Try to get package.el to work better with straight.el
 ;; https://github.com/raxod502/straight.el/issues/128
-(defun straight--advice-package-installed-p (original-function &rest args)
-  "Return t if package is installed via `straight' package manager."
+(defvar straight--recipe-cache)
+(defun straight--advice-package-installed-p (f &rest args)
+  "Call F with ARGS. Return t if package is installed via `straight' package manager."
   (or (gethash (symbol-name (car args)) straight--recipe-cache)
-      (apply original-function args)))
+      (apply f args)))
 
 (advice-add 'package-installed-p :around 'straight--advice-package-installed-p)
 
@@ -99,7 +104,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; cl is assumed to be present in this config and some packages too.
-(require 'cl)
+(require 'cl-lib)
 (require 'seq)
 
 ;; All external packages and many built in ones are configured using use-package.
@@ -115,59 +120,29 @@
 ;; Packages go here.
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
-;; Anonymous function macro
-;; TODO: Doesn't work inside `use-package'
-;; https://gist.github.com/alphapapa/f9e4dceaada6c90c613cd83bdc9a2300
-(defmacro $ (&rest body)
-  (cl-labels ((collect-vars
-               (&rest forms)
-               (cl-loop for form in forms
-                        append (cl-loop for atom in form
-                                        if (and (symbolp atom)
-                                                (string-match (rx bos "$")
-                                                              (symbol-name atom)))
-                                        collect atom
-                                        else if (consp form)
-                                        append (collect-vars atom)))))
-    `(lambda ,(cl-sort (collect-vars body)
-                       #'string<
-                       :key #'symbol-name)
-       ,@body)))
-
-(defsubst curry (function &rest arguments)
-  (lexical-let ((function function)
-                (arguments arguments))
-    (lambda (&rest more) (apply function (append arguments more)))))
-
-(defsubst rcurry (function &rest arguments)
-  (lexical-let ((function function)
-                (arguments arguments))
-    (lambda (&rest more) (apply function (append more arguments)))))
-
-(defsubst compose (function &rest more-functions)
-  (cl-reduce (lambda (f g)
-               (lexical-let ((f f) (g g))
-                 (lambda (&rest arguments)
-                   (funcall f (apply g arguments)))))
-             more-functions
-             :initial-value function))
-
 (defun add-multiple-to-list (list items)
-  "Run `add-to-list' on each ITEM in the LIST"
-  (seq-do (curry #'add-to-list list) items))
+  "Run `add-to-list' for all ITEMS in the LIST."
+  (seq-do (apply-partially #'add-to-list list) items))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Environment
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Path
-(setq set-path-unix '()
-      set-path-windows '("C:/bin"
-                         "C:/Program Files/Emacs/bin")
-      set-path-user '())
+(defvar set-path-unix nil
+  "Defines a list of path entries to add to *NIX systems.")
+
+(defvar set-path-windows
+  '("C:/bin"
+    "C:/Program Files/Emacs/bin")
+  "Defines a list of path entries to add to Windows systems.")
+
+(defvar set-path-user nil
+  "Defines a list of path entries to add to all systems.")
 
 (defun source-sh (filename)
-  "Update environment variables from a shell source file."
+  "Sources FILENAME using the user's login shell.
+Update environment variables from a shell source file."
   (interactive "fSource file: ")
   (message "Sourcing environment from `%s'..." filename)
   (with-temp-buffer
@@ -188,7 +163,7 @@
   (message "Sourcing environment from `%s'... done." filename))
 
 (defun set-path ()
-  "Set path variables correctly for Linux, macOS, or Windows"
+  "Set path variables correctly for Linux, macOS, or Windows."
   (let* ((os-specific-paths (if (eq system-type 'windows-nt)
                                 set-path-windows
                               set-path-unix))
@@ -300,31 +275,27 @@
 ** specs
 ** preset
 ** mouse-color
-** ")
+**")
 
 (defvar a-theme-current-theme nil
-  "The currently loaded theme. Use it like this:
+  "Defines the currently loaded theme. Use it like this.
 
-(setq a-theme-current-theme
-      (if (bound-and-true-p a-theme-current-theme)
+\(setq a-theme-current-theme
+      \(if \(bound-and-true-p a-theme-current-theme)
           a-theme-current-theme
         'doom-dracula))
 
-(a-theme a-theme-current-theme)")
+\(a-theme a-theme-current-theme)")
 
 (defvar a-theme-specs-common '()
-  "List of default face specs to apply when a theme is being
-  activated.
-
-The attributes specified in `a-theme-themes' overrides
-  these.
+  "List of default face specs to apply when a theme is activated.
+The attributes specified in `a-theme-themes' overrides these.
 
 For details on face specs see `defface'.")
 
 (defun alist-get-all (key alist &optional default testfn)
-  "Return a list containing all the elements of ALIST with
-matching KEY, not just the first. Has almost the same signature
-as `alist-get'.
+  "Return a list of the elements of ALIST with matching KEY.
+Modeled on `alist-get', which only returns the first match.
 
 DEFAULT returns a default value if nothing matches.
 
@@ -348,16 +319,15 @@ TESTFN is an equality function, *not* an alist function as with
 (defun a-theme-get-attr (attribute name)
   "Get the ATTRIBUTE identified by NAME from the current theme settings.
 
-Example usage:
+Example usage
 
-(plist-get
-  (face-spec-choose (a-theme-get-attr 'theme-face 'smerge-lower))
-  :background)
-"
-  (when (stringp name) (setq face (intern name)))
-  (some (lambda (e) (when (and (eq attribute (car e)) (eq name (cadr e)))
-                      (cadddr e)))
-        (get (car custom-enabled-themes) 'theme-settings)))
+\(plist-get
+  \(face-spec-choose \(a-theme-get-attr 'theme-face 'smerge-lower))
+  \:background)"
+  (let ((name (if (stringp name) (intern name) name)))
+    (cl-some (lambda (e) (when (and (eq attribute (car e)) (eq name (cadr e)))
+                           (cadddr e)))
+             (get (car custom-enabled-themes) 'theme-settings))))
 
 (defun a-theme-get-face (face)
   "Get the FACE from the current theme. See `a-theme-get-attr'."
@@ -368,12 +338,12 @@ Example usage:
   (a-theme-get-attr 'theme-value value))
 
 (defun a-theme-search-attrs (regexp)
-  "Search for an attribute in the current theme whose name matches the REGEXP."
+  "Return the attributes in the current theme which match the REGEXP."
   (seq-filter (lambda (e) (string-match-p regexp (symbol-name (cadr e))))
               (get (car custom-enabled-themes) 'theme-settings)))
 
 (defun a-theme-generate-specs (face1 face2 face3 face4)
-  "Generate additional theme specs based on the specified FACE."
+  "Generate theme specs from faces FACE1, FACE2, FACE3, and FACE4."
   (let* ((face1 (face-spec-choose (a-theme-get-face face1)))
          (face2 (face-spec-choose (a-theme-get-face face2)))
          (face3 (face-spec-choose (a-theme-get-face face3)))
@@ -401,9 +371,9 @@ Example usage:
                               :foreground ,inactive-bg))))))
 
 (defun a-theme-activate (theme)
-  "Switch the current Emacs theme to THEME. Handle some
-housekeeping that comes with switching themes and try to prevent
-Emacs from barfing on your screen."
+  "Switch the current Emacs theme to THEME.
+Handle some housekeeping that comes with switching themes and try
+to prevent Emacs from barfing on your screen."
   (custom-set-variables '(custom-enabled-themes nil))
   (load-theme (if (stringp theme) (intern theme) theme) t)
   (let* ((opts (alist-get theme a-theme-themes)))
@@ -435,13 +405,12 @@ Emacs from barfing on your screen."
     (when (fboundp #'powerline-reset) (powerline-reset))))
 
 (defun a-theme-choose ()
-  "Interactively choose a theme from `a-theme-themes' and
-activate it."
+  "Interactively choose a theme from `a-theme-themes' and activate it."
   (interactive)
   (ivy-read "Load custom theme: "
             (mapcar #'car a-theme-themes)
             :action #'a-theme-activate
-            :caller #'a-theme-choose-theme))
+            :caller #'a-theme-choose))
 
 (bind-key "M-s-t" #'a-theme-choose)
 
@@ -577,6 +546,8 @@ activate it."
       ;; Show keystrokes right away, don't show the message in the scratch buffer
       echo-keystrokes 0.1)
 
+(pixel-scroll-mode)
+
 ;; Use the system clipboard
 (setq select-enable-clipboard t
       ;; Save existing system clipboard text into kill ring before replacing it,
@@ -598,14 +569,12 @@ activate it."
 (defun next-line-4 ()
   "Scroll 4 lines down."
   (interactive)
-  (setq this-command 'next-line)
-  (next-line 4))
+  (forward-line 4))
 
 (defun previous-line-4 ()
   "Scroll 4 lines up."
   (interactive)
-  (setq this-command 'previous-line)
-  (previous-line 4))
+  (forward-line -4))
 
 (bind-keys
  ("C-S-p" . previous-line-4)
@@ -625,6 +594,7 @@ activate it."
 ;; Whenever an external process changes a file underneath emacs, and there
 ;; was no unsaved changes in the corresponding buffer, just revert its
 ;; content to reflect what's on disk.
+(require 'autorevert)
 (global-auto-revert-mode 1)
 ;; Auto refresh dired
 (setq global-auto-revert-non-file-buffers t)
@@ -648,9 +618,10 @@ activate it."
   (call-interactively 'indent-region))
 
 (defun cut-line-or-region ()
-  "Cut current line, or text selection.
+  "Cut the current line or text selection.
 
-When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
+When `universal-argument' is called first, cut whole the
+buffer (respects `narrow-to-region').
 
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
 Version 2015-06-10"
@@ -664,9 +635,10 @@ Version 2015-06-10"
              (kill-region (line-beginning-position) (line-beginning-position 2))))))
 
 (defun copy-line-or-region ()
-  "Copy current line, or text selection.
-When called repeatedly, append copy subsequent lines.
-When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
+  "Copy the current line or text selection.
+When called repeatedly, append copy subsequent lines. When
+`universal-argument' is called first, copy whole buffer (respects
+`narrow-to-region').
 
 URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
 Version 2017-12-04"
@@ -700,8 +672,8 @@ Version 2017-12-04"
             (forward-char)))))))
 
 (defun comment-toggle ()
-  "Toggles comments for the region. If no region is selected, toggles comments
-  for the line"
+  "Toggle comments for the region.
+If no region is selected, toggles comments for the line."
   (interactive)
   (let ((start (line-beginning-position))
         (end (line-end-position)))
@@ -718,18 +690,19 @@ Version 2017-12-04"
   (if (bound-and-true-p parinfer-mode) (parinfer--invoke-parinfer)))
 
 (defun select-current-line ()
-  "Select the current line"
+  "Select the current line."
   (interactive)
   (beginning-of-line)
   (set-mark (line-end-position)))
 
 ;; Key bindings to make moving between Emacs and other appliations a bit less
-;; jarring. These are mostly based on macOS defaults but many work on Windows
-;; and Linux. They can be overridden by the OS specific configurations below.
+;; jarring. These are mostly based on macOS defaults but an effor has been made
+;; to work on Windows and Linux. That is why there are multiple bindings for
+;; many commands. They can be overridden by the OS specific configurations
+;; below.
 (bind-keys
  ("s-o" . find-file)
  ("s-O" . find-file-other-window)
- ("C-c C-f" . find-file-at-point)
  ("s-s" . save-buffer)
  ("s-S" . write-file)
  ("s-q" . save-buffers-kill-emacs)
@@ -756,36 +729,6 @@ Version 2017-12-04"
  ("s-i" . os-reveal-file)
  ("C-c i" . os-reveal-file))
 
-(use-package ryo-modal
-  :config
-  (ryo-modal-keys
-   ("," ryo-modal-repeat)
-   ("q" ryo-modal-mode)
-   ("b" backward-char)
-   ("h" backward-char)
-   ("n" next-line)
-   ("j" next-line)
-   ("p" previous-line)
-   ("k" previous-line)
-   ("f" forward-char)
-   ("l" forward-char))
-
-  (ryo-modal-keys
-   ;; First argyment to ryo-modal-keys may be a list of keywords.
-   ;; These keywords will be applied to all keybindings.
-   (:norepeat t)
-   ("0" "M-0")
-   ("1" "M-1")
-   ("2" "M-2")
-   ("3" "M-3")
-   ("4" "M-4")
-   ("5" "M-5")
-   ("6" "M-6")
-   ("7" "M-7")
-   ("8" "M-8")
-   ("9" "M-9"))
-  :bind ("C-c SPC" . ryo-modal-mode))
-
 (use-package goto-addr
   :hook
   ((compilation-mode . goto-address-mode)
@@ -802,14 +745,17 @@ Version 2017-12-04"
 (defvar os-open-file-executable nil)
 
 (defun os-open-file (file)
-  "Open a file using the operating system's GUI file opener."
+  "Open FILE using the operating system's GUI file opener."
   (interactive)
   (message "Opening %s..." file)
   (call-process os-open-file-executable nil 0 nil file))
 
-(defun config-unix ())
-"Configure Emacs for common Unix (Linux and macOS) settings."
-;; The default for unix is /bin/bash but on macOS, brew installs bash to /usr/local/bin.
+(defun config-unix ()
+  "Configure Emacs for common Unix (Linux and macOS) settings."
+  "")
+;; The default for unix is /bin/bash but on macOS, brew installs bash to
+;; /usr/local/bin.
+;; This is commented out because it messes with Eshell/tramp.
 ;; (setq-default shell-file-name (executable-find "bash")
 ;;               explicit-shell-file-name shell-file-name))
 
@@ -849,20 +795,19 @@ When using Homebrew, install it using \"brew install trash\"."
     :config
     (defalias 'os-reveal-file #'reveal-in-osx-finder)))
 
+(defun reveal-in-windows-explorer (&optional file)
+  "Reveal the current file in the operating system's file manager."
+  (interactive)
+  (unless file (setq file buffer-file-name))
+  (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" file))))
+
 (defun config-windows ()
   "Configure Emacs for Windows."
   (menu-bar-mode -1)
   (setq w32-lwindow-modifier 'super
         w32-rwindow-modifier 'super
-        directory-free-space-program nil
         os-open-file-executable "explorer")
   (set-face-font 'default "Lucida Console-12")
-
-  (defun reveal-in-windows-explorer (&optional file)
-    "Reveal the current file in the operating system's file manager."
-    (interactive)
-    (unless file (setq file buffer-file-name))
-    (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" file))))
 
   (defalias 'os-reveal-file #'reveal-in-windows-explorer))
 
@@ -873,9 +818,6 @@ When using Homebrew, install it using \"brew install trash\"."
   ('gnu/linux (config-linux))
   ('windows-nt (config-windows))
   ('cygwin (config-windows)))
-
-;; Enable ido for the few functions that don't have ivy coverage.
-(setq ido-enable-flex-matching t)
 
 (use-package ryo-modal
   :commands ryo-modal-mode
@@ -889,7 +831,6 @@ When using Homebrew, install it using \"brew install trash\"."
    ("n" next-line)
    ("p" previous-line)
    ("f" forward-char)
-   ("h" backward-char)
    ("j" next-line)
    ("k" previous-line)
    ("l" forward-char))
@@ -914,6 +855,7 @@ When using Homebrew, install it using \"brew install trash\"."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; savehist
+(require 'savehist)
 (setq savehist-autosave-interval 60
       history-length t
       history-delete-duplicates t
@@ -932,6 +874,7 @@ When using Homebrew, install it using \"brew install trash\"."
 (save-place-mode 1)
 
 ;; recentf
+(require 'recentf)
 (setq recentf-max-saved-items 500
       recentf-max-menu-items 15
       ;; Disable recentf-cleanup on Emacs start because it can cause problems
@@ -980,7 +923,6 @@ When using Homebrew, install it using \"brew install trash\"."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq suggest-key-bindings 5
-      apropos-do-all t
       ;; Select help window so it's easy to quit it with `q'
       help-window-select t)
 
@@ -1002,14 +944,14 @@ When using Homebrew, install it using \"brew install trash\"."
 
 (use-package helpful
   :bind
-  (("C-h ." . helpful-at-point)
-   ("C-h f" . helpful-callable)
-   ("C-h c" . helpful-command)
-   ("C-h F" . helpful-function)
-   ("C-h k" . helpful-key)
-   ("C-h M" . helpful-macro)
-   ("C-h M-s" . helpful-symbol)
-   ("C-h v" . helpful-variable)))
+  ("C-h ." . helpful-at-point)
+  ("C-h f" . helpful-callable)
+  ("C-h c" . helpful-command)
+  ("C-h F" . helpful-function)
+  ("C-h k" . helpful-key)
+  ("C-h M" . helpful-macro)
+  ("C-h M-s" . helpful-symbol)
+  ("C-h v" . helpful-variable))
 
 (use-package elisp-demos
   :straight
@@ -1022,7 +964,7 @@ When using Homebrew, install it using \"brew install trash\"."
   :config
   (which-key-mode t)
   :bind
-  (("M-s-h" . which-key-show-top-level)))
+  ("M-s-h" . which-key-show-top-level))
 
 (use-package man
   :custom
@@ -1050,71 +992,71 @@ When using Homebrew, install it using \"brew install trash\"."
   :custom
   (tldr-enabled-categories '("common" "linux" "osx"))
   :bind
-  (("C-h t t" . tldr)
-   ("C-h t u" . tldr-update-docs)))
+  ("C-h t t" . tldr)
+  ("C-h t u" . tldr-update-docs))
 
-(defface eg-h1
-  '((((class color) (background light))
-     (:foreground "#ff8700" :bold t :height 2.0))
-    (((class color) (background dark))
-     (:foreground "#ffa722" :bold t :height 2.0)))
-  ""
-  :group 'eg)
+;; (defface eg-h1
+;;   '((((class color) (background light))
+;;      (:foreground "#ff8700" :bold t :height 2.0))
+;;     (((class color) (background dark))
+;;      (:foreground "#ffa722" :bold t :height 2.0)))
+;;   ""
+;;   :group 'eg)
 
-(defface eg-h2
-  '((((class color) (background light))
-     (:foreground "#1f5bff" :bold t :height 1.2))
-    (((class color) (background dark))
-     (:foreground "#6faaff" :bold t :height 1.2)))
-  ""
-  :group 'eg)
+;; (defface eg-h2
+;;   '((((class color) (background light))
+;;      (:foreground "#1f5bff" :bold t :height 1.2))
+;;     (((class color) (background dark))
+;;      (:foreground "#6faaff" :bold t :height 1.2)))
+;;   ""
+;;   :group 'eg)
 
-(defface eg-h3
-  '((((class color) (background light))
-     (:foreground "#5a5a5a" :bold t))
-    (((class color) (background dark))
-     (:foreground "#d7ff87" :bold t)))
-  ""
-  :group 'eg)
+;; (defface eg-h3
+;;   '((((class color) (background light))
+;;      (:foreground "#5a5a5a" :bold t))
+;;     (((class color) (background dark))
+;;      (:foreground "#d7ff87" :bold t)))
+;;   ""
+;;   :group 'eg)
 
-(defface eg-code-block
-  '((((class color) (background light))
-     (:foreground "#555" :background "#d7ff87"))
-    (((class color) (background dark))
-     (:foreground "#eee" :background "#5a5a5a")))
-  ""
-  :group 'eg)
+;; (defface eg-code-block
+;;   '((((class color) (background light))
+;;      (:foreground "#555" :background "#d7ff87"))
+;;     (((class color) (background dark))
+;;      (:foreground "#eee" :background "#5a5a5a")))
+;;   ""
+;;   :group 'eg)
 
-(defun eg (command)
-  "Run the `eg' command (https://github.com/srsudar/eg) and
-display as if from a terminal."
-  (interactive
-   (list (completing-read
-          "eg: "
-          (let ((l (split-string (shell-command-to-string "eg --list"))))
-            (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
-  (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
-  (insert
-   (mapconcat (lambda (line)
-                (cond
-                 ((equal "" line)
-                  "")
-                 ((string-prefix-p "# " line)
-                  (propertize (substring line 2) 'face 'eg-h1))
-                 ((string-prefix-p "## " line)
-                  (propertize (substring line 3) 'face 'eg-h2))
-                 ((string-prefix-p "### " line)
-                  (propertize (substring line 4) 'face 'eg-h3))
-                 ((string-prefix-p "    " line)
-                  (concat "    " (propertize (substring line 4) 'face 'eg-code-block)))
-                 (t line)))
-              (split-string
-               (shell-command-to-string
-                (concat "eg --no-color --pager-cmd cat " command))
-               "\n")
-              "\n"))
-  (goto-char (point-min))
-  (help-mode))
+;; (defun eg (command)
+;;   "Run the `eg' command (https://github.com/srsudar/eg) and
+;; display as if from a terminal."
+;;   (interactive
+;;    (list (completing-read
+;;           "eg: "
+;;           (let ((l (split-string (shell-command-to-string "eg --list"))))
+;;             (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
+;;   (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
+;;   (insert
+;;    (mapconcat (lambda (line)
+;;                 (cond
+;;                  ((equal "" line)
+;;                   "")
+;;                  ((string-prefix-p "# " line)
+;;                   (propertize (substring line 2) 'face 'eg-h1))
+;;                  ((string-prefix-p "## " line)
+;;                   (propertize (substring line 3) 'face 'eg-h2))
+;;                  ((string-prefix-p "### " line)
+;;                   (propertize (substring line 4) 'face 'eg-h3))
+;;                  ((string-prefix-p "    " line)
+;;                   (concat "    " (propertize (substring line 4) 'face 'eg-code-block)))
+;;                  (t line)))
+;;               (split-string
+;;                (shell-command-to-string
+;;                 (concat "eg --no-color --pager-cmd cat " command))
+;;                "\n")
+;;               "\n"))
+;;   (goto-char (point-min))
+;;   (help-mode))
 
 (use-package dash-docs
   :straight
@@ -1160,48 +1102,48 @@ display as if from a terminal."
               (buffer-list)))
 
 (defun filter-buffers-by-mode (mode)
-  "Return a list of buffers whose major mode is `mode'."
+  "Return a list of buffers whose major mode is MODE."
   (when (stringp mode) (setq mode (intern mode)))
   (seq-filter (lambda (b) (eq (buffer-local-value 'major-mode b) mode))
               (buffer-list)))
 
 (defun some-buffer (regexp)
   "Return the first buffer found with a name matching REGEXP, or nil."
-  (some (lambda (b) (when (string-match-p regexp (buffer-name b)) b))
-        (buffer-list)))
+  (cl-some (lambda (b) (when (string-match-p regexp (buffer-name b)) b))
+           (buffer-list)))
 
 (defun list-buffer-major-modes ()
   "Return a list of all major modes currently in use in open buffers."
   (delete-dups
-   (loop for b in (buffer-list)
-         collect (buffer-local-value 'major-mode b))))
+   (cl-loop for b in (buffer-list)
+            collect (buffer-local-value 'major-mode b))))
 
 (defun switch-to-buffer-by-mode (mode)
-  "Choose from a buffer by major mode."
+  "Interactively choose a major MODE, then choose a buffer of that mode."
   (interactive
    (list (ivy-read "Choose buffers for major mode: "
                    (list-buffer-major-modes)
-                   :history 'switch-buffer-by-mode-history
-                   :action 'switch-buffer-by-mode)))
+                   :history 'switch-to-buffer-by-mode-history
+                   :action 'switch-to-buffer-by-mode)))
   (when (stringp mode) (setq mode (intern mode)))
-  (setq buffers (mapcar #'buffer-name (filter-buffers-by-mode mode)))
-  (ivy-read (format "%s buffers: " mode) buffers
-            :keymap ivy-switch-buffer-map
-            :action #'ivy--switch-buffer-action
-            :matcher #'ivy--switch-buffer-matcher
-            :preselect (when (eq major-mode mode) (cadr buffers))
-            ;; Use the `ivy-switch-buffer' hydra.
-            :caller #'ivy-switch-buffer))
+  (let ((buffers (mapcar #'buffer-name (filter-buffers-by-mode mode))))
+    (ivy-read (format "%s buffers: " mode) buffers
+              :keymap ivy-switch-buffer-map
+              :action #'ivy--switch-buffer-action
+              :matcher #'ivy--switch-buffer-matcher
+              :preselect (when (eq major-mode mode) (cadr buffers))
+              ;; Use the `ivy-switch-buffer' hydra.
+              :caller #'ivy-switch-buffer)))
 
 ;; Quick switch buffers
-(bind-keys ("C-x C-b" #'ibuffer)
+(bind-keys ("C-x C-b" . ibuffer)
            ("s-}" . next-buffer)
            ("C-c }" . next-buffer)
            ("s-{" . previous-buffer)
            ("C-c {" . previous-buffer)
-           ("C-s-j" . switch-to-buffer-by-mode))
+           ("C-s-j" . switch-to-buffer-by-mode)
+           ("C-c M-j" . switch-to-buffer-by-mode))
 
-(setq windmove-wrap-around t)
 (bind-keys ("H-a" . windmove-left)
            ("H-h" . windmove-left)
            ("H-d" . windmove-right)
@@ -1224,9 +1166,9 @@ display as if from a terminal."
       initial-major-mode 'lisp-interaction-mode)
 
 (defun new-scratch-buffer ()
-  "Create or go to a scratch buffer in the current mode. If ARG
-  is provided then use `initial-major-mode'. Try these things in
-  succession:
+  "Create or go to a scratch buffer in the current mode.
+If ARG is provided then use `initial-major-mode'. Try these
+  things in succession\:
 
 1. Select an existing window containing the scratch buffer.
 2. Switch to an existing scratch buffer.
@@ -1242,32 +1184,7 @@ display as if from a terminal."
         (funcall mode)))))
 
 (bind-keys ("s-n" . new-scratch-buffer)
-           ("C-c C-n . new-scratch-buffer"))
-
-;; (internal-complete-buffer "*help" #'match-buffer-name t)
-
-;; (setq special-display-regexps-help
-;;       (rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*")))
-
-;; (defun m-special-display-function (buffer &optional args)
-;;   "Pop up a window displaying BUFFER and return said window. ARGS
-;; is an alist with additional parameters."
-;;   (let ((name "*Help*"))
-;;     (or (cond
-;;          ((string-match-p special-display-regexps-help name)
-;;           (-some (lambda (w)
-;;                    (if (string-match-p special-display-regexps-help (buffer-name (window-buffer w)))
-;;                        w))
-;;                  (window-list))))
-;;         (pop-to-buffer buffer))))
-
-;; (setq special-display-function #'m-special-display-function)
-
-;; (setq special-display-buffer-names '("*Help*"))
-
-;; (add-to-list 'same-window-regexps "\\*helpful ")
-;; (add-multiple-to-list 'same-window-buffer-names
-;;                       '("*Help*" "*Apropos*" "*Summary*" "*info*"))
+           ("C-c C-n" . new-scratch-buffer))
 
 (setq display-buffer-alist
       `((,(rx bos
@@ -1275,9 +1192,6 @@ display as if from a terminal."
               (0+ not-newline))
          (display-buffer-reuse-mode-window display-buffer-pop-up-window)
          (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
-
-;; (setq special-display-buffer-names '("*Apropos*" "*Help*" "*info*" "*Summary*")
-;;       special-display-regexps '("*helpful"))
 
 ;; kill buffer and window
 (defun kill-other-buffer-and-window ()
@@ -1323,8 +1237,8 @@ display as if from a terminal."
            ("t" . toggle-window-split))
 
 ;; Tags
-(bind-keys ("s-R" . #'xref-find-definitions-other-window)
-           ("C-c M-r" . #'xref-find-definitions-other-window))
+(bind-keys ("s-R" . xref-find-definitions-other-window)
+           ("C-c M-r" . xref-find-definitions-other-window))
 
 ;; Create friendly names for buffers with the same name
 (setq uniquify-buffer-name-style 'forward
@@ -1332,21 +1246,76 @@ display as if from a terminal."
       uniquify-after-kill-buffer-p t
       uniquify-ignore-buffers-re "^\\*")
 
-(defadvice server-visit-files (before parse-numbers-in-lines (files proc &optional nowait) activate)
-  "Open file with emacsclient with cursors positioned on requested line. Most of
-console-based utilities prints filename in format 'filename:linenumber'. So you
-may wish to open filename in that format. Just call: emacsclient
-filename:linenumber and file 'filename' will be opened and cursor set on line
-'linenumber'"
-  (ad-set-arg 0
-              (mapcar (lambda (fn)
-                        (let ((name (car fn)))
-                          (if (string-match "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$" name)
-                              (cons
-                               (match-string 1 name)
-                               (cons (string-to-number (match-string 2 name))
-                                     (string-to-number (or (match-string 3 name) ""))))
-                            fn))) files)))
+(require 'ffap)
+
+(defun find-file-at-point-with-line (&optional filename)
+  "Open FILENAME at point and move point to line specified next to file name."
+  (interactive)
+  (let* ((filename (or filename (if current-prefix-arg (ffap-prompter) (ffap-guesser))))
+         (line-number
+          (and (or (looking-at ".* line \\(\[0-9\]+\\)")
+                   (looking-at "[^:]*:\\(\[0-9\]+\\)"))
+               (string-to-number (match-string-no-properties 1))))
+         (column-number
+          (or
+           (and (looking-at "[^:]*:\[0-9\]+:\\(\[0-9\]+\\)")
+                (string-to-number (match-string-no-properties 1)))
+           0)))
+    (message "%s --> %s:%s" filename line-number column-number)
+    (cond ((ffap-url-p filename)
+           (let (current-prefix-arg)
+             (funcall ffap-url-fetcher filename)))
+          ((and line-number
+                (file-exists-p filename))
+           (progn (find-file-other-window filename)
+                  (goto-char (point-min))
+                  (forward-line (1- line-number))
+                  (forward-char column-number)))
+          ((and ffap-pass-wildcards-to-dired
+                ffap-dired-wildcards
+                (string-match ffap-dired-wildcards filename))
+           (funcall ffap-directory-finder filename))
+          ((and ffap-dired-wildcards
+                (string-match ffap-dired-wildcards filename)
+                find-file-wildcards
+                ;; Check if it's find-file that supports wildcards arg
+                (memq ffap-file-finder '(find-file find-alternate-file)))
+           (funcall ffap-file-finder (expand-file-name filename) t))
+          ((or (not ffap-newfile-prompt)
+               (file-exists-p filename)
+               (y-or-n-p "File does not exist, create buffer? "))
+           (funcall ffap-file-finder
+                    ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
+                    (expand-file-name filename)))
+          ;; User does not want to find a non-existent file:
+          ((signal 'file-error (list "Opening file buffer"
+                                     "no such file or directory"
+                                     filename))))))
+
+(bind-key "C-c C-f" #'find-file-at-point-with-line)
+
+(defun parse-colon-notation (filename)
+  "Parse FILENAME in the format expected by `server-visit-files'.
+Modify it so that `filename:line:column' is is reformatted the
+way Emacs expects."
+  (let ((name (car filename)))
+    (if (string-match "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$" name)
+        (cons
+         (match-string 1 name)
+         (cons (string-to-number (match-string 2 name))
+               (string-to-number (or (match-string 3 name) ""))))
+      filename)))
+
+(defun wrap-colon-notation (f &rest args)
+  "Wrap F (`server-visit-files') and modify ARGS to support colon notation.
+Open files with emacsclient with cursors according to colon
+notation. When the file name has line numbers and optionally
+columns specified like `filename:line:column', parse those and
+return them in the Emacs format."
+  (message "%s" args)
+  (apply f (cons (mapcar #'parse-colon-notation (car args)) (cdr args))))
+
+(advice-add 'server-visit-files :around #'wrap-colon-notation)
 
 ;; If this variable is t, VC follows the link and visits the real file, telling you about it in the echo area.
 (setq vc-follow-symlinks t)
@@ -1430,16 +1399,6 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 ;;; Editing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Work with auto-save and backup files
-;; (use-package backup-walker
-;;   :commands
-;;   (backup-walker-start))
-
-;; Automatically save files kind of like Apple Mac apps.
-;; (use-package backups-mode
-;;   :config
-;;   (backups-minor-mode))
-
 ;; Wrap text.
 (setq-default fill-column 80)
 
@@ -1461,20 +1420,21 @@ filename:linenumber and file 'filename' will be opened and cursor set on line
 (bind-key "M-\\" #'cycle-spacing)
 
 ;; sh-mode
-(setq sh-basic-offset tab-width
-      sh-indentation tab-width
-      ;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
-      executable-prefix-env t)
+(use-package sh-script
+  :custom
+  (sh-basic-offset tab-width)
+  (sh-indentation tab-width)
+  ;; Tell `executable-set-magic' to insert #!/usr/bin/env interpreter
+  (executable-prefix-env t))
 
 ;; Make a shell script executable automatically on save
 (add-hook 'after-save-hook #'executable-make-buffer-file-executable-if-script-p)
 
 (defun maybe-reset-major-mode ()
-  "Reset the buffer's major-mode if a different mode seems like a better fit.
-Mostly useful as a before-save-hook, to guess mode when saving a
+  "Reset the buffer's `major-mode' if a different mode seems like a better fit.
+Mostly useful as a `before-save-hook', to guess mode when saving a
 new file for the first time.
 https://github.com/NateEag/.emacs.d/blob/9d4a2ec9b5c22fca3c80783a24323388fe1d1647/init.el#L137"
-
   (when (and
          ;; The buffer's visited file does not exist.
          (eq (file-exists-p (buffer-file-name)) nil)
@@ -1492,11 +1452,6 @@ https://github.com/NateEag/.emacs.d/blob/9d4a2ec9b5c22fca3c80783a24323388fe1d164
 ;; Automatically indent after RET
 (electric-indent-mode +1)
 
-(defun indent-buffer ()
-  (interactive)
-  (indent-region (point-min) (point-max))
-  (message "Buffer indented."))
-
 ;; Guess the indentation of the file and continue to use that.
 ;; (use-package dtrt-indent
 ;;   :hook
@@ -1504,30 +1459,21 @@ https://github.com/NateEag/.emacs.d/blob/9d4a2ec9b5c22fca3c80783a24323388fe1d164
 
 ;; http://whattheemacsd.com/key-bindings.el-03.html
 (defun join-line-previous ()
+  "Like `delete-indentation', but bring the line below up to the current line."
   (interactive)
   (join-line -1))
 
 ;; It's the reverse of `delete-indentation'.
-;; (bind-key "C-^" #'join-line-previous)
+(bind-key "C-^" #'join-line-previous)
 
 (defun dos2unix ()
-  "Convert a DOS formatted buffer to Unix by removing the ^M at
-the end of each line."
+  "Convert DOS line endings to Unix ones."
   (interactive)
-  (let ((line (line-number-at-pos))
-        (column (current-column)))
-    (mark-whole-buffer)
-    (replace-string "
-" "")
-    (mark-whole-buffer)
-    (replace-string "" "
-")
-    (goto-line line)
-    (move-to-column column)))
-
-;; (defun dos2unix () "Convert Dos encoded buffer to Unix encoding.
-;;   https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa/"
-;;   (interactive) (set-buffer-file-coding-system 'unix))
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward (string ?\C-m) nil t)
+      (replace-match (string ?\C-j) nil t)))
+  (set-buffer-file-coding-system 'unix 't))
 
 (use-package string-inflection
   :bind
@@ -1540,7 +1486,7 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   (set-buffer-file-coding-system 'dos))
 
 (defun touch (cmd)
-  "Run touch in `default-directory'."
+  "Run `touch CMD' in `default-directory'."
   (interactive
    (list (read-shell-command "Run touch (like this): "
                              "touch "
@@ -1553,38 +1499,43 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
 ;;   (editorconfig-mode 1))
 
 ;; Just set up 3 windows, no fancy frames or whatever
+(require 'ediff)
 (setq ediff-window-setup-function #'ediff-setup-windows-plain)
 
 ;; Continue comment on next line (default binding is "C-M-j")
 (bind-key "M-RET" #'indent-new-comment-line)
 
-;; Automatically fill comments. Wraps on `fill-column' columns
 (defun configure-auto-fill-mode ()
+  "Automatically fill comments.
+Wraps on `fill-column' columns."
   (set (make-local-variable 'comment-auto-fill-only-comments) t)
   (auto-fill-mode t))
 
 (add-hook 'prog-mode-hook #'configure-auto-fill-mode)
 
 (defun goto-line-with-feedback ()
-  "Show line numbers temporarily, while prompting for the line number input."
+  "Show line numbers temporarily, while prompting for line number N."
   (interactive)
   (unwind-protect
       (progn
         (linum-mode 1)
-        (goto-line (read-number "Goto line: ")))
+        (forward-line)
+        (let ((n (1- (read-number "Go to line: "))))
+          (goto-char (point-min))
+          (forward-line n)))
     (linum-mode -1)))
 
 (bind-key [remap goto-line] #'goto-line-with-feedback)
 
 ;; One key binding to move/copy text from current other window
 ;; https://emacs.stackexchange.com/questions/3743/how-to-move-region-to-other-window
-(defun move-region-to-other-window (start end)
-  "Move selected text to other window."
+(defun move-region-to-other-window (beg end)
+  "Move selected text (from BEG to END) to other window."
   (interactive "r")
   (if (use-region-p)
-      (let ((count (count-words-region start end)))
+      (let ((count (count-words-region beg end)))
         (save-excursion
-          (kill-region start end)
+          (kill-region beg end)
           (other-window 1)
           (yank)
           (newline))
@@ -1592,13 +1543,13 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
         (message "Moved %s words" count))
     (message "No region selected")))
 
-(defun copy-region-to-other-window (start end)
-  "Move selected text to other window."
+(defun copy-region-to-other-window (beg end)
+  "Move selected text (from BEG to END) to other window."
   (interactive "r")
   (if (use-region-p)
-      (let ((count (count-words-region start end)))
+      (let ((count (count-words-region beg end)))
         (save-excursion
-          (copy-region-as-kill start end)
+          (copy-region-as-kill beg end)
           (other-window 1)
           (yank)
           (newline))
@@ -1634,8 +1585,8 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   ([remap move-end-of-line] . mwim-end-of-code-or-line))
 
 (use-package expand-region
-  :init
-  (setq expand-region-fast-keys-enabled nil)
+  :custom
+  (expand-region-fast-keys-enabled nil)
   :bind
   ("s-d" . er/expand-region)
   ("C-=" . er/expand-region)
@@ -1673,6 +1624,10 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
         ("M-S-<up>" . move-text-up)
         ("M-S-<down>" . move-text-down)))
 
+(use-package goto-last-change
+  :bind
+  ("C-\\" . goto-last-change))
+
 (defun outline-show-current-sublevel ()
   "Show only the current top level section."
   (interactive)
@@ -1707,8 +1662,8 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   :config
   ;; Narrowing now works within the headline rather than requiring to be on it
   (advice-add 'outshine-narrow-to-subtree :before
-              (lambda (&rest args) (unless (outline-on-heading-p t)
-                                     (outline-previous-visible-heading 1))))
+              (lambda (&rest _args) (unless (outline-on-heading-p t)
+                                      (outline-previous-visible-heading 1))))
   :hook
   (prog-mode . outshine-mode)
   :bind
@@ -1721,13 +1676,13 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
         ("M-n" . outline-subtree-next)))
 
 ;; hs-minor-mode for folding top level forms
-;; (use-package hideshow
-;;   :custom
-;;   (hs-hide-comments-when-hiding-all nil)
-;;   :bind
-;;   ("C-<tab>" . hs-toggle-hiding)
-;;   :hook
-;;   (hs-minor-mode . hs-hide-all))
+(use-package hideshow
+  :custom
+  (hs-hide-comments-when-hiding-all nil)
+  :bind
+  ("C-<tab>" . hs-toggle-hiding)
+  :hook
+  (hs-minor-mode . hs-hide-all))
 
 (use-package unfill
   :bind
@@ -1771,26 +1726,38 @@ https://edivad.wordpress.com/2007/04/03/emacs-convert-dos-to-unix-and-vice-versa
   :commands
   (format-all-buffer format-all-mode))
 
+(defun indent-buffer-or-region ()
+  "Indent the region if one is active, otherwise format the buffer.
+Some modes have special treatment."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (indent-region (region-beginning) (region-end))
+        (message "Region indented."))
+    (progn
+      (format-all-buffer)
+      (message "Buffer formatted."))))
+
+(bind-key "C-M-\\" #'indent-buffer-or-region)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; S-Expressions, Parentheses, Brackets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun sp-sh-post-handler (id action context)
-  "Bash post handler.
-ID, ACTION, CONTEXT."
+(defun sp-sh-post-handler (_id action _context)
+  "Bash post handler ID, ACTION, CONTEXT."
   (-let (((&plist :arg arg :enc enc) sp-handler-context))
     (when (equal action 'barf-backward)
       (sp-ruby-delete-indentation 1)
       (indent-according-to-mode)
       (save-excursion
-        (sp-backward-sexp) ; move to begining of current sexp
+        (sp-backward-sexp)              ; move to begining of current sexp
         (sp-backward-sexp arg)
         (sp-ruby-maybe-one-space)))
 
     (when (equal action 'barf-forward)
       (sp-get enc
-        (let ((beg-line (line-number-at-pos :beg-in))
-              (end-line (line-number-at-pos :end-in)))
+        (let ((beg-line (line-number-at-pos :beg-in)))
           (sp-forward-sexp arg)
           (sp-ruby-maybe-one-space)
           (when (not (= (line-number-at-pos) beg-line))
@@ -1807,7 +1774,7 @@ ID, ACTION, CONTEXT."
     (indent-according-to-mode))
   (sp-sh-post-handler id action context))
 
-(defun sp-sh-pre-handler (id action context)
+(defun sp-sh-pre-handler (_id action _context)
   "Handler for bash slurp and barf.
 ID, ACTION, CONTEXT."
   (let ((enc (plist-get sp-handler-context :enc)))
@@ -1845,7 +1812,7 @@ ID, ACTION, CONTEXT."
         (when (equal action 'slurp-forward)
           (save-excursion
             (sp-backward-sexp)
-            (when (looking-back "\.") (backward-char))
+            (when (looking-back "\." nil) (backward-char))
             (sp-ruby-maybe-one-space)
             (when (not (= (line-number-at-pos) beg-line))
               (if (thing-at-point-looking-at "\\.[[:blank:]\n]*")
@@ -1860,15 +1827,15 @@ ID, ACTION, CONTEXT."
             (newline)))
 
         (when (equal action 'barf-forward)
-          (when (looking-back "\\.") (backward-char))
-          (while (looking-back "::") (sp-backward-symbol))
+          (when (looking-back "\\." nil) (backward-char))
+          (while (looking-back "::" nil) (sp-backward-symbol))
           (if (= (line-number-at-pos) end-line)
               (insert " ")
-            (if (looking-back "^[[:blank:]]*")
+            (if (looking-back "^[[:blank:]]*" nil)
                 (save-excursion (newline))
               (newline))))))))
 
-(defun sp-backward-slurp-into-previous-sexp (&optional arg)
+(defun sp-backward-slurp-into-previous-sexp ()
   "Add the sexp at point into the preceeding list."
   (interactive)
   (save-excursion
@@ -1878,7 +1845,7 @@ ID, ACTION, CONTEXT."
 
 ;; See https://github.com/Fuco1/smartparens/issues/80
 (defun sp-create-newline-and-enter-sexp (&rest _ignored)
-  "Open a new brace or bracket expression, with relevant newlines and indent. "
+  "Open a new brace or bracket expression, with relevant newlines and indent."
   (newline)
   (indent-according-to-mode)
   (forward-line -1)
@@ -1951,7 +1918,12 @@ ID, ACTION, CONTEXT."
         ("C-M-k" . sp-kill-sexp)
         ("C-s-<backspace>" . sp-backward-kill-sexp)
         ("C-c <backspace>" . sp-backward-kill-sexp)
-        ("C-M-(" . sp-backward-slurp-into-previous-sexp)))
+        ("C-M-(" . sp-backward-slurp-into-previous-sexp)
+        ("C-s-a" . sp-backward-down-sexp)
+        ("C-s-e" . sp-up-sexp)))
+
+(bind-keys ("C-M-a" . beginning-of-defun)
+           ("C-M-e" . end-of-defun))
 
 (use-package parinfer
   :custom
@@ -2006,8 +1978,11 @@ ID, ACTION, CONTEXT."
     (message "Opening %s..." file)
     (os-open-file file)))
 
+(defvar-local dired-dotfiles-show-p t
+  "If non-nil, show files beginning with `.' in dired.")
+
 (defun dired-dotfiles-toggle ()
-  "Show/hide dot-files"
+  "Toggle display of dot files."
   (interactive)
   (when (equal major-mode 'dired-mode)
     (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p) ; if currently showing
@@ -2016,17 +1991,22 @@ ID, ACTION, CONTEXT."
           (message "h")
           (dired-mark-files-regexp "^\\\.")
           (dired-do-kill-lines))
-      (progn (revert-buffer) ; otherwise just revert to re-show
-             (set (make-local-variable 'dired-dotfiles-show-p) t)))))
+      (progn (revert-buffer)            ; otherwise just revert to re-show
+             (setq-local dired-dotfiles-show-p t)))))
+
+(use-package dired+)
+
+(use-package wdired
+  :custom
+  (wdired-allow-to-change-permissions t)
+  (wdired-create-parent-directories t))
 
 (setq dired-recursive-deletes 'always
       dired-recursive-copies 'always
       dired-listing-switches "-alh"
       dired-dwim-target t
       dired-omit-mode t
-      dired-omit-files "\\`[#.].*"
-      wdired-allow-to-change-permissions t
-      wdired-create-parent-directories t)
+      dired-omit-files "\\`[#.].*")
 
 (setq-default dired-omit-files-p t)
 
@@ -2039,7 +2019,6 @@ ID, ACTION, CONTEXT."
  ("C-x d" . dired)
  :map dired-mode-map
  ("C-c o" . dired-open-file)
- ("C-x M-f" . find-file-at-point)
  ("T" . touch)
  ("C-." . dired-omit-mode)
  ("C-c C-p" . wdired-change-to-wdired-mode))
@@ -2099,7 +2078,7 @@ ID, ACTION, CONTEXT."
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
 (defun list-hosts-from-known-hosts ()
-  "Return a list of hosts from ~/.ssh/known_hosts"
+  "Return a list of hosts from `~/.ssh/known_hosts'."
   (with-temp-buffer
     (insert-file-contents "~/.ssh/known_hosts")
     (-remove (lambda (host) (string=  "" host))
@@ -2107,7 +2086,7 @@ ID, ACTION, CONTEXT."
                      (split-string (buffer-string) "\n")))))
 
 (defun list-hosts-from-ssh-config ()
-  "Return a list of hosts from ~/.ssh/config"
+  "Return a list of hosts from `~/.ssh/config'."
   (with-temp-buffer
     (insert-file-contents "~/.ssh/config")
     (keep-lines "^Host")
@@ -2116,7 +2095,7 @@ ID, ACTION, CONTEXT."
                      (split-string (buffer-string) "\n")))))
 
 (defun list-hosts-from-etc-hosts ()
-  "Return a list of hosts from /etc/hosts"
+  "Return a list of hosts from `/etc/hosts'."
   (with-temp-buffer
     (insert-file-contents "/etc/hosts")
     (flush-lines "^#")
@@ -2128,7 +2107,7 @@ ID, ACTION, CONTEXT."
                      (split-string (buffer-string) "\n")))))
 
 (defun list-hosts-from-recentf ()
-  "return a list of hosts from the recentf-list"
+  "Return a list of hosts from the `recentf-list'."
   (-distinct
    (mapcar (lambda (s)
              (replace-regexp-in-string
@@ -2139,7 +2118,7 @@ ID, ACTION, CONTEXT."
             recentf-list))))
 
 (defun ssh-choose-host (&optional prompt)
-  "Make a list of recent ssh hosts and interactively choose one."
+  "Make a list of recent ssh hosts and interactively choose one with optional PROMPT."
   (completing-read (or prompt "SSH to Host: ")
                    (-distinct
                     (append
@@ -2150,7 +2129,7 @@ ID, ACTION, CONTEXT."
                    nil t))
 
 (defun tramp-dired (host)
-  "Choose an ssh host and then open it with dired."
+  "Choose an ssh HOST and then open it with dired."
   (interactive (list (ssh-choose-host "Hostname or tramp string: ")))
   (find-file
    (if (tramp-file-name-p host)
@@ -2158,7 +2137,7 @@ ID, ACTION, CONTEXT."
      (find-file (concat "/ssh:" host ":")))))
 
 (defun tramp-dired-sudo (host)
-  "ssh to host, sudo to root, open dired"
+  "SSH to HOST, sudo to root, open dired."
   (interactive (list (ssh-choose-host "Hostname or tramp string: ")))
   (find-file
    (if (tramp-file-name-p host)
@@ -2173,7 +2152,7 @@ ID, ACTION, CONTEXT."
 
 ;; http://whattheemacsd.com/setup-shell.el-01.html
 (defun comint-delchar-or-eof-or-kill-buffer (arg)
-  "`C-d' on an empty line in the shell terminates the process."
+  "`C-d' on an empty line in the shell terminates the process, accepts ARG."
   (interactive "p")
   (if (null (get-buffer-process (current-buffer)))
       (kill-buffer)
@@ -2191,10 +2170,12 @@ ID, ACTION, CONTEXT."
 
 ;; dtach (https://github.com/crigler/dtach)
 ;; https://emacs.stackexchange.com/questions/2283/attach-to-running-remote-shell-with-eshell-tramp-dtach
-(setq explicit-dtach-args '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login"))
+(defvar explicit-dtach-args
+  '("-A" "/tmp/emacs.dtach" "-z" "bash" "--noediting" "--login")
+  "Args for dtach.")
 
 (defun ssh-dtach (host)
-  "Open SSH connection to remote host and attach to dtach session."
+  "Open SSH connection to HOST and create or attach to dtach session."
   (interactive (list (ssh-choose-host "SSH using dtach to host: ")))
   (let ((explicit-shell-file-name "dtach")
         (default-directory (format  "/sshx:%s:" host))
@@ -2203,6 +2184,7 @@ ID, ACTION, CONTEXT."
 
 ;; https://www.emacswiki.org/emacs/ShellMode
 (defun term-switch-to-shell-mode ()
+  "Switch a term session to shell."
   (interactive)
   (if (equal major-mode 'term-mode)
       (progn
@@ -2222,14 +2204,16 @@ ID, ACTION, CONTEXT."
 ;; Apply colors to `shell-command' minibuffer output.
 ;; Adapted from https://stackoverflow.com/a/42666026/1588358
 (defun xterm-color-apply-on-minibuffer ()
-  (let ((bufs (remove-if-not
+  "Apply xterm color filtering on minibuffer output."
+  (let ((bufs (cl-remove-if-not
                (lambda (x) (string-prefix-p " *Echo Area" (buffer-name x)))
                (buffer-list))))
     (dolist (buf bufs)
       (with-current-buffer buf
         (xterm-color-colorize-buffer)))))
 
-(defun xterm-color-apply-on-minibuffer-advice (proc &rest rest)
+(defun xterm-color-apply-on-minibuffer-advice (_proc &rest _rest)
+  "Wrap `xterm-color-apply-on-minibuffer'."
   (xterm-color-apply-on-minibuffer))
 
 (advice-add 'shell-command :after #'xterm-color-apply-on-minibuffer-advice)
@@ -2299,7 +2283,7 @@ ID, ACTION, CONTEXT."
   (global-fish-completion-mode))
 
 (defun eshell-other-window (arg)
-  "Opens an eshell in another window. Prefix argument opens a new eshell named for `default-directory'"
+  "Opens an eshell in another window, creating a new one if ARG is specified."
   (interactive "p")
   (if (= arg 4)
       (let* ((parent (if (buffer-file-name)
@@ -2318,6 +2302,7 @@ ID, ACTION, CONTEXT."
       (message (number-to-string arg)))))
 
 (defun eshell-maybe-bol ()
+  "Smarter `beginning-of-line' for Eshell."
   (interactive)
   (let ((p (point)))
     (eshell-bol)
@@ -2325,22 +2310,23 @@ ID, ACTION, CONTEXT."
         (beginning-of-line))))
 
 (defun eshell-quit-or-delete-char (arg)
+  "Quit Eshell if `C-d' is specified, passing ARG on."
   (interactive "p")
-  (if (and (eolp) (looking-back eshell-prompt-regexp))
+  (if (and (eolp) (looking-back eshell-prompt-regexp nil))
       (progn
         (eshell-life-is-too-much)
         (ignore-errors
           (delete-window)))
-    (delete-forward-char arg)))
+    (delete-char  arg)))
 
 (defun eshell-send-previous-input (&optional arg)
-  "Re-run the previous command (or with prefix args the nth command) in last used eshell buffer"
+  "Re-run the previous command with ARG in the last used eshell buffer."
   (interactive "*p")
   (with-current-buffer
       (-first (lambda (b) (eq 'eshell-mode (with-current-buffer b major-mode)))
               (buffer-list))
     (with-selected-window (get-buffer-window)
-      (end-of-buffer)
+      (goto-char (point-max))
       (recenter 4))
     (eshell-previous-input arg)
     (eshell-send-input)))
@@ -2361,11 +2347,11 @@ ID, ACTION, CONTEXT."
         (eshell))
       (display-buffer eshell-buffer-name t)
       (switch-to-buffer-other-window eshell-buffer-name)
-      (end-of-buffer)
+      (goto-char (point-max))
       (eshell-kill-input)
       (insert command)
       (eshell-send-input)
-      (end-of-buffer)
+      (goto-char (point-max))
       (switch-to-buffer-other-window buf))))
 
 (defun m-eshell-prompt-function ()
@@ -2389,34 +2375,38 @@ ID, ACTION, CONTEXT."
       :weight bold))
    ""))
 
-(defun eshell/s (hostname)
-  "Change directory to host via tramp"
-  (eshell/cd (concat "/ssh:" hostname ":")))
+(defun eshell/s (host)
+  "Change directory to HOST via tramp."
+  (eshell/cd (concat "/ssh:" host ":")))
 
 (defun eshell/e (&optional path)
+  "Eshell alias for `find-file', passing optional PATH."
   (find-file path))
 
 (defun eshell/ee (&optional path)
+  "Eshell alias for `find-file-other-window', passing optional PATH."
   (find-file-other-window path))
 
 (defun eshell/d (&optional path)
+  "Eshell alias for `dired', passing optional PATH."
   (dired path))
 
 (defun eshell/do (&optional path)
+  "Eshell alias for `dired-other-window', passing optional PATH."
   (dired-other-window path))
 
 (defun eshell-path-advice (f &rest paths)
-  "For each element in PATHS, return path relative to the remote
- host, if element starts with `:' andwe are on a remote host).
+  "For each element in F PATHS, return path relative to the host.
+If the element starts with `:' and we are on a remote host).
 
 Examples: > cd /etc -> /etc > cd :/etc -> /sshx:host:/etc > cd :
 -> /sshx:host:/home/user"
   (apply f
-         (loop for path in (-flatten paths) collect
-               (if-let* ((remote (and (string-prefix-p ":" path)
-                                      (file-remote-p path))))
-                   (concat remote (substring path 1))
-                 path))))
+         (cl-loop for path in (-flatten paths) collect
+                  (if-let* ((remote (and (string-prefix-p ":" path)
+                                         (file-remote-p path))))
+                      (concat remote (substring path 1))
+                    path))))
 
 ;; Advise functions to work with ":" path syntax (see `eshell-path-advice').
 (seq-do (lambda (f) (advice-add f :around #'eshell-path-advice))
@@ -2424,43 +2414,41 @@ Examples: > cd /etc -> /etc > cd :/etc -> /sshx:host:/etc > cd :
                     eshell/do))
 
 (defun tramp-insert-remote-part ()
-  "Insert current tramp prefix at point"
+  "Insert current tramp prefix at point."
   (interactive)
   (if-let* ((remote (file-remote-p default-directory)))
       (insert remote)))
 
 (bind-key "C-:" #'tramp-insert-remote-part)
 
-(defun eshell/really-clear (&rest args)
-  "Call `eshell/clear' with an argument to really clear the
-buffer, then a second time to print the prompt."
+(defun eshell/really-clear ()
+  "Call `eshell/clear' with an argument to really clear the buffer.
+Call it a second time to print the prompt."
   (interactive)
   (eshell/clear 1)
   (eshell/clear))
 
-(defun eshell/info (&optional subject)
-  "Invoke `info', optionally opening the Info system to SUBJECT."
-  (let ((buf (current-buffer)))
-    (Info-directory)
+(defun eshell/info (&rest args)
+  "Invoke `info', optionally opening the Info system to car ARGS."
+  (Info-directory)
+  (let ((subject (car args)))
     (if (not (null subject))
         (let ((node-exists (ignore-errors (Info-menu subject))))
           (if (not node-exists)
               (format "No menu item `%s' in node `(dir)Top'." subject))))))
 
 (defun eshell-create-send (cmd &optional name)
-  "Create an eshell buffer and run a command in it."
+  "Create an eshell buffer named NAME and run CMD in it."
   (let ((eshell-buffer-name (or name cmd)))
     (eshell))
   (insert cmd)
   (eshell-queue-input))
 
 (defun eshell-vertical-create-send (cmd &optional name)
-  "Split the window vertically, create an eshell buffer there, and run a command"
+  "Create an eshell buffer named NAME and run CMD in it.
+Split the window vertically."
   (split-window-vertically)
-  (let ((eshell-buffer-name (or name cmd)))
-    (eshell))
-  (insert cmd)
-  (eshell-queue-input))
+  (eshell-create-send cmd name))
 
 (defun eshell-kill-previous-output ()
   "Kill the output of the previous command."
@@ -2476,7 +2464,7 @@ buffer, then a second time to print the prompt."
       (insert (format "--- Killed %d lines ---\n" lines)))))
 
 (defun eshell-kill-previous-output-to-buffer ()
-  "Moves output of the previous command to a new buffer."
+  "Move output of the previous command to a new buffer."
   (interactive)
   (eshell-kill-previous-output)
   (switch-to-buffer-other-window "*eshell-stdout*")
@@ -2491,11 +2479,13 @@ buffer, then a second time to print the prompt."
     (copy-region-as-kill (eshell-beginning-of-output) (eshell-end-of-output))
     (message "Copied %d lines" lines)))
 
-;; https://stackoverflow.com/a/14769115/1588358
 (defun local-set-minor-mode-key (mode key def)
-  "Overrides a minor mode keybinding for the local buffer, by
-   creating or altering keymaps stored in buffer-local
-   `minor-mode-overriding-map-alist'."
+  "Override MODE KEY binding with DEF.
+Override a minor mode keybinding for the local buffer. Create or
+alter keymaps, storing them in buffer-local variable
+`minor-mode-overriding-map-alist' so that we get the bindings we
+want and they are now shadowed.'. See
+https://stackoverflow.com/a/14769115/1588358"
   (let* ((oldmap (cdr (assoc mode minor-mode-map-alist)))
          (newmap (or (cdr (assoc mode minor-mode-overriding-map-alist))
                      (let ((map (make-sparse-keymap)))
@@ -2510,8 +2500,7 @@ buffer, then a second time to print the prompt."
                  "*bash aliases*"))
 
 (defun eshell/init ()
-  "This function is called when Eshell starts in order to
-initialize the Eshell environment."
+  "Initialize the Eshell environment."
   (source-sh "~/.env")
   (setq eshell-path-env (getenv "PATH"))
   ;; Path to shell executable. Set it this way to work with tramp.
@@ -2644,23 +2633,23 @@ because I dynamically rename the buffer according to
   (unless (eq system-type 'windows-nt)
     (pinentry-start)))
 
-(defun sudo-toggle--add-sudo (f)
-  "Add sudo to file path string"
-  (if (file-remote-p f)
-      (with-parsed-tramp-file-name (expand-file-name f) nil
+(defun sudo-toggle--add-sudo (path)
+  "Add sudo to file PATH string."
+  (if (file-remote-p path)
+      (with-parsed-tramp-file-name (expand-file-name path) nil
         (concat "/" method ":"
                 (when user (concat user "@"))
                 host "|sudo:root@" host ":" localname))
-    (concat "/sudo:root@localhost:" (expand-file-name f))))
+    (concat "/sudo:root@localhost:" (expand-file-name path))))
 
-(defun sudo-toggle--remove-sudo (f)
-  "Remove sudo from file path string"
+(defun sudo-toggle--remove-sudo (path)
+  "Remove sudo from file PATH string."
   (cond
-   ((string-match-p "/sudo:root@localhost:" f)
-    (replace-regexp-in-string (getenv "HOME") "~" (substring f 21)))
+   ((string-match-p "/sudo:root@localhost:" path)
+    (replace-regexp-in-string (getenv "HOME") "~" (substring path 21)))
 
-   ((string-match-p "|sudo:root@" f)
-    (replace-regexp-in-string "|sudo:root@[^:]*" "" f))))
+   ((string-match-p "|sudo:root@" path)
+    (replace-regexp-in-string "|sudo:root@[^:]*" "" path))))
 
 (defun sudo-toggle ()
   "Reopen the current file, directory, or shell as root.  For))))
@@ -2691,28 +2680,27 @@ shell is left intact."
            (eshell-send-input))
           (t (message "Can't sudo this buffer")))))
 
-;; Disable file accesses when visiting buffers accessed via tramp for performance reasons
 (defun tramp-disable-file-accesses ()
+  "Disable file accesses when visiting buffers accessed via tramp for performance reasons."
   (when (file-remote-p default-directory)
-    (setq-local projectile-mode-line "Projectile")
     (setq-local company-backends company-backends-remote)))
 
 (use-package tramp
   :hook
   (find-file . tramp-disable-file-accesses))
 
-(defun tramp-term--create-vterm (new-buffer-name cmd &rest switches)
-  "Create a vterm and ignore all parameters."
-  (vterm)
-  (rename-buffer new-buffer-name)
-  (insert (mapconcat 'identity (cons cmd switches) " "))
-  (insert "\n"))
+;; (defun tramp-term--create-vterm (name cmd &rest args)
+;;   "Create a `vterm' with NAME, running CMD with ARGS."
+;;   (vterm)
+;;   (rename-buffer name)
+;;   (insert (mapconcat 'identity (cons cmd args) " "))
+;;   (insert "\n"))
 
 (use-package tramp-term
-  :config
-  (advice-add :around tramp-term--create-term #'tramp-term--create-vterm)
   :commands
-  (tramp-term))
+  (tramp-term tramp-term--create-term))
+
+;; (advice-add 'tramp-term--create-term :around #'tramp-term--create-vterm)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Mount
@@ -2722,8 +2710,8 @@ shell is left intact."
 ;; profiles to mount smb shares (even through ssh tunnels).
 
 (defun mnt-cmd (cmd)
-  "Interactively Run a `mnt/umnt' utility (CMD) with the
-`config', the specified config file"
+  "Interactively Run a `mnt/umnt' utility (CMD).
+The config is specified in the config file in `~/.mnt/'."
   (let ((config (completing-read (format "Run %s using config: " cmd)
                                  (directory-files "~/.mnt" nil "^[^.]")
                                  nil t)))
@@ -2733,10 +2721,12 @@ shell is left intact."
       (message (format "%s FAILED with config file: %s" cmd config)))))
 
 (defun mnt ()
+  "Mount a share using the `mnt' utility."
   (interactive)
   (mnt-cmd "sudo_mnt"))
 
 (defun umnt ()
+  "Unmount a share using the `umnt' utility."
   (interactive)
   (mnt-cmd "umnt"))
 
@@ -2793,16 +2783,17 @@ shell is left intact."
 ;; (provide 'org-version)
 
 (defun search-org-files ()
-  "Search ~/org"
+  "Search ~/org using `counsel-rg'."
   (interactive)
   (counsel-rg nil "~/org"))
 
 (defun org-todo-todo ()
-  "Create or update Org todo entry to TODO status"
+  "Create or update Org todo entry to TODO status."
   (interactive)
   (org-todo "TODO"))
 
 (defun org-todo-to-int (todo)
+  "Get the number of the TODO based on its status."
   (first (-non-nil
           (mapcar (lambda (keywords)
                     (let ((todo-seq
@@ -2812,6 +2803,7 @@ shell is left intact."
                   org-todo-keywords))))
 
 (defun org-sort-entries--todo-status-key ()
+  "Sort Org TODO entries by their status."
   (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
          (todo (org-entry-get (point) "TODO"))
          (todo-int (if todo (org-todo-to-int todo) todo-max))
@@ -2820,6 +2812,7 @@ shell is left intact."
     (format "%03d %03d" todo-int priority-int)))
 
 (defun org-sort-entries-by-todo-status ()
+  "Sort Org TODO entries by their status."
   (interactive)
   (org-sort-entries nil ?f #'org-sort-entries--todo-status-key))
 
@@ -2865,6 +2858,7 @@ shell is left intact."
 (require 'calendar)
 
 (defun calendar-iso8601-date-string (date)
+  "Create an ISO8601 date string from DATE."
   (destructuring-bind (month day year) date
     (concat (format "%4i" year)
             "-"
@@ -2873,13 +2867,13 @@ shell is left intact."
             (format "%02i" day))))
 
 (defun calendar-date-add-days (date days)
-  "Add DAYS to DATE"
+  "Add DAYS to DATE."
   (calendar-gregorian-from-absolute
-   (+ (calendar-absolute-from-gregorian (calendar-current-date))
+   (+ (calendar-absolute-from-gregorian date)
       days)))
 
 (defun calendar-choose-date ()
-  "Interactively choose DATE and return it as an ISO 8601 string"
+  "Interactively choose DATE and return it as an ISO 8601 string."
   (let* ((today (calendar-current-date))
          (day-offsets '(0 -1 -2 -3 -4 -5 -6 -7))
          (dates (mapcar (apply-partially #'calendar-date-add-days today) day-offsets))
@@ -2887,7 +2881,7 @@ shell is left intact."
     (completing-read "Date: " date-strings nil nil (substring (car date-strings) 0 7))))
 
 (defun calendar-insert-date (date)
-  "Interactively choose a DATE in ISO 8601 format and insert it at point"
+  "Interactively choose a DATE in ISO 8601 format and insert it at point."
   (interactive (list (calendar-choose-date)))
   (insert date))
 
@@ -2908,6 +2902,9 @@ shell is left intact."
 
 ;; (use-package nov
 ;;   :mode ("\\.epub\\'" . nov-mode))
+
+(defvar mode-line-format-backup nil
+  "Backup of `mode-line-format'.")
 
 (defun hide-mode-line ()
   "Hide the mode line."
@@ -2952,7 +2949,8 @@ shell is left intact."
 ;; (use-package logview)
 
 (defun tail-file (file)
-  "Run `tail -f' on FILE. Tries to find a file at point."
+  "Run `tail -f' on FILE.
+Tries to find a file at point."
   (interactive (list (completing-read "Tail file: "
                                       'read-file-name-internal
                                       'file-exists-p t nil 'file-name-history
@@ -2966,127 +2964,6 @@ shell is left intact."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package hydra)
-
-;; (defhydra hydra-straight-helper (:hint nil)
-;;   "
-;; _c_heck all       |_f_etch all     |_m_erge all      |_n_ormalize all   |p_u_sh all
-;; _C_heck package   |_F_etch package |_M_erge package  |_N_ormlize package|p_U_sh package
-;; ----------------^^+--------------^^+---------------^^+----------------^^+------------||_q_uit||
-;; _r_ebuild all     |_p_ull all      |_v_ersions freeze|_w_atcher start   |_g_et recipe
-;; _R_ebuild package |_P_ull package  |_V_ersions thaw  |_W_atcher quit    |pru_n_e build"
-;;   ("c" straight-check-all)
-;;   ("C" straight-check-package)
-;;   ("r" straight-rebuild-all)
-;;   ("R" straight-rebuild-package)
-;;   ("f" straight-fetch-all)
-;;   ("F" straight-fetch-package)
-;;   ("p" straight-pull-all)
-;;   ("P" straight-pull-package)
-;;   ("m" straight-merge-all)
-;;   ("M" straight-merge-package)
-;;   ("n" straight-normalize-all)
-;;   ("N" straight-normalize-package)
-;;   ("u" straight-push-all)
-;;   ("U" straight-push-package)
-;;   ("v" straight-freeze-versions)
-;;   ("V" straight-thaw-versions)
-;;   ("w" straight-watcher-start)
-;;   ("W" straight-watcher-quit)
-;;   ("g" straight-get-recipe)
-;;   ("n" straight-prune-build)
-;;   ("q" nil))
-
-;; (defun hydra-move-splitter-left (arg)
-;;   "Move window splitter left."
-;;   (interactive "p")
-;;   (if (let ((windmove-wrap-around))
-;;         (windmove-find-other-window 'right))
-;;       (shrink-window-horizontally arg)
-;;     (enlarge-window-horizontally arg)))
-
-;; (defun hydra-move-splitter-right (arg)
-;;   "Move window splitter right."
-;;   (interactive "p")
-;;   (if (let ((windmove-wrap-around))
-;;         (windmove-find-other-window 'right))
-;;       (enlarge-window-horizontally arg)
-;;     (shrink-window-horizontally arg)))
-
-;; (defun hydra-move-splitter-up (arg)
-;;   "Move window splitter up."
-;;   (interactive "p")
-;;   (if (let ((windmove-wrap-around))
-;;         (windmove-find-other-window 'up))
-;;       (enlarge-window arg)
-;;     (shrink-window arg)))
-
-;; (defun hydra-move-splitter-down (arg)
-;;   "Move window splitter down."
-;;   (interactive "p")
-;;   (if (let ((windmove-wrap-around))
-;;         (windmove-find-other-window 'up))
-;;       (shrink-window arg)
-;;     (enlarge-window arg)))
-
-;; (defhydra hydra-window ()
-;;   "
-;; Movement^^        ^Split^         ^Switch^    ^Resize^
-;; ----------------------------------------------------------------
-;; _h_ ←         _v_ertical      _b_uffer    _q_ X←
-;; _j_ ↓         _x_ horizontal  _f_ind files  _w_ X↓
-;; _k_ ↑         _z_ undo        _a_ce 1   _e_ X↑
-;; _l_ →         _Z_ reset       _s_wap    _r_ X→
-;; _F_ollow    _D_lt Other     _S_ave    max_i_mize
-;; _SPC_ cancel  _o_nly this     _d_elete
-;; "
-;;   ("h" windmove-left)
-;;   ("j" windmove-down)
-;;   ("k" windmove-up)
-;;   ("l" windmove-right)
-;;   ("q" hydra-move-splitter-left)
-;;   ("w" hydra-move-splitter-down)
-;;   ("e" hydra-move-splitter-up)
-;;   ("r" hydra-move-splitter-right)
-;;   ("b" helm-mini)
-;;   ("f" helm-find-files)
-;;   ("F" follow-mode)
-;;   ("a" (lambda ()
-;;          (interactive)
-;;          (ace-window 1)
-;;          (add-hook 'ace-window-end-once-hook
-;;                    'hydra-window/body)))
-
-;;   ("v" (lambda ()
-;;          (interactive)
-;;          (split-window-right)
-;;          (windmove-right)))
-
-;;   ("x" (lambda ()
-;;          (interactive)
-;;          (split-window-below)
-;;          (windmove-down)))
-
-;;   ("s" (lambda ()
-;;          (interactive)
-;;          (ace-window 4)
-;;          (add-hook 'ace-window-end-once-hook
-;;                    'hydra-window/body)))
-;;   ("S" save-buffer)
-;;   ("d" delete-window)
-;;   ("D" (lambda ()
-;;          (interactive)
-;;          (ace-window 16)
-;;          (add-hook 'ace-window-end-once-hook
-;;                    'hydra-window/body)))
-
-;;   ("o" delete-other-windows)
-;;   ("i" ace-maximize-window)
-;;   ("z" (progn
-;;          (winner-undo)
-;;          (setq this-command 'winner-undo)))
-
-;;   ("Z" winner-redo)
-;;   ("SPC" nil))
 
 (defhydra hydra-multiple-cursors (:hint nil)
   "
@@ -3126,18 +3003,18 @@ _d_ subtree
 
 "
   ;; Hide
-  ("q" hide-sublevels)    ; Hide everything but the top-level headings
-  ("t" hide-body)         ; Hide everything but headings (all body lines)
-  ("o" hide-other)        ; Hide other branches
-  ("c" hide-entry)        ; Hide this entry's body
-  ("l" hide-leaves)       ; Hide body lines in this entry and sub-entries
-  ("d" hide-subtree)      ; Hide everything in this entry and sub-entries
+  ("q" outline-hide-sublevels)    ; Hide everything but the top-level headings
+  ("t" outline-hide-body)         ; Hide everything but headings (all body lines)
+  ("o" outline-hide-other)        ; Hide other branches
+  ("c" outline-hide-entry)        ; Hide this entry's body
+  ("l" outline-hide-leaves)       ; Hide body lines in this entry and sub-entries
+  ("d" outline-hide-subtree)      ; Hide everything in this entry and sub-entries
   ;; Show
-  ("a" show-all)          ; Show (expand) everything
-  ("e" show-entry)        ; Show this heading's body
-  ("i" show-children)     ; Show this heading's immediate child sub-headings
-  ("k" show-branches)     ; Show all sub-headings under this heading
-  ("s" show-subtree)      ; Show (expand) everything in this heading & below
+  ("a" outline-show-all)          ; Show (expand) everything
+  ("e" outline-show-entry)        ; Show this heading's body
+  ("i" outline-show-children)     ; Show this heading's immediate child sub-headings
+  ("k" outline-show-branches)     ; Show all sub-headings under this heading
+  ("s" outline-show-subtree)      ; Show (expand) everything in this heading & below
   ;; Move
   ("u" outline-up-heading)                ; Up
   ("n" outline-next-visible-heading)      ; Next
@@ -3169,7 +3046,7 @@ _q_ quit
   ("q" nil))
 
 (defun occur-dwim ()
-  "Call `occur' with a sane default, chosen as the thing under point or selected region"
+  "Call `occur' with a sane default, chosen as the thing under point or selected region."
   (interactive)
   (push (if (region-active-p)
             (buffer-substring-no-properties
@@ -3181,189 +3058,183 @@ _q_ quit
         regexp-history)
   (call-interactively 'occur))
 
-;; Keeps focus on *Occur* window, even when target is visited via RETURN key.
-;; See hydra-occur-dwim for more options.
-(defadvice occur-mode-goto-occurrence (after occur-mode-goto-occurrence-advice activate)
-  (other-window 1)
-  (hydra-occur-dwim/body))
+;; (advice-add 'occur-mode-goto-occurrence :after #'other-window-hydra-occur)
 
 ;; Focus on *Occur* window right away.
 (add-hook 'occur-hook (lambda () (other-window 1)))
 
 (defun reattach-occur ()
+  "Switch to Occur buffer and launch the hydra."
   (if (get-buffer "*Occur*")
       (switch-to-buffer-other-window "*Occur*")
     (hydra-occur-dwim/body)))
 
 ;; Used in conjunction with occur-mode-goto-occurrence-advice this helps keep
 ;; focus on the *Occur* window and hides upon request in case needed later.
-;; (defhydra hydra-occur-dwim ()
-;;   "Occur mode"
-;;   ("o" occur-dwim "Start occur-dwim" :color red)
-;;   ("j" occur-next "Next" :color red)
-;;   ("k" occur-prev "Prev":color red)
-;;   ("h" delete-window "Hide" :color blue)
-;;   ("r" (reattach-occur) "Re-attach" :color red))
+(defhydra hydra-occur-dwim ()
+  "Occur mode"
+  ("o" occur-dwim "Start occur-dwim" :color red)
+  ("j" occur-next "Next" :color red)
+  ("k" occur-prev "Prev":color red)
+  ("h" delete-window "Hide" :color blue)
+  ("r" (reattach-occur) "Re-attach" :color red))
 
-;; (defhydra hydra-dired (:hint nil :color pink)
-;;   "
-;; _+_ mkdir          _v_ view         _m_ mark             _(_ details        _i_ insert-subdir  _W_  wdired
-;; _C_ copy           _O_ view other   _U_ unmark all       _)_ omit-mode      _$_ hide-subdir    C-x C-q : edit
-;; _D_ delete         _o_ open other   _u_ unmark           _l_ redisplay      _w_ kill-subdir    C-c C-c : commit
-;; _R_ rename         _M_ chmod        _t_ toggle           _g_ revert buf     _e_ ediff          C-c ESC : abort
-;; _Y_ rel symlink    _G_ chgrp        _E_ extension mark   _s_ sort           _=_ pdiff
-;; _S_ symlink        ^ ^              _F_ find marked      _._ toggle hydra   \\ flyspell
-;; _r_ rsync          ^ ^              ^ ^                  ^ ^                _?_ summary
-;; _z_ compress-file  _A_ find regexp
-;; _Z_ compress       _Q_ repl regexp
+(defhydra hydra-dired (:hint nil :color pink)
+  "
+_+_ mkdir          _v_ view         _m_ mark             _(_ details        _i_ insert-subdir  _W_  wdired
+_C_ copy           _O_ view other   _U_ unmark all       _)_ omit-mode      _$_ hide-subdir    C-x C-q : edit
+_D_ delete         _o_ open other   _u_ unmark           _l_ redisplay      _w_ kill-subdir    C-c C-c : commit
+_R_ rename         _M_ chmod        _t_ toggle           _g_ revert buf     _e_ ediff          C-c ESC : abort
+_Y_ rel symlink    _G_ chgrp        _E_ extension mark   _s_ sort           _=_ pdiff
+_S_ symlink        ^ ^              _F_ find marked      _._ toggle hydra   \\ flyspell
+_r_ rsync          ^ ^              ^ ^                  ^ ^                _?_ summary
+_z_ compress-file  _A_ find regexp
+_Z_ compress       _Q_ repl regexp
 
-;; _q_ quit
-;; "
-;;   ("\\" dired-do-ispell)
-;;   ("(" dired-hide-details-mode)
-;;   (")" dired-omit-mode)
-;;   ("+" dired-create-directory)
-;;   ("=" diredp-ediff)         ;; smart diff
-;;   ("?" dired-summary)
-;;   ("$" diredp-hide-subdir-nomove)
-;;   ("A" dired-do-find-regexp)
-;;   ("C" dired-do-copy)        ;; Copy all marked files
-;;   ("D" dired-do-delete)
-;;   ("E" dired-mark-extension)
-;;   ("e" dired-ediff-files)
-;;   ("F" dired-do-find-marked-files)
-;;   ("G" dired-do-chgrp)
-;;   ("g" revert-buffer)        ;; read all directories again (refresh)
-;;   ("i" dired-maybe-insert-subdir)
-;;   ("l" dired-do-redisplay)   ;; relist the marked or single directory
-;;   ("M" dired-do-chmod)
-;;   ("m" dired-mark)
-;;   ("O" dired-display-file)
-;;   ("o" dired-find-file-other-window)
-;;   ("Q" dired-do-find-regexp-and-replace)
-;;   ("R" dired-do-rename)
-;;   ("r" dired-do-rsynch)
-;;   ("S" dired-do-symlink)
-;;   ("s" dired-sort-toggle-or-edit)
-;;   ("t" dired-toggle-marks)
-;;   ("U" dired-unmark-all-marks)
-;;   ("u" dired-unmark)
-;;   ("v" dired-view-file)      ;; q to exit, s to search, = gets line #
-;;   ("w" dired-kill-subdir)
-;;   ("W" wdired-change-to-wdired-mode)
-;;   ("Y" dired-do-relsymlink)
-;;   ("z" diredp-compress-this-file)
-;;   ("Z" dired-do-compress)
-;;   ("q" nil)
-;;   ("." nil :color blue))
+_q_ quit
+"
+  ("(" dired-hide-details-mode)
+  (")" dired-omit-mode)
+  ("+" dired-create-directory)
+  ("=" diredp-ediff)         ;; smart diff
+  ("?" dired-summary)
+  ("$" diredp-hide-subdir-nomove)
+  ("A" dired-do-find-regexp)
+  ("C" dired-do-copy)        ;; Copy all marked files
+  ("D" dired-do-delete)
+  ("E" dired-mark-extension)
+  ("e" dired-ediff-files)
+  ("F" dired-do-find-marked-files)
+  ("G" dired-do-chgrp)
+  ("g" revert-buffer)        ;; read all directories again (refresh)
+  ("i" dired-maybe-insert-subdir)
+  ("l" dired-do-redisplay)   ;; relist the marked or single directory
+  ("M" dired-do-chmod)
+  ("m" dired-mark)
+  ("O" dired-display-file)
+  ("o" dired-find-file-other-window)
+  ("Q" dired-do-find-regexp-and-replace)
+  ("R" dired-do-rename)
+  ("r" dired-rsync)
+  ("S" dired-do-symlink)
+  ("s" dired-sort-toggle-or-edit)
+  ("t" dired-toggle-marks)
+  ("U" dired-unmark-all-marks)
+  ("u" dired-unmark)
+  ("v" dired-view-file)      ;; q to exit, s to search, = gets line #
+  ("w" dired-kill-subdir)
+  ("W" wdired-change-to-wdired-mode)
+  ("Y" dired-do-relsymlink)
+  ("z" diredp-compress-this-file)
+  ("Z" dired-do-compress)
+  ("q" nil)
+  ("." nil :color blue))
 
-;; (defhydra hydra-ibuffer-main (:color pink :hint nil)
-;;   "
-;; ^Mark^         ^Actions^         ^View^          ^Select^              ^Navigation^
-;; _m_ mark      _D_ delete       _g_ refresh    _q_ quit             _k_   ↑    _h_
-;; _u_ unmark    _s_ save marked  _S_ sort       _TAB_ toggle         _RET_ visit
-;; _*_ specific  _a_ all actions  _/_ filter     _o_ other window     _j_   ↓    _l_
-;; _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
-;; "
-;;   ("m" ibuffer-mark-forward)
-;;   ("u" ibuffer-unmark-forward)
-;;   ("*" hydra-ibuffer-mark/body :color blue)
-;;   ("t" ibuffer-toggle-marks)
+(defhydra hydra-ibuffer-main (:color pink :hint nil)
+  "
+^Mark^         ^Actions^         ^View^          ^Select^              ^Navigation^
+_m_ mark      _D_ delete       _g_ refresh    _q_ quit             _k_   ↑    _h_
+_u_ unmark    _s_ save marked  _S_ sort       _TAB_ toggle         _RET_ visit
+_*_ specific  _a_ all actions  _/_ filter     _o_ other window     _j_   ↓    _l_
+_t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
+"
+  ("m" ibuffer-mark-forward)
+  ("u" ibuffer-unmark-forward)
+  ("*" hydra-ibuffer-mark/body :color blue)
+  ("t" ibuffer-toggle-marks)
 
-;;   ("D" ibuffer-do-delete)
-;;   ("s" ibuffer-do-save)
-;;   ("a" hydra-ibuffer-action/body :color blue)
+  ("D" ibuffer-do-delete)
+  ("s" ibuffer-do-save)
+  ("a" hydra-ibuffer-action/body :color blue)
 
-;;   ("g" ibuffer-update)
-;;   ("S" hydra-ibuffer-sort/body :color blue)
-;;   ("/" hydra-ibuffer-filter/body :color blue)
-;;   ("H" describe-mode :color blue)
+  ("g" ibuffer-update)
+  ("S" hydra-ibuffer-sort/body :color blue)
+  ("/" hydra-ibuffer-filter/body :color blue)
+  ("H" describe-mode :color blue)
 
-;;   ("h" ibuffer-backward-filter-group)
-;;   ("k" ibuffer-backward-line)
-;;   ("l" ibuffer-forward-filter-group)
-;;   ("j" ibuffer-forward-line)
-;;   ("RET" ibuffer-visit-buffer :color blue)
+  ("h" ibuffer-backward-filter-group)
+  ("k" ibuffer-backward-line)
+  ("l" ibuffer-forward-filter-group)
+  ("j" ibuffer-forward-line)
+  ("RET" ibuffer-visit-buffer :color blue)
 
-;;   ("TAB" ibuffer-toggle-filter-group)
+  ("TAB" ibuffer-toggle-filter-group)
 
-;;   ("o" ibuffer-visit-buffer-other-window :color blue)
-;;   ("q" quit-window :color blue)
-;;   ("." nil :color blue))
+  ("o" ibuffer-visit-buffer-other-window :color blue)
+  ("q" quit-window :color blue)
+  ("." nil :color blue))
 
-;; (defhydra hydra-ibuffer-mark (:color teal :columns 5
-;;                                      :after-exit (hydra-ibuffer-main/body))
-;;   "Mark"
-;;   ("*" ibuffer-unmark-all "unmark all")
-;;   ("M" ibuffer-mark-by-mode "mode")
-;;   ("m" ibuffer-mark-modified-buffers "modified")
-;;   ("u" ibuffer-mark-unsaved-buffers "unsaved")
-;;   ("s" ibuffer-mark-special-buffers "special")
-;;   ("r" ibuffer-mark-read-only-buffers "read-only")
-;;   ("/" ibuffer-mark-dired-buffers "dired")
-;;   ("e" ibuffer-mark-dissociated-buffers "dissociated")
-;;   ("h" ibuffer-mark-help-buffers "help")
-;;   ("z" ibuffer-mark-compressed-file-buffers "compressed")
-;;   ("b" hydra-ibuffer-main/body "back" :color blue))
+(defhydra hydra-ibuffer-mark (:color teal :columns 5
+                                     :after-exit (hydra-ibuffer-main/body))
+  "Mark"
+  ("*" ibuffer-unmark-all "unmark all")
+  ("M" ibuffer-mark-by-mode "mode")
+  ("m" ibuffer-mark-modified-buffers "modified")
+  ("u" ibuffer-mark-unsaved-buffers "unsaved")
+  ("s" ibuffer-mark-special-buffers "special")
+  ("r" ibuffer-mark-read-only-buffers "read-only")
+  ("/" ibuffer-mark-dired-buffers "dired")
+  ("e" ibuffer-mark-dissociated-buffers "dissociated")
+  ("h" ibuffer-mark-help-buffers "help")
+  ("z" ibuffer-mark-compressed-file-buffers "compressed")
+  ("b" hydra-ibuffer-main/body "back" :color blue))
 
-;; (defhydra hydra-ibuffer-action (:color teal :columns 4
-;;                                        :after-exit
-;;                                        (if (eq major-mode 'ibuffer-mode)
-;;                                            (hydra-ibuffer-main/body)))
-;;   "Action"
-;;   ("A" ibuffer-do-view "view")
-;;   ("E" ibuffer-do-eval "eval")
-;;   ("F" ibuffer-do-shell-command-file "shell-command-file")
-;;   ("I" ibuffer-do-query-replace-regexp "query-replace-regexp")
-;;   ("H" ibuffer-do-view-other-frame "view-other-frame")
-;;   ("N" ibuffer-do-shell-command-pipe-replace "shell-cmd-pipe-replace")
-;;   ("M" ibuffer-do-toggle-modified "toggle-modified")
-;;   ("O" ibuffer-do-occur "occur")
-;;   ("P" ibuffer-do-print "print")
-;;   ("Q" ibuffer-do-query-replace "query-replace")
-;;   ("R" ibuffer-do-rename-uniquely "rename-uniquely")
-;;   ("T" ibuffer-do-toggle-read-only "toggle-read-only")
-;;   ("U" ibuffer-do-replace-regexp "replace-regexp")
-;;   ("V" ibuffer-do-revert "revert")
-;;   ("W" ibuffer-do-view-and-eval "view-and-eval")
-;;   ("X" ibuffer-do-shell-command-pipe "shell-command-pipe")
-;;   ("b" nil "back"))
+(defhydra hydra-ibuffer-action (:color teal :columns 4
+                                       :after-exit
+                                       (if (eq major-mode 'ibuffer-mode)
+                                           (hydra-ibuffer-main/body)))
+  "Action"
+  ("A" ibuffer-do-view "view")
+  ("E" ibuffer-do-eval "eval")
+  ("F" ibuffer-do-shell-command-file "shell-command-file")
+  ("I" ibuffer-do-query-replace-regexp "query-replace-regexp")
+  ("H" ibuffer-do-view-other-frame "view-other-frame")
+  ("N" ibuffer-do-shell-command-pipe-replace "shell-cmd-pipe-replace")
+  ("M" ibuffer-do-toggle-modified "toggle-modified")
+  ("O" ibuffer-do-occur "occur")
+  ("P" ibuffer-do-print "print")
+  ("Q" ibuffer-do-query-replace "query-replace")
+  ("R" ibuffer-do-rename-uniquely "rename-uniquely")
+  ("T" ibuffer-do-toggle-read-only "toggle-read-only")
+  ("U" ibuffer-do-replace-regexp "replace-regexp")
+  ("V" ibuffer-do-revert "revert")
+  ("W" ibuffer-do-view-and-eval "view-and-eval")
+  ("X" ibuffer-do-shell-command-pipe "shell-command-pipe")
+  ("b" nil "back"))
 
-;; (defhydra hydra-ibuffer-sort (:color amaranth :columns 3)
-;;   "Sort"
-;;   ("i" ibuffer-invert-sorting "invert")
-;;   ("a" ibuffer-do-sort-by-alphabetic "alphabetic")
-;;   ("v" ibuffer-do-sort-by-recency "recently used")
-;;   ("s" ibuffer-do-sort-by-size "size")
-;;   ("f" ibuffer-do-sort-by-filename/process "filename")
-;;   ("m" ibuffer-do-sort-by-major-mode "mode")
-;;   ("b" hydra-ibuffer-main/body "back" :color blue))
+(defhydra hydra-ibuffer-sort (:color amaranth :columns 3)
+  "Sort"
+  ("i" ibuffer-invert-sorting "invert")
+  ("a" ibuffer-do-sort-by-alphabetic "alphabetic")
+  ("v" ibuffer-do-sort-by-recency "recently used")
+  ("s" ibuffer-do-sort-by-size "size")
+  ("f" ibuffer-do-sort-by-filename/process "filename")
+  ("m" ibuffer-do-sort-by-major-mode "mode")
+  ("b" hydra-ibuffer-main/body "back" :color blue))
 
-;; (defhydra hydra-ibuffer-filter (:color amaranth :columns 4)
-;;   "Filter"
-;;   ("m" ibuffer-filter-by-used-mode "mode")
-;;   ("M" ibuffer-filter-by-derived-mode "derived mode")
-;;   ("n" ibuffer-filter-by-name "name")
-;;   ("c" ibuffer-filter-by-content "content")
-;;   ("e" ibuffer-filter-by-predicate "predicate")
-;;   ("f" ibuffer-filter-by-filename "filename")
-;;   (">" ibuffer-filter-by-size-gt "size")
-;;   ("<" ibuffer-filter-by-size-lt "size")
-;;   ("/" ibuffer-filter-disable "disable")
-;;   ("b" hydra-ibuffer-main/body "back" :color blue))
+(defhydra hydra-ibuffer-filter (:color amaranth :columns 4)
+  "Filter"
+  ("m" ibuffer-filter-by-used-mode "mode")
+  ("M" ibuffer-filter-by-derived-mode "derived mode")
+  ("n" ibuffer-filter-by-name "name")
+  ("c" ibuffer-filter-by-content "content")
+  ("e" ibuffer-filter-by-predicate "predicate")
+  ("f" ibuffer-filter-by-filename "filename")
+  (">" ibuffer-filter-by-size-gt "size")
+  ("<" ibuffer-filter-by-size-lt "size")
+  ("/" ibuffer-filter-disable "disable")
+  ("b" hydra-ibuffer-main/body "back" :color blue))
 
 (require 'ibuffer)
 
-;; (bind-keys ("C-c C-h" . hydra-straight-helper/body)
-;;            ("C-c C-w" . hydra-window/body)
-;;            ("C-c C-m" . hydra-multiple-cursors/body)
-;;            ("C-c #" . hydra-outline/body)
-;;            ("C-c @" . hydra-hs/body)
-;;            ("C-c C-o" . hydra-occur-dwim/body)
-;;            :map dired-mode-map
-;;            ("." . hydra-dired/body)
-;;            :map ibuffer-mode-map
-;;            ("." . hydra-ibuffer-main/body))
+(bind-keys ("C-c C-m" . hydra-multiple-cursors/body)
+           ("C-c #" . hydra-outline/body)
+           ("C-c @" . hydra-hs/body)
+           ("C-c C-o" . hydra-occur-dwim/body)
+           :map dired-mode-map
+           ("." . hydra-dired/body)
+           :map ibuffer-mode-map
+           ("." . hydra-ibuffer-main/body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Search, Completion, Symbols, Project Management
@@ -3446,10 +3317,10 @@ _q_ quit
 
 (use-package company-shell
   :config
-  (let ((shell-backends '(company-shell company-shell-env)))
-    (if (executable-find "fish")
-        (add-to-list 'shell-backends 'company-fish-shell))
-    (add-to-list 'company-backends shell-backends)))
+  (add-to-list
+   'company-backends
+   `(company-shell company-shell-env
+                   ,(when (executable-find "fish") 'company-fish-shell))))
 
 (use-package pcre2el
   :hook
@@ -3458,6 +3329,7 @@ _q_ quit
 (use-package ivy
   :custom
   (enable-recursive-minibuffers t)
+  (ivy-display-style 'fancy)
   :config
   (ivy-mode 1)
   :bind
@@ -3472,7 +3344,7 @@ _q_ quit
   :defer 1)
 
 (defun replace-regexp-entire-buffer (pattern replacement)
-  "Perform regular-expression replacement immedately throughout the buffer."
+  "Immediately replace PATTERN with REPLACEMENT throughout the buffer."
   (interactive
    (let ((args (query-replace-read-args "Replace in entire buffer" t)))
      (setcdr (cdr args) nil)    ; remove third value returned from query---args
@@ -3483,6 +3355,7 @@ _q_ quit
       (replace-match replacement))))
 
 (defun ivy--replace-regexp-entire-buffer (replacement)
+  "Replace the currently input via regexp with REPLACEMENT."
   (interactive (list (read-from-minibuffer (concat "Replace all occurrences of `" ivy--old-re "\' in entire buffer: "))))
   (with-current-buffer (window-buffer (minibuffer-selected-window))
     (replace-regexp-entire-buffer ivy--old-text replacement))
@@ -3497,11 +3370,13 @@ _q_ quit
    ("s-5" . ivy--replace-regexp-entire-buffer)))
 
 (defun reloading (cmd)
+  "Wrap CMD, reloading ivy."
   (lambda (x)
     (funcall cmd x)
     (ivy--reset-state ivy-last)))
 
-(defun given-file (cmd prompt) ; needs lexical-binding
+(defun given-file (cmd prompt)
+  "Wrap in a function and call CMD, with interactive PROMPT."
   (lambda (source)
     (let ((target
            (let ((enable-recursive-minibuffers t))
@@ -3509,8 +3384,9 @@ _q_ quit
               (format "%s %s to:" prompt source)))))
       (funcall cmd source target 1))))
 
-(defun confirm-delete-file (x)
-  (dired-delete-file x 'confirm-each-subdirectory))
+(defun confirm-delete-file (file)
+  "Delete FILE with confirmation."
+  (dired-delete-file file 'confirm-each-subdirectory))
 
 (use-package counsel
   :custom
@@ -3528,24 +3404,34 @@ _q_ quit
      ("b" counsel-find-file-cd-bookmark-action "cd bookmark")))
   (setenv "FZF_DEFAULT_COMMAND" "rg --files")
   :bind
-  (("C-h C-k" . counsel-descbinds)
-   ("s-F" . counsel-rg)
-   ("s-f" . counsel-grep-or-swiper)
-   ("M-x" . counsel-M-x)
-   ("C-x C-f" . counsel-find-file)
-   ("C-h <tab>" . counsel-info-lookup-symbol)
-   ("C-h C-a" . counsel-apropos)
-   ("C-c u" . counsel-unicode-char)
-   ("C-c g" . counsel-git)
-   ("C-c j" . counsel-git-grep)
-   ("C-c o" . counsel-outline)
-   ("M-s-v" . counsel-yank-pop)
-   ("M-Y" . counsel-yank-pop)
-   ([remap find-file] . counsel-find-file)
-   :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line-and-call)
-   :map minibuffer-local-map
-   ("C-r" . counsel-minibuffer-history)))
+  ("C-h C-k" . counsel-descbinds)
+  ("s-F" . counsel-rg)
+  ("s-f" . counsel-grep-or-swiper)
+  ("M-x" . counsel-M-x)
+  ("C-x C-f" . counsel-find-file)
+  ("C-h <tab>" . counsel-info-lookup-symbol)
+  ("C-h C-a" . counsel-apropos)
+  ("C-c u" . counsel-unicode-char)
+  ("C-c g" . counsel-git)
+  ("C-c j" . counsel-git-grep)
+  ("C-c o" . counsel-outline)
+  ("M-s-v" . counsel-yank-pop)
+  ("M-Y" . counsel-yank-pop)
+  ([remap find-file] . counsel-find-file)
+  (:map ivy-minibuffer-map
+        ("M-y" . ivy-next-line-and-call))
+  (:map minibuffer-local-map
+        ("C-r" . counsel-minibuffer-history)))
+
+(defun counsel-rg-default-directory (f &rest args)
+  "Call F (`counsel-rg') with ARGS from `default-directory'."
+  (let ((initial-input (car args))
+        (initial-directory (or (cadr args) default-directory))
+        (extra-rg-args (caddr args))
+        (rg-prompt (or (cadddr args) (format "(%s) rg: " default-directory))))
+    (funcall f initial-input initial-directory extra-rg-args rg-prompt)))
+
+(advice-add 'counsel-rg :around #'counsel-rg-default-directory)
 
 (use-package ivy-dired-history
   :config
@@ -3567,10 +3453,11 @@ _q_ quit
   (company-prescient-mode))
 
 (defun projectile-load-settings (&optional file)
-  "https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-settings.el
-  Load project elisp settings file if they are found in active project root
-  directory, or if in the case of undefined root directory, file is
-  otherwise path resolvable."
+  "Load project elisp settings from FILE.
+Look in active project root directory, or if in the case of
+  undefined root directory, file is otherwise path resolvable.
+
+https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-settings.el"
   (interactive)
   (let ((p (expand-file-name (or file "settings.el") (projectile-project-root))))
     (when (file-exists-p p)
@@ -3606,6 +3493,9 @@ _q_ quit
         counsel-projectile-remove-current-project t)
   :config
   (counsel-projectile-mode)
+  ;; When switching projects, go straight to dired in the project root.
+  (setq counsel-projectile-switch-project-action
+        (cons 4 (cdr counsel-projectile-switch-project-action)))
   :bind
   ("M-s-p" . counsel-projectile-switch-to-buffer)
   ("s-p" . counsel-projectile)
@@ -3615,7 +3505,7 @@ _q_ quit
 
 (use-package imenu-anywhere
   :bind
-  (("s-r" . ivy-imenu-anywhere)))
+  ("s-r" . ivy-imenu-anywhere))
 
 (use-package dumb-jump
   :custom
@@ -3626,10 +3516,10 @@ _q_ quit
   ;; dumb-jump shadows some Eshell key bindings, and is not useful there anyway
   (eshell-mode . (lambda () (dumb-jump-mode -1)))
   :bind
-  (("s-j" . dumb-jump-go-prompt)
-   ("s-." . dumb-jump-go)
-   ("s-<mouse-1>". dumb-jump-go)
-   ("s-J" . dumb-jump-quick-look)))
+  ("s-j" . dumb-jump-go-prompt)
+  ("s-." . dumb-jump-go)
+  ("s-<mouse-1>". dumb-jump-go)
+  ("s-J" . dumb-jump-quick-look))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Version Control
@@ -3639,7 +3529,7 @@ _q_ quit
 (add-to-list 'auto-mode-alist '("\\.git\\(?:config\\|ignore\\).*" . conf-mode))
 
 (defun dired-git-add ()
-  "Run `git add' on the selected files in a dired buffer"
+  "Run `git add' on the selected files in a dired buffer."
   (interactive)
   (let ((files (dired-get-marked-files)))
     (message "> git add %s" files)
@@ -3661,13 +3551,15 @@ _q_ quit
   (magit-call-git)
   :bind
   (("C-x g" . magit-status)
-   ("C-x C-g" . magit-dispatch-popup)))
+   ("C-x C-g" . magit-dispatch)))
 
 (use-package forge
   :after magit)
 
-;; https://github.com/magit/magit/issues/460#issuecomment-36139308
+;; 
 (defun git-worktree-link (gitdir worktree)
+  "Link git WORKTREE at GITDIR.
+https://github.com/magit/magit/issues/460#issuecomment-36139308"
   (interactive (list (read-directory-name "Gitdir: ")
                      (read-directory-name "Worktree: ")))
   (with-temp-file (expand-file-name ".git" worktree)
@@ -3678,9 +3570,9 @@ _q_ quit
   (if (boundp 'projectile-git-command)
       (setq projectile-git-command "git ls-files -zc --exclude-standard")))
 
-(defun git-worktree-unlink (gitdir worktree)
-  (interactive (list (read-directory-name "Gitdir: ")
-                     (read-directory-name "Worktree: ")))
+(defun git-worktree-unlink (worktree)
+  "Unlink git WORKTREE at GITDIR."
+  (interactive (list (read-directory-name "Worktree: ")))
   ;; Configure projectile back to default
   (if (boundp 'projectile-git-command)
       (setq projectile-git-command "git ls-files -zco --exclude-standard"))
@@ -3695,6 +3587,7 @@ _q_ quit
 (setq git-home-repo-dir "~/.config/repos")
 
 (defun git-home-link (repo)
+  "Interactively link a git REPO's worktree to $HOME."
   (interactive (list (completing-read "Link git home repository: "
                                       (directory-files "~/.config/repos" nil "^[^.]")
                                       nil t)))
@@ -3707,13 +3600,10 @@ _q_ quit
   (message "Linked repo at %s" repo))
 
 (defun git-home-unlink ()
+  "Unlink the current git repo's worktree from $HOME."
   (interactive)
   (let ((f (expand-file-name ".git" (getenv "HOME"))))
-    (git-worktree-unlink (with-temp-buffer
-                           (insert-file-contents f)
-                           (re-search-forward "gitdir: \\(.+\\)")
-                           (expand-file-name (match-string 1)))
-                         (getenv "HOME"))
+    (git-worktree-unlink (getenv "HOME"))
     (message "Unlinked repo at %s" f)))
 
 (bind-keys
@@ -3721,15 +3611,13 @@ _q_ quit
  ("C-c M-u" . git-home-unlink))
 
 (defun projectile-git-ls-files (&optional dir)
-  "List all the tracked files in the current git repo, optionally
-specified by DIR."
+  "List of the tracked files in the git repo, specified by DIR."
   (cd (or dir (projectile-project-root)))
   (-filter #'nil-blank-string
            (split-string (shell-command-to-string "git ls-files") "\n")))
 
 (defun projectile-git-ls-files-dired (&optional dir)
-  "Create a dired new buffer listing all the tracked files in the current
-git repo, optionally specified by DIR."
+  "Dired list of the tracked files in the git repo, specified by DIR."
   (interactive)
   (let ((dir (or dir (projectile-project-root))))
     (dired (cons dir (projectile-git-ls-files dir)))
@@ -3806,12 +3694,12 @@ git repo, optionally specified by DIR."
      (buffer-string))))
 
 (defun df ()
-  "Display the local host's disk usage in human readable form"
+  "Display the local host's disk usage in human readable form."
   (interactive)
   (print (shell-command-to-string "df -h")))
 
 (defun dis (hostname)
-  "Resolve an IP address."
+  "Resolve a HOSTNAME to its IP address."
   (interactive "MHostname: ")
   (message (shell-command-to-string
             (concat "drill "
@@ -3837,16 +3725,16 @@ git repo, optionally specified by DIR."
   ("C-c S" . crux-find-shell-init-file)
   ("C-<backspace>" . crux-kill-line-backwards))
 
-(defun eval-last-sexp-other-window (eval-last-sexp-arg-internal)
-  "Run `eval-last-sexp' in the other window."
+(defun eval-last-sexp-other-window (arg)
+  "Run `eval-last-sexp' with ARG in the other window."
   (interactive "P")
   (save-window-excursion
     (other-window 1)
-    (eval-last-sexp eval-last-sexp-arg-internal)))
+    (eval-last-sexp arg)))
 
 (defun expression-to-register (register)
-  "Interactively store an Emacs Lisp expression in a REGISTER. If
-  region is active, store that. Otherwise, store the sexp at
+  "Interactively store an Emacs Lisp expression in a REGISTER.
+If region is active, store that. Otherwise, store the sexp at
   point."
   (interactive (list (register-read-with-preview "Copy expression to register: ")))
   (set-register register
@@ -3858,9 +3746,8 @@ git repo, optionally specified by DIR."
   (when (called-interactively-p 'interactive) (indicate-copied-region)))
 
 (defun eval-register (register)
-  "Evaluate contents of register REGISTER (which hopefully
-contains a string) as an Emacs Lisp expression. REGISTER is a
-character and its contents are a string.
+  "Evaluate contents of register REGISTER as an Emacs Lisp expression.
+REGISTER is a character and its contents are a string.
 
 If called with a prefix arg, then insert the return value at
 point.
@@ -3870,14 +3757,14 @@ Interactively, reads the register using `register-read-with-preview'."
                  (barf-if-buffer-read-only)
                  (list (register-read-with-preview "Eval register: ")
                        current-prefix-arg)))
-  (print arg)
   (let* ((val (get-register register))
          (res (eval (car (read-from-string (format "(progn %s)" val))))))
-    (when arg (register-val-insert res))))
+    (when current-prefix-arg (register-val-insert res))))
 
 (defun replace-last-sexp ()
+  "Eval the preceeding sexp and replace it with the result."
   (interactive)
-  (let ((value (eval (preceding-sexp))))
+  (let ((value (eval (elisp--preceding-sexp))))
     (kill-sexp -1)
     (insert (format "%S" value))))
 
@@ -3999,9 +3886,10 @@ of problems in that context."
   (run-with-idle-timer 2 nil (lambda () (inf-clojure-connect "localhost" 2000))))
 
 (defun reinstate-comint-simple-send ()
-  "`inf-clojure' clobbers `comint-send-input' on all comint
-buffers, not just `inf-clojure-mode' ones. This function
-reinstates default behavior. See:
+  "Reinstate comint's default `comint-simple-send'.
+`inf-clojure' clobbers `comint-send-input' on all comint buffers,
+not just `inf-clojure-mode' ones. This function reinstates
+default behavior. See:
 https://github.com/clojure-emacs/inf-clojure/issues/154"
   (unless (bound-and-true-p inf-clojure-minor-mode)
     (setq-local comint-input-sender 'comint-simple-send)))
@@ -4117,7 +4005,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   ;; from web-mode FAQ to work with smartparens
   (defun m-web-mode-hook ()
     (setq web-mode-enable-auto-pairing nil))
-  (defun sp-web-mode-is-code-context (id action context)
+  (defun sp-web-mode-is-code-context (_id action _context)
     (and (eq action 'insert)
          (not (or (get-text-property (point) 'part-side)
                   (get-text-property (point) 'block-side)))))  :mode
@@ -4377,3 +4265,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
+
+(provide 'init)
+
+;;; init.el ends here
