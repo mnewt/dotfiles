@@ -819,36 +819,19 @@ When using Homebrew, install it using \"brew install trash\"."
   ('windows-nt (config-windows))
   ('cygwin (config-windows)))
 
-(use-package ryo-modal
-  :commands ryo-modal-mode
+(use-package crux
   :bind
-  ("s-m" . ryo-modal-mode)
-  :config
-  (ryo-modal-keys
-   ("," ryo-modal-repeat)
-   ("q" ryo-modal-mode)
-   ("b" backward-char)
-   ("n" next-line)
-   ("p" previous-line)
-   ("f" forward-char)
-   ("j" next-line)
-   ("k" previous-line)
-   ("l" forward-char))
-
-  (ryo-modal-keys
-   ;; First argyment to ryo-modal-keys may be a list of keywords.
-   ;; These keywords will be applied to all keybindings.
-   (:norepeat t)
-   ("0" "M-0")
-   ("1" "M-1")
-   ("2" "M-2")
-   ("3" "M-3")
-   ("4" "M-4")
-   ("5" "M-5")
-   ("6" "M-6")
-   ("7" "M-7")
-   ("8" "M-8")
-   ("9" "M-9")))
+  ("C-c O" . crux-open-with)
+  ("C-x f" . crux-recentf-find-file)
+  ("C-c D" . crux-delete-file-and-buffer)
+  ("C-c d" . crux-duplicate-current-line-or-region)
+  ("C-c R" . crux-rename-file-and-buffer)
+  ("M-s-r" . crux-rename-file-and-buffer)
+  ("C-c k" . crux-kill-other-buffers)
+  ("C-M-X" . crux-indent-defun)
+  ("C-c I" . crux-find-user-init-file)
+  ("C-c S" . crux-find-shell-init-file)
+  ("C-<backspace>" . crux-kill-line-backwards))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Persistence
@@ -3766,20 +3749,9 @@ https://github.com/magit/magit/issues/460#issuecomment-36139308"
 ;;; Emacs Lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package crux
-  :bind
-  ("C-c O" . crux-open-with)
-  ("C-x f" . crux-recentf-find-file)
-  ("C-c C-e" . crux-eval-and-replace)
-  ("C-c D" . crux-delete-file-and-buffer)
-  ("C-c d" . crux-duplicate-current-line-or-region)
-  ("C-c R" . crux-rename-file-and-buffer)
-  ("M-s-r" . crux-rename-file-and-buffer)
-  ("C-c k" . crux-kill-other-buffers)
-  ("C-M-X" . crux-indent-defun)
-  ("C-c I" . crux-find-user-init-file)
-  ("C-c S" . crux-find-shell-init-file)
-  ("C-<backspace>" . crux-kill-line-backwards))
+(use-package lisp-extra-font-lock
+  :config
+  (lisp-extra-font-lock-global-mode 1))
 
 (defun eval-last-sexp-other-window (arg)
   "Run `eval-last-sexp' with ARG in the other window."
