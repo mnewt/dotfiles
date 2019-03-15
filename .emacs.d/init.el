@@ -931,7 +931,7 @@ When using Homebrew, install it using \"brew install trash\"."
  ("C-h M-i" . #'info-apropos))
 
 ;; ELDoc
-(seq-do (lambda (list) (add-hook list #'turn-on-eldoc-mode))
+(seq-do (lambda (m) (add-hook m #'turn-on-eldoc-mode))
         '(emacs-lisp-mode-hook
           lisp-interaction-mode-hook
           ielm-mode-hook))
@@ -995,68 +995,75 @@ When using Homebrew, install it using \"brew install trash\"."
   ("C-h t t" . tldr)
   ("C-h t u" . tldr-update-docs))
 
-;; (defface eg-h1
-;;   '((((class color) (background light))
-;;      (:foreground "#ff8700" :bold t :height 2.0))
-;;     (((class color) (background dark))
-;;      (:foreground "#ffa722" :bold t :height 2.0)))
-;;   ""
-;;   :group 'eg)
+(define-derived-mode eg-mode help-mode "eg"
+  "Lookup commands using `eg'"
+  (set (make-local-variable 'buffer-read-only) t))
 
-;; (defface eg-h2
-;;   '((((class color) (background light))
-;;      (:foreground "#1f5bff" :bold t :height 1.2))
-;;     (((class color) (background dark))
-;;      (:foreground "#6faaff" :bold t :height 1.2)))
-;;   ""
-;;   :group 'eg)
+(defface eg-h1
+  '((((class color) (background light))
+     (:foreground "#ff8700" :bold t :height 2.0))
+    (((class color) (background dark))
+     (:foreground "#ffa722" :bold t :height 2.0)))
+  ""
+  :group 'eg)
 
-;; (defface eg-h3
-;;   '((((class color) (background light))
-;;      (:foreground "#5a5a5a" :bold t))
-;;     (((class color) (background dark))
-;;      (:foreground "#d7ff87" :bold t)))
-;;   ""
-;;   :group 'eg)
+(defface eg-h2
+  '((((class color) (background light))
+     (:foreground "#1f5bff" :bold t :height 1.2))
+    (((class color) (background dark))
+     (:foreground "#6faaff" :bold t :height 1.2)))
+  ""
+  :group 'eg)
 
-;; (defface eg-code-block
-;;   '((((class color) (background light))
-;;      (:foreground "#555" :background "#d7ff87"))
-;;     (((class color) (background dark))
-;;      (:foreground "#eee" :background "#5a5a5a")))
-;;   ""
-;;   :group 'eg)
+(defface eg-h3
+  '((((class color) (background light))
+     (:foreground "#5a5a5a" :bold t))
+    (((class color) (background dark))
+     (:foreground "#d7ff87" :bold t)))
+  ""
+  :group 'eg)
 
-;; (defun eg (command)
-;;   "Run the `eg' command (https://github.com/srsudar/eg) and
-;; display as if from a terminal."
-;;   (interactive
-;;    (list (completing-read
-;;           "eg: "
-;;           (let ((l (split-string (shell-command-to-string "eg --list"))))
-;;             (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
-;;   (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
-;;   (insert
-;;    (mapconcat (lambda (line)
-;;                 (cond
-;;                  ((equal "" line)
-;;                   "")
-;;                  ((string-prefix-p "# " line)
-;;                   (propertize (substring line 2) 'face 'eg-h1))
-;;                  ((string-prefix-p "## " line)
-;;                   (propertize (substring line 3) 'face 'eg-h2))
-;;                  ((string-prefix-p "### " line)
-;;                   (propertize (substring line 4) 'face 'eg-h3))
-;;                  ((string-prefix-p "    " line)
-;;                   (concat "    " (propertize (substring line 4) 'face 'eg-code-block)))
-;;                  (t line)))
-;;               (split-string
-;;                (shell-command-to-string
-;;                 (concat "eg --no-color --pager-cmd cat " command))
-;;                "\n")
-;;               "\n"))
-;;   (goto-char (point-min))
-;;   (help-mode))
+(defface eg-code-block
+  '((((class color) (background light))
+     (:foreground "#555" :background "#d7ff87"))
+    (((class color) (background dark))
+     (:foreground "#eee" :background "#5a5a5a")))
+  ""
+  :group 'eg)
+
+(defun eg (command)
+  "Run `eg' to look up COMMAND and display it in a fancy way.
+https://github.com/srsudar/eg"
+  (interactive
+   (list (completing-read
+          "eg: "
+          (let ((l (split-string (shell-command-to-string "eg --list"))))
+            (nthcdr (1+ (position "eg:" l :test #'string=)) l)))))
+  (pop-to-buffer (get-buffer-create (concat "*eg: " command "*")))
+  (eg-mode)
+  (let ((buffer-read-only))
+    (insert
+     (mapconcat (lambda (line)
+                  (cond
+                   ((equal "" line)
+                    "")
+                   ((string-prefix-p "# " line)
+                    (propertize (substring line 2) 'face 'eg-h1))
+                   ((string-prefix-p "## " line)
+                    (propertize (substring line 3) 'face 'eg-h2))
+                   ((string-prefix-p "### " line)
+                    (propertize (substring line 4) 'face 'eg-h3))
+                   ((string-prefix-p "    " line)
+                    (concat "    " (propertize (substring line 4) 'face 'eg-code-block)))
+                   (t line)))
+                (split-string
+                 (shell-command-to-string
+                  (format "eg --no-color --pager-cmd cat '%s'" command))
+                 "\n")
+                "\n")))
+  (goto-char (point-min)))
+
+(bind-key "C-h e" #'eg)
 
 (use-package dash-docs
   :straight
@@ -1399,6 +1406,58 @@ return them in the Emacs format."
 ;;; Editing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmacro save-region (body)
+  "Save the region, execute BODY, attempt to restore the region."
+  `(progn
+     (if (use-region-p)
+         (let ((m (set-marker (make-marker) (mark)))
+               (p (set-marker (make-marker) (point))))
+           ,body
+           (goto-char p)
+           (set-mark m)
+           (set-marker p nil)
+           (set-marker m nil))
+       ,body)))
+
+(use-package undo-tree
+  :init
+  ;; Preserve the region when undoing.
+  (advice-add 'undo-tree-undo
+              :around
+              (lambda (f &rest args) (save-region (apply f args))))
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
+  (undo-tree-visualizer-timestamps t)
+  (undo-tree-visualizer-diff t)
+  :config
+  (global-undo-tree-mode)
+  :bind
+  ("s-z" . undo-tree-undo)
+  ("s-Z" . undo-tree-redo)
+  ("s-y" . undo-tree-redo)
+  ("M-s-z" . undo-tree-visualize))
+
+(use-package goto-chg
+  :bind
+  ("C-." . goto-last-change)
+  ("C-;" . goto-last-change-reverse))
+
+(use-package evil
+  :bind
+  ("s-m" . evil-mode))
+
+;; (use-package undohist
+;;   :config
+;;   (undohist-initialize)
+;;   (advice-add 'undohist-recover-1
+;;               :around
+;;               (lambda (f) (cl-flet ((yes-or-no-p (_) t)))))
+;;   :defer 1)
+
+;; Increase undo limit to 1MB per buffer.
+;; (setq undo-limit 1048576)
+
 ;; Wrap text.
 (setq-default fill-column 80)
 
@@ -1446,24 +1505,16 @@ https://github.com/NateEag/.emacs.d/blob/9d4a2ec9b5c22fca3c80783a24323388fe1d164
 ;; dw (https://gitlab.com/mnewt/dw)
 (add-to-list 'auto-mode-alist '("\\DWfile.*\\'" . sh-mode))
 
-;; Move by whole words rather than sub-words
-;; (global-superword-mode)
-
 ;; Automatically indent after RET
 (electric-indent-mode +1)
 
-;; Guess the indentation of the file and continue to use that.
-;; (use-package dtrt-indent
-;;   :hook
-;;   ((prog-mode text-mode) . dtrt-indent-mode))
-
 ;; http://whattheemacsd.com/key-bindings.el-03.html
 (defun join-line-previous ()
-  "Like `delete-indentation', but bring the line below up to the current line."
+  "Like `delete-indentation', but in the opposite direction.
+Bring the line below point up to the current line."
   (interactive)
   (join-line -1))
 
-;; It's the reverse of `delete-indentation'.
 (bind-key "C-^" #'join-line-previous)
 
 (defun dos2unix ()
@@ -1560,15 +1611,6 @@ Wraps on `fill-column' columns."
 (bind-keys ("s-C" . copy-region-to-other-window)
            ("s-X" . move-region-to-other-window))
 
-(use-package undohist
-  :config
-  (undohist-initialize)
-  :defer 1)
-
-(use-package undo-propose
-  :bind
-  ("C-s-z" . undo-propose))
-
 (use-package easy-kill
   :bind
   (([remap kill-ring-save] . easy-kill)
@@ -1623,10 +1665,6 @@ Wraps on `fill-column' columns."
   (:map prog-mode-map
         ("M-S-<up>" . move-text-up)
         ("M-S-<down>" . move-text-down)))
-
-(use-package goto-last-change
-  :bind
-  ("C-\\" . goto-last-change))
 
 (defun outline-show-current-sublevel ()
   "Show only the current top level section."
@@ -1696,7 +1734,7 @@ Wraps on `fill-column' columns."
 
 (use-package rainbow-mode
   :hook
-  ((css-mode emacs-lisp-mode help-mode sass-mode) . rainbow-mode))
+  ((css-mode emacs-lisp-mode sass-mode) . rainbow-mode))
 
 ;; (use-package hl-todo
 ;;   :commands
@@ -2560,7 +2598,7 @@ https://stackoverflow.com/a/14769115/1588358"
 
   ;; Commands that use curses get launched in their own `term' buffer
   (seq-do (-partial #'add-to-list 'eshell-visual-commands)
-          '("dasht" "htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux"
+          '("htop" "mbsync" "ncdu" "nnn" "nvim" "ssh" "tail" "tmux"
             "top" "vim" "w3m"))
   (seq-do (-partial #'add-to-list 'eshell-visual-subcommands)
           '(("git" "log" "diff" "show")
@@ -2591,7 +2629,7 @@ https://stackoverflow.com/a/14769115/1588358"
       (eshell-create-in-background)))
 
 (defun eshell-switch-to-buffer ()
-  "Switch to the most recent Eshell buffer or create a new one.
+  "Switch to the most recent Eshell buffer or create a new one.)))
 This is different than the normal `eshell' command in my setup
 because I dynamically rename the buffer according to
 `default-directory'."
@@ -3488,38 +3526,32 @@ https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-s
       (load p)
       (message "%s" (concat "Loaded project settings from: " p)))))
 
-(setq code-directory (if (file-exists-p "~/code") "~/code" "~"))
+(defvar code-directory (if (file-exists-p "~/code") "~/code" "~")
+  "Default code project container directory.")
 
 (use-package projectile
   :custom
   (projectile-keymap-prefix (kbd "C-c p"))
   (projectile-completion-system 'ivy)
   (projectile-project-search-path (list code-directory))
+  (projectile-globally-ignored-files '("TAGS" "package-lock.json"))
   (projectile-switch-project-action 'projectile-dired)
   ;; Exclude untracked files because we use git workdirs in $HOME. Listing all
   ;; files takes too long.
   ;; (projectile-git-command "git ls-files -zc --exclude-standard")
-  ;; (frame-title-format
-  ;;  '(""
-  ;;    (:eval
-  ;;     (when (fboundp 'projectile-project-name)
-  ;;       (let ((project-name (projectile-project-name)))
-  ;;         (unless (string= "-" project-name)
-  ;;           (format "[%s]" project-name)))))))
   :config
   (projectile-mode +1)
   :hook
   ((projectile-after-switch-project . projectile-load-settings)))
 
 (use-package counsel-projectile
-  :init
-  (setq counsel-projectile-remove-current-buffer t
-        counsel-projectile-remove-current-project t)
+  :custom
+  (counsel-projectile-remove-current-buffer t)
+  (counsel-projectile-remove-current-project t)
   :config
   (counsel-projectile-mode)
   ;; When switching projects, go straight to dired in the project root.
-  (setq counsel-projectile-switch-project-action
-        (cons 4 (cdr counsel-projectile-switch-project-action)))
+  (setf (car counsel-projectile-switch-project-action) 4)
   :bind
   ("M-s-p" . counsel-projectile-switch-to-buffer)
   ("s-p" . counsel-projectile)
@@ -3580,7 +3612,7 @@ https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-s
 (use-package forge
   :after magit)
 
-;; 
+;;
 (defun git-worktree-link (gitdir worktree)
   "Link git WORKTREE at GITDIR.
 https://github.com/magit/magit/issues/460#issuecomment-36139308"
@@ -3929,6 +3961,14 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Other File Modes and Formats
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package fence-edit
+  :straight
+  (:type git :host github :repo "aaronbieber/fence-edit.el")
+  :config
+  (add-to-list 'fence-edit-blocks '("graphql`" "`" graphql))
+  :bind
+  ("C-c '" . fence-edit-code-at-point))
 
 ;; display nfo files in all their glory
 ;; https://github.com/wasamasa/dotemacs/blob/master/init.org#display-nfo-files-with-appropriate-code-page)

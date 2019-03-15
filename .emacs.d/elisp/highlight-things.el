@@ -239,6 +239,7 @@ specified COMMAND. If COMMAND is nil then fontify using `hlt-keywords-default'"
       (with-no-warnings
         (font-lock-fontify-buffer)))))
 
+;;;###autoload
 (defun hlt-mode ()
   "Major mode for highlighting things. It is not intended to be
   used interactively, only programmatically."
