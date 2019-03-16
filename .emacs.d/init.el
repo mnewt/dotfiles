@@ -3566,6 +3566,8 @@ https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-s
 
 ;; git config files
 (add-to-list 'auto-mode-alist '("\\.git\\(?:config\\|ignore\\).*" . conf-mode))
+;; SSH server config files
+(add-to-list 'auto-mode-alist '("sshd\?_config" . conf-mode))
 
 (defun dired-git-add ()
   "Run `git add' on the selected files in a dired buffer."
@@ -3595,7 +3597,6 @@ https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-s
 (use-package forge
   :after magit)
 
-;;
 (defun git-worktree-link (gitdir worktree)
   "Link git WORKTREE at GITDIR.
 https://github.com/magit/magit/issues/460#issuecomment-36139308"
