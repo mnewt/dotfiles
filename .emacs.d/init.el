@@ -796,7 +796,7 @@ When using Homebrew, install it using \"brew install trash\"."
     (defalias 'os-reveal-file #'reveal-in-osx-finder)))
 
 (defun reveal-in-windows-explorer (&optional file)
-  "Reveal the current file in the operating system's file manager."
+  "Reveal the current FILE in the operating system's file manager."
   (interactive)
   (unless file (setq file buffer-file-name))
   (os-open-file (concat "/select," (dired-replace-in-string "/" "\\" file))))
@@ -957,16 +957,16 @@ When using Homebrew, install it using \"brew install trash\"."
   (set-face-attribute 'Man-overstrike nil :inherit font-lock-type-face :bold t)
   (set-face-attribute 'Man-underline nil :inherit font-lock-keyword-face :underline t))
 
-;; (use-package info-colors
-;;   :commands
-;;   (info-colors-fontify-node)
-;;   :config
-;;   (add-hook 'Info-selection-hook 'info-colors-fontify-node))
+(use-package info-colors
+  :commands
+  (info-colors-fontify-node)
+  :config
+  (add-hook 'Info-selection-hook 'info-colors-fontify-node))
 
-;; (use-package define-word
-;;   :bind
-;;   ("C-c W" . define-word)
-;;   ("C-c w" . define-word-at-point))
+(use-package define-word
+  :bind
+  ("C-c W" . define-word)
+  ("C-c w" . define-word-at-point))
 
 (use-package tldr
   ;; :ensure-system-package tldr
