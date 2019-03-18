@@ -3325,14 +3325,12 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
 
 (use-package company
   :custom
-  (company-backends
-   '(company-capf company-gtags company-css company-elisp company-keywords
-                  company-semantic company-yasnippet company-files
-                  company-dabbrev-code company-dabbrev company-ispell))
-  (company-backends-remote
-   '((company-shell company-shell-env)
-     company-capf company-css company-elisp company-keywords
-     company-yasnippet company-dabbrev-code company-dabbrev company-ispell))
+  ;; Eliminate any backends which may touch external files, which can be a drag
+  ;; on performance over ssh.
+  ;; (company-backends-remote
+  ;;  '((company-shell company-shell-env)
+  ;;    company-capf company-css company-elisp company-keywords
+  ;;    company-yasnippet company-dabbrev-code company-dabbrev company-ispell))
   (company-idle-delay 0.1)
   (company-dabbrev-ignore-case t)
   (company-frontends
@@ -3343,6 +3341,7 @@ _t_ toggle    _._ toggle hydra _H_ help       C-o other win no-select
   (after-init . global-company-mode)
   :bind
   (:map prog-mode-map
+        ("C-M-/" . company-manual-begin)
         ("<tab>" . company-indent-or-complete-common)
         :map company-active-map
         ;; TODO: The inconsistency between C-n and M-n to select company
@@ -4066,6 +4065,13 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
                                ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
   :hook
   (web-mode . m-web-mode-hook))
+
+(use-package company-web
+  :commands
+  (company-web-html)
+  :hook
+  (web-mode . (lambda () (set (make-local-variable 'company-backends)
+                              (cons 'company-web-html company-backends)))))
 
 ;; CSS config
 (setq-default css-indent-offset tab-width)
