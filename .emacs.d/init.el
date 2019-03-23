@@ -3524,7 +3524,13 @@ https://github.com/jfeltz/projectile-load-settings/blob/master/projectile-load-s
   :config
   (projectile-mode +1)
   :hook
-  ((projectile-after-switch-project . projectile-load-settings)))
+  (projectile-after-switch-project . projectile-load-settings)
+  :bind
+  (:map projectile-mode-map
+        ("s-}" . projectile-next-project-buffer)
+        ("C-c }" . projectile-next-project-buffer)
+        ("s-{" . projectile-previous-project-buffer)
+        ("C-c {" . projectile-previous-project-buffer)))
 
 (use-package counsel-projectile
   :custom
@@ -4001,39 +4007,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   :custom
   (markdown-command "multimarkdown"))
 
-;; (use-package htmlize
-;;   :bind
-;;   (("C-c h b" . htmlize-buffer)
-;;    ("C-c h f" . htmlize-file)
-;;    ("C-c h m" . htmlize-many-files)
-;;    :map dired-mode-map
-;;    ("C-c h m" . htmlize-many-files-dired)))
-
-(use-package dockerfile-mode
-  :mode "Dockerfile\\'")
-
-(use-package docker
-  :bind
-  ("C-c M-d" . docker))
-
-(use-package docker-tramp
-  :defer 2)
-
-(use-package csv-mode
-  :mode "\\.csv\\'")
-
-(use-package nginx-mode
-  :custom
-  (nginx-indent-level tab-width))
-
-(use-package caddyfile-mode
-  :mode "\\`Caddyfile\\'")
-
-(use-package yaml-mode
-  :mode "\\.ya\?ml\\'")
-
-(use-package toml-mode
-  :mode "\\.toml\\'")
+;; XML
 
 (use-package web-mode
   :mode "\\.html\?\\'"
@@ -4073,7 +4047,22 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (web-mode . (lambda () (set (make-local-variable 'company-backends)
                               (cons 'company-web-html company-backends)))))
 
-;; CSS config
+(use-package know-your-http-well
+  :commands
+  (http-header http-method http-relation http-status-code))
+
+(use-package restclient
+  :mode "\\.restclient\\'"
+  :commands
+  (restclient-mode restclient-outline-mode))
+
+(use-package company-restclient
+  :hook
+  (restclient-mode . (lambda ()
+                       (add-to-list 'company-backends 'company-restclient))))
+
+;; CSS
+
 (setq-default css-indent-offset tab-width)
 
 (defun toggle-sp-newline ()
@@ -4143,19 +4132,48 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 (use-package graphql-mode
   :mode "\\(?:\\.g\\(?:\\(?:raph\\)?ql\\)\\)\\'")
 
-(use-package know-your-http-well
-  :commands
-  (http-header http-method http-relation http-status-code))
+;; (use-package htmlize
+;;   :bind
+;;   (("C-c h b" . htmlize-buffer)
+;;    ("C-c h f" . htmlize-file)
+;;    ("C-c h m" . htmlize-many-files)
+;;    :map dired-mode-map
+;;    ("C-c h m" . htmlize-many-files-dired)))
 
-(use-package restclient
-  :mode "\\.restclient\\'"
+(use-package genrnc
+  :custom
+  (genrnc-user-schemas-directory "~/.emacs.d/schema")
   :commands
-  (restclient-mode restclient-outline-mode))
+  (genrnc-regist-file))
 
-(use-package company-restclient
-  :hook
-  (restclient-mode . (lambda ()
-                       (add-to-list 'company-backends 'company-restclient))))
+(use-package rnc-mode
+  :mode "\\.rnc\\'")
+
+(use-package dockerfile-mode
+  :mode "Dockerfile\\'")
+
+(use-package docker
+  :bind
+  ("C-c M-d" . docker))
+
+(use-package docker-tramp
+  :defer 2)
+
+(use-package csv-mode
+  :mode "\\.csv\\'")
+
+(use-package nginx-mode
+  :custom
+  (nginx-indent-level tab-width))
+
+(use-package caddyfile-mode
+  :mode "\\`Caddyfile\\'")
+
+(use-package yaml-mode
+  :mode "\\.ya\?ml\\'")
+
+(use-package toml-mode
+  :mode "\\.toml\\'")
 
 (use-package elpy
   ;; :ensure-system-package
