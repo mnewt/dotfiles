@@ -1877,7 +1877,7 @@ ID, ACTION, CONTEXT."
   :custom
   (sp-base-key-bindings 'paredit)
   ;; smartparens does some weird stuff with bindings so you can't reliably use
-  ;; `use-package' to set them.
+  ;; `use-package/:bind' to set them.
   (sp-smartparens-bindings '(("C-M-f" . sp-forward-sexp)
                              ("C-M-b" . sp-backward-sexp)
                              ("C-M-d" . sp-down-sexp)
@@ -1921,7 +1921,7 @@ ID, ACTION, CONTEXT."
   (bind-key [remap kill-line] #'sp-kill-hybrid-sexp smartparens-mode-map
             (apply #'derived-mode-p sp-lisp-modes))
   (sp-with-modes
-      '(c-mode c++-mode css-mode javascript-mode js2-mode json-mode objc-mode
+      '(c-mode c++-mode css-mode graphql-mode javascript-mode js2-mode json-mode objc-mode
                python-mode java-mode sh-mode web-mode)
     (sp-local-pair "{" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
     (sp-local-pair "[" nil :post-handlers '((sp-create-newline-and-enter-sexp "RET")))
@@ -3942,9 +3942,10 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package fence-edit
   :straight
-  (:type git :host github :repo "aaronbieber/fence-edit.el")
+  (:type git :host github :repo "mnewt/fence-edit.el")
   :config
   (add-to-list 'fence-edit-blocks '("graphql`" "`" graphql))
+  (add-to-list 'fence-edit-blocks '("<svg" "</svg>" nxml t))
   :bind
   ("C-c '" . fence-edit-code-at-point))
 
@@ -4113,7 +4114,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package add-node-modules-path
   :hook
-  (js2-mode . add-node-modules-path))
+  ((css-mode graphql-mode js2-mode) . add-node-modules-path))
 
 (use-package prettier-js
   :hook
@@ -4127,7 +4128,7 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
   (indium-connect indium-launch))
 
 (use-package json-mode
-  :mode "\\.json\\'")
+  :mode "\\.json\\|prettierrc\\'")
 
 (use-package graphql-mode
   :mode "\\(?:\\.g\\(?:\\(?:raph\\)?ql\\)\\)\\'")
