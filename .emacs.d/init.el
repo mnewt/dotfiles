@@ -597,7 +597,9 @@ to prevent Emacs from barfing on your screen."
 (require 'autorevert)
 (global-auto-revert-mode 1)
 ;; Auto refresh dired
-(setq global-auto-revert-non-file-buffers t)
+(setq global-auto-revert-non-file-buffers t
+      ;; Don't print auto revert messages.
+      auto-revert-verbose nil)
 
 ;; Full screen
 (defun fullscreen ()
@@ -719,7 +721,6 @@ If no region is selected, toggles comments for the line."
  ("C-S-L" . select-current-line)
  ("s-\`" . other-frame)
  ("C-\`" . other-frame)
- ("s-N" . make-frame-command)
  ("s-w" . delete-window)
  ("s-W" . delete-other-windows)
  ("s-C-w" . delete-frame)
@@ -1157,14 +1158,21 @@ https://github.com/srsudar/eg"
 
 (defun new-scratch-buffer ()
   "Create or go to a scratch buffer in the current mode.
-If ARG is provided then use `initial-major-mode'. Try these
+
+If ARG is provided then prompt for the buffer's mode. Try these
   things in succession\:
 
 1. Select an existing window containing the scratch buffer.
 2. Switch to an existing scratch buffer.
 3. Create a new scratch buffer and switch to it."
   (interactive)
-  (let* ((mode (if current-prefix-arg initial-major-mode major-mode))
+  (let* ((mode (if current-prefix-arg
+                   (intern (ivy-read "New scratch buffer with mode: "
+                                     (list-buffer-major-modes)
+                                     :history 'new-scratch-buffer-history
+                                     :caller 'new-scratch-buffer))
+                                     ;; :initial-input (car new-scratch-buffer-history)))
+                 major-mode))
          (name (format "<%s>" (symbol-name mode)))
          (win (get-buffer-window name)))
     (cond
@@ -1173,8 +1181,18 @@ If ARG is provided then use `initial-major-mode'. Try these
         (setq buffer-file-name name)
         (funcall mode)))))
 
+(defun new-scratch-buffer-other-window ()
+  "Create or go to a scratch buffer in ther current mode.
+
+For for details see `new-scratch-buffer'."
+  (interactive)
+  (switch-to-buffer-other-window (current-buffer))
+  (new-scratch-buffer))
+
 (bind-keys ("s-n" . new-scratch-buffer)
-           ("C-c C-n" . new-scratch-buffer))
+           ("s-N" . new-scratch-buffer-other-window)
+           ("C-c C-n" . new-scratch-buffer)
+           ("C-c M-n" . new-scratch-buffer-other-window))
 
 (setq display-buffer-alist
       `((,(rx bos
@@ -1402,24 +1420,56 @@ return them in the Emacs format."
            (set-marker m nil))
        ,body)))
 
-(use-package undo-tree
-  :init
-  ;; Preserve the region when undoing.
-  (advice-add 'undo-tree-undo
-              :around
-              (lambda (f &rest args) (save-region (apply f args))))
-  :custom
-  (undo-tree-auto-save-history t)
-  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
-  (undo-tree-visualizer-timestamps t)
-  (undo-tree-visualizer-diff t)
-  :config
-  (global-undo-tree-mode)
+;; (use-package undo-tree
+;;   :init
+;;   ;; Preserve the region when undoing.
+;;   (advice-add 'undo-tree-undo
+;;               :around
+;;               (lambda (f &rest args) (save-region (apply f args))))
+;;   :custom
+;;   (undo-tree-auto-save-history t)
+;;   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
+;;   (undo-tree-visualizer-timestamps t)
+;;   (undo-tree-visualizer-diff t)
+;;   :config
+;;   (global-undo-tree-mode)
+;;   :bind
+;;   ("s-z" . undo-tree-undo)
+;;   ("s-Z" . undo-tree-redo)
+;;   ("s-y" . undo-tree-redo)
+;;   ("M-s-z" . undo-tree-visualize))
+
+(use-package redo+
+  :straight
+  (:type git :host github :repo "clemera/undo-redo")
   :bind
-  ("s-z" . undo-tree-undo)
-  ("s-Z" . undo-tree-redo)
-  ("s-y" . undo-tree-redo)
-  ("M-s-z" . undo-tree-visualize))
+  ("s-z" . undo)
+  ("s-Z" . redo)
+  ("s-y" . redo))
+
+(use-package undohist
+  :config
+  (undohist-initialize)
+  (advice-add 'undohist-recover-1
+              :around
+              (lambda (f) (cl-flet ((yes-or-no-p (_) t)))))
+  :defer 1)
+
+;; Increase undo limit to 1MB per buffer.
+(setq undo-limit 1048576)
+
+(use-package undo-propose
+  :straight
+  (:type git :host github :repo "jackkamm/undo-propose-el")
+  :bind
+  ("C-s-z" . undo-propose))
+
+(use-package volatile-highlights
+  :config
+  (vhl/define-extension nil 'redo)
+  (vhl/define-extension 'evil 'evil-paste-after 'evil-paste-before
+                        'evil-paste-pop 'evil-move)
+  (vhl/install-extension 'evil))
 
 (use-package goto-chg
   :bind
@@ -1429,17 +1479,6 @@ return them in the Emacs format."
 (use-package evil
   :bind
   ("s-m" . evil-mode))
-
-;; (use-package undohist
-;;   :config
-;;   (undohist-initialize)
-;;   (advice-add 'undohist-recover-1
-;;               :around
-;;               (lambda (f) (cl-flet ((yes-or-no-p (_) t)))))
-;;   :defer 1)
-
-;; Increase undo limit to 1MB per buffer.
-;; (setq undo-limit 1048576)
 
 ;; Wrap text.
 (setq-default fill-column 80)
@@ -1727,6 +1766,8 @@ Wraps on `fill-column' columns."
 
 (use-package yasnippet
   :defer 2
+  :custom
+  (yas-verbosity 1)
   :config
   (yas-global-mode 1)
   :bind
@@ -4114,11 +4155,11 @@ https://github.com/clojure-emacs/inf-clojure/issues/154"
 
 (use-package add-node-modules-path
   :hook
-  ((css-mode graphql-mode js2-mode) . add-node-modules-path))
+  ((css-mode graphql-mode js2-mode markdown-mode web-mode) . add-node-modules-path))
 
 (use-package prettier-js
   :hook
-  (js2-mode  . prettier-js-mode))
+  ((js-mode js2-mode web-mode)  . prettier-js-mode))
 
 (use-package indium
   :custom
