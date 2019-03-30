@@ -8,5 +8,5 @@ git reset HEAD --hard
 # The ctags bit is to rename the ctags binary so it doesn't conflict with an
 # existing, non-emacs ctags installation
 ./configure --without-dbus --with-ns --disable-ns-self-contained --without-pop --with-modules CFLAGS="-I /usr/local/opt/libxml2/include/libxml2" --program-transform-name='s/^ctags$/ctags.emacs/'
-make
+make install
 cp -R nextstep/Emacs.app $HOME/Applications/

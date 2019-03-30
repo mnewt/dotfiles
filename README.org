@@ -51,7 +51,7 @@ git reset --mixed HEAD
 *** Don't show untracked files
 Don't show untracked files since there will always be lots of stuff in ~$HOME~ that we don't want in our repo.
 #+BEGIN_SRC sh
-env GITDIR~$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
+env GITDIR=$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
 #+END_SRC
 *** Back up conflicting dotfiles
 If there are conflicting files between the repo and the existing files in ~$HOME~ then the ~git reset~ above will not have populated all the files in the branch. So, back up the conflicting files.
