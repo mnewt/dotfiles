@@ -1420,30 +1420,12 @@ return them in the Emacs format."
            (set-marker m nil))
        ,body)))
 
-;; (use-package undo-tree
-;;   :init
-;;   ;; Preserve the region when undoing.
-;;   (advice-add 'undo-tree-undo
-;;               :around
-;;               (lambda (f &rest args) (save-region (apply f args))))
-;;   :custom
-;;   (undo-tree-auto-save-history t)
-;;   (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree")))
-;;   (undo-tree-visualizer-timestamps t)
-;;   (undo-tree-visualizer-diff t)
-;;   :config
-;;   (global-undo-tree-mode)
-;;   :bind
-;;   ("s-z" . undo-tree-undo)
-;;   ("s-Z" . undo-tree-redo)
-;;   ("s-y" . undo-tree-redo)
-;;   ("M-s-z" . undo-tree-visualize))
-
 (use-package redo+
   :straight
   (:type git :host github :repo "clemera/undo-redo")
   :bind
-  ("s-z" . undo)
+  ("s-z" . undo-modern)
+  ("C-z" . undo-modern)
   ("s-Z" . redo)
   ("s-y" . redo))
 
@@ -1462,14 +1444,18 @@ return them in the Emacs format."
   :straight
   (:type git :host github :repo "jackkamm/undo-propose-el")
   :bind
-  ("C-s-z" . undo-propose))
+  (("C-s-z" . undo-propose)
+   :map undo-propose-mode-map
+   ([remap undo-modern] . undo-propose-undo)
+   ([remap redo] . undo-propose-undo))) 
 
 (use-package volatile-highlights
   :config
-  (vhl/define-extension nil 'redo)
+  (vhl/define-extension 'undo 'redo 'undo-modern)
   (vhl/define-extension 'evil 'evil-paste-after 'evil-paste-before
                         'evil-paste-pop 'evil-move)
-  (vhl/install-extension 'evil))
+  (vhl/install-extension 'evil)
+  (volatile-highlights-mode t))
 
 (use-package goto-chg
   :bind
