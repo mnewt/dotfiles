@@ -1,0 +1,24 @@
+#!/bin/bash
+
+prefix="PARALLEL:"
+
+log () {
+  echo $prefix $*
+}
+
+log Starting processes...
+
+for cmd in "$@"; do
+  log starting: $cmd
+  $cmd & pid=$!
+  PID_LIST+=" $pid"
+done
+
+trap "kill $PID_LIST" SIGINT
+
+log All parallel processes have started.
+
+wait $PID_LIST
+
+echo
+log All processes have completed.
