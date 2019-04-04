@@ -1,6 +1,9 @@
 #!/bin/bash
 # Update ruby gems
 
+export LDFLAGS="-L/usr/local/opt/ruby/lib"
+export CPPFLAGS="-I/usr/local/opt/ruby/include"
+
 if installed gem; then
   echo "Updating ruby gems..."
   # Always use homebrew ruby if it's installed

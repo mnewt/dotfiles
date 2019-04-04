@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+sudo xcode-select --install 2&>1 || echo The Xcode Command Line Tools package is already installed
