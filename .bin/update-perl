@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+if installed cpan; then
+	cpan -u
+fi
