@@ -115,7 +115,7 @@ find -L $HOME -maxdepth 3 -type l -exec unlink -- "{}" \;
 **** Overwrite conflicting files
 If there were conflicting files or links and we've taken care of them, reset hard to overwrite.
 #+BEGIN_SRC sh
-git reset --hard HEAD
+git reset --merge HEAD
 #+END_SRC
   git-home-link "$repo"
   for f in $(git ls-files); do

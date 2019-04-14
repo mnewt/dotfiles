@@ -404,3 +404,6 @@ fabric.properties
 
 # Visio autosave temporary files
 *.~vsd*
+
+# psync
+psync_config

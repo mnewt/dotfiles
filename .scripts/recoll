@@ -1,18 +1,19 @@
 #!/usr/bin/env sh
 
+sudo port install -N recoll aspell-dict-en py27-libxslt py27-libxml2 poppler \
+	tesseract tesseract-eng exiftool p5-image-exiftool antiword catdoc chmlib py27-chm py27-mutagen \
+	djvulibre py27-pylzma
+
+# Trying to get the homebrew version to work
+
 # brew_pkgs="aspell autoconf bison libiconv libxslt python zlib"
 # brew install $brew_pkgs
 # brew install xapian --build-from-source --with-python
 # brew upgrade $brew_pkgs xapian
 
-sudo port install -N recoll aspell-dict-en py27-libxslt py27-libxml2 poppler
-tesseract tesseract-eng exiftool antiword catdoc chmlib py27-chm
+# pip install epub libxml2 libxslt
 
-# pip install epub
-
-# pushd
-
-# cd $HOME/code/recoll
+# pushd $HOME/code/recoll
 
 # git pull
 # git reset HEAD --hard

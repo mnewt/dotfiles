@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 [ -n "$1" ] && echo <<-END
 bootstrap: Create a git repo in the destination directory with a separate git
@@ -52,4 +52,3 @@ fi
   
 git fetch
 git reset --hard HEAD
-
