@@ -272,6 +272,7 @@ projectile-bookmarks.eld
 projectile.cache
 auto-save-list
 backups
+loaddefs.el
 
 *~
 \#*\#
