@@ -10,7 +10,11 @@ osascript -e 'tell application "System Preferences" to quit'
 sudo -v
 
 # Keep-alive: update existing `sudo` time stamp until `.macos` has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+while true; do
+	sudo -n true
+	sleep 60
+	kill -0 "$$" || exit
+done 2>/dev/null &
 
 ###############################################################################
 # General                                                                     #
@@ -21,9 +25,9 @@ defaults write -g AppleFontSmoothing -int 1
 
 # Enable dark mode
 osascript <<-END
-tell application "System Events"
-  tell appearance preferences to set dark mode to true
-end tell
+	tell application "System Events"
+	  tell appearance preferences to set dark mode to true
+	end tell
 END
 
 # Key repeat delay and repeat rate
@@ -55,6 +59,9 @@ defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 # Require password immediately after sleep or screen saver begins
 defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+# Change the screenshot location
+defaults write com.apple.screencapture location "$HOME/Downloads/"
 
 ###############################################################################
 # Terminal                                                                    #
@@ -119,11 +126,9 @@ defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
 # Add the keyboard shortcut ⌘ + Enter to send an email in Mail.app
 defaults write com.apple.mail NSUserKeyEquivalents -dict-add "Send" "@\U21a9"
 
-
-
 # Kill affected apps
-for app in "Dock" "Finder"; do
-  killall "${app}" > /dev/null 2>&1
+for app in Dock Finder SystemUIServer; do
+	killall "${app}" >/dev/null 2>&1
 done
 
 # Done
