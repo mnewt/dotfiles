@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
-brew install isync
+# Install isync to sync IMAP. The rest are dependencies for mu.
+brew install autoconf automake libgpg-error libtool pkg-config gettext glib xapian isync
 brew services start isync ~/.scripts/homebrew.mxcl.isync.plist
-brew install mu --with-emacs
+# Don't install dependencies automatically because one of them is emacs, which
+# we do not install via homebrew.
+brew install --ignore-dependencies mu
