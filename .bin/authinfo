@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+[ "$1" = "-h" ] && cat <<EOF
+$(basename $0): Search ~/.authinfo.gpg and return a field value.
+
+Usage: $(basename $0) MATCH_STRING [ FIELD ]
+
+  MATCH_STRING   A string to search for
+  
+  FIELD          A field to query. Defaults to 'password' if not specified.
+
+Examples:
+
+  $(basename $0) imap.server.net login
+
+  $(basename $0) 993
+EOF
+
+match="$1" && shift
+
+[ $# -ge 1 ] && field="$1" && shift || field="password"
+
+gpg --no-tty -qd --for-your-eyes-only "$HOME/.authinfo.gpg" | grep --color=never "$match" | sed -n "s/^.*\($field\) \([^ ]*\).*$/\2/p"
