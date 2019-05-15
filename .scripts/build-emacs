@@ -1,12 +1,18 @@
 #!/usr/bin/env sh
 
-brew install autoconf texinfo libxml2 imagemagick librsvg
-brew upgrade autoconf texinfo libxml2 imagemagick librsvg
+homebrew_packages="autoconf texinfo libxml2 imagemagick librsvg"
+
+brew install $homebrew_packages
+brew upgrade $homebrew_packages
 git pull
 git reset HEAD --hard
 ./autogen.sh
 # The ctags bit is to rename the ctags binary so it doesn't conflict with an
 # existing, non-emacs ctags installation
 ./configure --without-dbus --with-ns --disable-ns-self-contained --without-pop --with-modules CFLAGS="-I /usr/local/opt/libxml2/include/libxml2" --program-transform-name='s/^ctags$/ctags.emacs/'
+# Even though we move the binary ourselves, we still need to install to get the
+# Emacs Lisp source in the right place.
 make install
-cp -R nextstep/Emacs.app $HOME/Applications/
+rm -rf $HOME/Applications/Emacs.app
+mv nextstep/Emacs.app $HOME/Applications/
+make clean
