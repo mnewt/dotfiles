@@ -1,57 +1,15 @@
-* DONE Make ssh with =dtach= actually work
-- State "DONE"       from "WIP"        [2018-11-18 Sun 18:04]
-See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
-* TODO ~man~ should select the window
-* TODO ~man~ should be able to search manpages on remote system (default to this when using tramp?)
-https://emacs.stackexchange.com/questions/20524/can-emacs-eshell-show-remote-man-pages-in-tramp-mode?rq=1
-https://stackoverflow.com/questions/22957137/how-to-make-emacs-man-work-over-tramp#22962342
-* TODO Make command to tail a file [0/2]
-** TODO command
-** TODO key binding in dired
-* WIP Emacs recoll
-https://oremacs.com/2015/07/27/counsel-recoll/
-https://opensourceprojects.eu/p/recoll1/tickets/61/
-* DONE Get tldr to work
-- State "DONE"       from "WIP"        [2018-11-18 Sun 18:04]
 * TODO Eshell =rm= hangs when pressing =RET=
-Actually, it is working, it just takes a long time and gives zero feedback. Can we fix this?
+Actually, it is working, it just takes a long time and gives zero feedback. This is especially problematic when working over slow links and performing bulk operations. Can we fix this?
 ** Takes too long
 ** Gives zero feedback (doesn't even go to new line when pressing =RET= until it is completely done)
 ** Outputs =t= for each file deleted. It should give the same feedback as =*rm=.
-* TODO Find and squash causes of unresponsiveness in remote contexts [0/2]
-** TODO Editing
-** TODO Eshell
-* TODO =copy-region-other-window= and =move-region-other-window= should also copy the line if no region is selected
-* DONE Get =pointhistory= to work
-- State "DONE"       from "WIP"        [2018-11-18 Sun 18:05]
-Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
 * TODO Desktop should restore eshell buffers
 =desktop-plus.el= could be used for this. It currently has support for shell, but not eshell.
-* TODO Make Eshell prompt look good with a light theme
-* TODO term-mode filter out escape sequence
-This happens when running =fish= in =shell-mode=:
-=]0;fish=
-Guessing this is the (remains of the?) xterm sequence to set the title?
 * TODO Figure out magit wip modes
 * TODO Mojave issues [3/4]
-** DONE Re-compile with new changes
-- State "DONE"       from "WIP"        [2018-10-02 Tue 21:33]
-** DONE Inserting characters is slow (try holding down a key--it doesn't keep up with repeat rate)
-- State "DONE"       from "WIP"        [2018-11-18 Sun 18:05]
-This seems to be fixed for most buffers but Org buffers are still terrible
-** DONE Scrolling is slow
-- State "DONE"       from "WIP"        [2018-11-18 Sun 18:05]
 ** TODO Parinfer is slow
-* TODO Fix Eshell/shell/term bouncing shell output up and down [1/3]
-Not sure if these are all the same issue. Fix term first, see if it affects the others.
-** DONE term - it isn't the same issue. It was the mouse scroll settings that appear to be completely unnecessary anyway. Removed them and it helped term-mode updates a lot. Did not affect shell/eshell bouncing.
-- State "DONE"       from "TODO"       [2018-08-31 Fri 11:03]
-** TODO shell
-** TODO eshell
 * TODO Get Eshell/tramp to cache and/or save passwords [2/4]
 Enable logging with =(setq auth-source-debug t)=
-** DONE For the user
-** DONE For sudo/sudoers - alias for su/sudo?
 ** TODO What about when sudo is called in other ways, such as from a script? It doesn't seem to cache the password then.
 ** TODO How to ignore password prompting for just for a specific command?
 See:
@@ -62,6 +20,3 @@ See:
 This is already added. do we have to do something else?
 * TODO Implement =grc= in elisp
 =highlight-things.el=
-* TODO Investigate Crux
-https://github.com/bbatsov/crux/blob/master/crux.el
-* 

@@ -1160,3 +1160,216 @@ Archived entries from file /Users/mn/TODO.org
 :ARCHIVE_TODO: DONE
 :END:
 - State "DONE"       from "NEXT"       [2018-10-06 Sat 18:04]
+
+* DONE Make ssh with =dtach= actually work
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:14
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+- State "DONE"       from "WIP"        [2018-11-18 Sun 18:04]
+See https://github.com/Ambrevar/dotfiles/blob/master/.emacs.d/lisp/package-eshell-detach.el
+
+* DONE ~man~ should select the window
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:15
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+
+* DONE ~man~ should be able to search manpages on remote system (default to this when using tramp?)
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:15
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+https://emacs.stackexchange.com/questions/20524/can-emacs-eshell-show-remote-man-pages-in-tramp-mode?rq=1
+https://stackoverflow.com/questions/22957137/how-to-make-emacs-man-work-over-tramp#22962342
+
+* DONE Make command to tail a file [2/2]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:15
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+** DONE command
+** DONE key binding in dired
+
+* DONE WIP Emacs recoll
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:15
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+No longer using recoll--use spotlight instead
+https://oremacs.com/2015/07/27/counsel-recoll/
+https://opensourceprojects.eu/p/recoll1/tickets/61/
+
+* DONE Get tldr to work
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:15
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+- State "DONE"       from "WIP"        [2018-11-18 Sun 18:04]
+
+* TODO Eshell =rm= hangs when pressing =RET=
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:15
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: TODO
+:END:
+Actually, it is working, it just takes a long time and gives zero feedback. This is especially problematic when working over slow links and performing bulk operations. Can we fix this?
+** Takes too long
+** Gives zero feedback (doesn't even go to new line when pressing =RET= until it is completely done)
+** Outputs =t= for each file deleted. It should give the same feedback as =*rm=.
+
+* DONE Find and squash causes of unresponsiveness in remote contexts [2/2]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:16
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+** DONE Editing
+** DONE Eshell
+
+* DONE =copy-region-other-window= and =move-region-other-window= should also copy the line if no region is selected
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:16
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+
+* Takes too long
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:20
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Eshell =rm= hangs when pressing =RET=
+:ARCHIVE_CATEGORY: TODO
+:END:
+
+* Gives zero feedback (doesn't even go to new line when pressing =RET= until it is completely done)
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:20
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Eshell =rm= hangs when pressing =RET=
+:ARCHIVE_CATEGORY: TODO
+:END:
+
+* Outputs =t= for each file deleted. It should give the same feedback as =*rm=.
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:20
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Eshell =rm= hangs when pressing =RET=
+:ARCHIVE_CATEGORY: TODO
+:END:
+
+* DONE Re-compile with new changes
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Mojave issues
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+- State "DONE"       from "WIP"        [2018-10-02 Tue 21:33]
+
+* DONE Inserting characters is slow (try holding down a key--it doesn't keep up with repeat rate)
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Mojave issues
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+- State "DONE"       from "WIP"        [2018-11-18 Sun 18:05]
+This seems to be fixed for most buffers but Org buffers are still terrible
+
+* DONE Scrolling is slow
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Mojave issues
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+- State "DONE"       from "WIP"        [2018-11-18 Sun 18:05]
+
+* DONE For the user
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Get Eshell/tramp to cache and/or save passwords
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+
+* DONE For sudo/sudoers - alias for su/sudo?
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_OLPATH: Get Eshell/tramp to cache and/or save passwords
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+
+* DONE Get =pointhistory= to work
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+- State "DONE"       from "WIP"        [2018-11-18 Sun 18:05]
+Right now it jumps around in a way I don't understand. Maybe something to do with ring mechanics?
+
+* DONE Make Eshell prompt look good with a light theme
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+
+* DONE term-mode filter out escape sequence
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+This happens when running =fish= in =shell-mode=:
+=]0;fish=
+Guessing this is the (remains of the?) xterm sequence to set the title?
+
+* DONE Fix Eshell/shell/term bouncing shell output up and down [3/3]
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+Not sure if these are all the same issue. Fix term first, see if it affects the others.
+Not a complete fix, but turned off xterm features.
+** DONE term - it isn't the same issue. It was the mouse scroll settings that appear to be completely unnecessary anyway. Removed them and it helped term-mode updates a lot. Did not affect shell/eshell bouncing.
+- State "DONE"       from "TODO"       [2018-08-31 Fri 11:03]
+** DONE shell
+** DONE eshell
+
+* DONE Investigate Crux
+:PROPERTIES:
+:ARCHIVE_TIME: 2019-05-15 Wed 09:23
+:ARCHIVE_FILE: ~/TODO.org
+:ARCHIVE_CATEGORY: TODO
+:ARCHIVE_TODO: DONE
+:END:
+https://github.com/bbatsov/crux/blob/master/crux.el
