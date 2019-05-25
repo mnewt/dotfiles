@@ -1,3 +1,9 @@
+* DONE modeline features [4/4]
+** DONE Flycheck ~(flycheck-mode-line-status-text)~
+** DONE host and path status for ~shell-mode~
+** DONE ^^^ and the same for ~term-mode~ and/or ~vterm-mode~?
+** DONE Search matches? Like anzu?
+* TODO Turn off Outline mode by default. Maybe even get rid of outshine?
 * TODO Eshell =rm= hangs when pressing =RET=
 Actually, it is working, it just takes a long time and gives zero feedback. This is especially problematic when working over slow links and performing bulk operations. Can we fix this?
 ** Takes too long
@@ -18,5 +24,5 @@ See:
           'comint-watch-for-password-prompt)
 #+END_SRC
 This is already added. do we have to do something else?
-* TODO Implement =grc= in elisp
-=highlight-things.el=
+* TODO Implement =grc= in elisp =highlight-things.el= [0/1]
+** TODO Roll =flash-thing= into it. Make the approach like =dired-hacks=.
