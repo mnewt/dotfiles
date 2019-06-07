@@ -1,21 +1,34 @@
 #!/bin/sh
-# make it easier to two hop ssh
-# Usage:
-# sshproxy [bastion] [ssh options] user@destination
-#   bastion      - first ssh host that localhost can contact directly
-#   destination  - second ssh host that only bastion can reach
+
+print_help () {
+  cat <<EOF
+ssp - SSH to a host using an intermediary proxy.
+
+Usage: ssp [-h] [proxy] [ssh_options]
+
+proxy is an SSH hostname or user@hostname specifying the proxyenv host.
+
+ssh_options are all the normal options that you would pass to SSH if you were
+            connecting directly to it, including the normal user@hostname
+            string.
+
+EOF
+}
 
 # defaults
-bastion="a"
+proxy="a"
 
 case "$1" in
-  -*)
+  -h | --help)
+	  print_help
+    exit
     ;;
   *)
     if [ "$#" -gt 1 ]; then
-      bastion="$1"
+      proxy="$1"
       shift
     fi
-    ;;
+	  ;;
 esac
-ssh -o ProxyCommand="ssh -W %h:%p $bastion" $@
+
+ssh -o ProxyCommand="ssh -W %h:%p $proxy" "$@"

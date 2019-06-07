@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 
 -- The Karabiner Elements config remaps caps lock to {"cmd", "alt", "ctrl"}
-local mash = {"cmd", "alt", "ctrl"}
-local mashshift = {"cmd", "alt", "ctrl", "shift"}
-local bind = hs.hotkey.bind
+mash = {"cmd", "alt", "ctrl"}
+mashshift = {"cmd", "alt", "ctrl", "shift"}
+bind = hs.hotkey.bind
 
 --------------------------------------------------------------------------------
 -- * Utility functions
@@ -120,7 +120,7 @@ hs.hotkey.showHotkeys(mash, "/")
 
 -- ** Dark mode
 hs.console.smartInsertDeleteEnabled(false)
-hs.console.darkMode(true)
+-- hs.console.darkMode(true)
 if hs.console.darkMode() then
    hs.preferencesDarkMode(true)
    hs.console.outputBackgroundColor({ white = 0 })
@@ -223,67 +223,26 @@ hs.grid.GRIDHEIGHT = 18
 hs.grid.GRIDWIDTH = 18
 
 -- ** Alter gridsize
-bind(mashshift, '=', function()
-                  undo:addToStack() hs.grid.adjustHeight(1)
-end)
-bind(mashshift, '-', function()
-                  undo:addToStack()
-                  hs.grid.adjustHeight(-1)
-end)
-bind(mash, '=', function()
-                  undo:addToStack()
-                  hs.grid.adjustWidth(1)
-end)
-bind(mash, '-', function()
-                  undo:addToStack()
-                  hs.grid.adjustWidth(-1)
-end)
+bind(mashshift, '=', function() undo:addToStack() hs.grid.adjustHeight(1) end)
+bind(mashshift, '-', function() undo:addToStack() hs.grid.adjustHeight(-1) end)
+bind(mash, '=', function() undo:addToStack() hs.grid.adjustWidth(1) end)
+bind(mash, '-', function() undo:addToStack() hs.grid.adjustWidth(-1) end)
 
 -- ** Snap windows
-bind(mash, ';', function()
-                  undo:addToStack()
-                  hs.grid.snap(hs.window.focusedWindow())
-end)
-bind(mash, "'", function()
-                  undo:addToStack()
-                  hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap)
-end)
+bind(mash, ';', function() undo:addToStack() hs.grid.snap(hs.window.focusedWindow()) end)
+bind(mash, "'", function() undo:addToStack() hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap) end)
 
 -- ** Move windows
-bind(mash, 'j', function()
-                  undo:addToStack()
-                  hs.grid.pushWindowDown()
-end)
-bind(mash, 'k', function()
-                  undo:addToStack()
-                  hs.grid.pushWindowUp()
-end)
-bind(mash, 'h', function()
-                  undo:addToStack()
-                  hs.grid.pushWindowLeft()
-end)
-bind(mash, 'l', function()
-                  undo:addToStack()
-                  hs.grid.pushWindowRight()
-end)
+bind(mash, 'j', function() undo:addToStack() hs.grid.pushWindowDown() end)
+bind(mash, 'k', function() undo:addToStack() hs.grid.pushWindowUp() end)
+bind(mash, 'h', function() undo:addToStack() hs.grid.pushWindowLeft() end)
+bind(mash, 'l', function() undo:addToStack() hs.grid.pushWindowRight() end)
 
 -- ** Resize windows
-bind(mashshift, 'k', function()
-                  undo:addToStack()
-                  hs.grid.resizeWindowShorter()
-end)
-bind(mashshift, 'j', function()
-                  undo:addToStack()
-                  hs.grid.resizeWindowTaller()
-end)
-bind(mashshift, 'l', function()
-                  undo:addToStack()
-                  hs.grid.resizeWindowWider()
-end)
-bind(mashshift, 'h', function()
-                  undo:addToStack()
-                  hs.grid.resizeWindowThinner()
-end)
+bind(mashshift, 'k', function() undo:addToStack() hs.grid.resizeWindowShorter() end)
+bind(mashshift, 'j', function() undo:addToStack() hs.grid.resizeWindowTaller() end)
+bind(mashshift, 'l', function() undo:addToStack() hs.grid.resizeWindowWider() end)
+bind(mashshift, 'h', function() undo:addToStack() hs.grid.resizeWindowThinner() end)
 
 -- ** Toggle window zoom (acts like Alt+Shift+GreenPlusButton)
 bind(mash, "m", function()
@@ -308,13 +267,13 @@ bind(mash, "m", function()
 end)
 
 -- ** Exposé
--- This is not working 100%
-expose = hs.expose.new(nil,{showThumbnails=true}) -- default windowfilter
-expose_app = hs.expose.new(nil,{onlyActiveApplication=true}) -- show windows for the current application
-expose_space = hs.expose.new(nil,{includeOtherSpaces=false}) -- only windows in the current Mission Control Space
+-- This kind of sucks and is buggy
+-- expose = hs.expose.new(nil,{showThumbnails=true}) -- default windowfilter
+-- expose_app = hs.expose.new(nil,{onlyActiveApplication=true}) -- show windows for the current application
+-- expose_space = hs.expose.new(nil,{includeOtherSpaces=false}) -- only windows in the current Mission Control Space
 
-bind(mash, 'x', 'Expose',function() expose:toggleShow() end)
-bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
+-- bind(mash, 'x', 'Expose',function() expose:toggleShow() end)
+-- bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
 
 --------------------------------------------------------------------------------
 -- * Spaces
@@ -364,7 +323,7 @@ bind(mashshift, 'x', 'Expose',function() expose_app:toggleShow() end)
 -- Stolen from
 -- https://github.com/songchenwen/dotfiles/blob/master/hammerspoon/init.lua
 
-bind(mash, 'c', function() 
+bind(mash, 'q', function() 
       local c = hs.caffeinate
       if not c then return end
       if c.get('displayIdle') or c.get('systemIdle') or c.get('system') then
