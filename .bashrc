@@ -1,27 +1,33 @@
 #! /usr/bin/env bash
 # Runs at non-login interactive shell
 
-# simple prompt in case the fancy one isn't used
-__prompt_cmdstatus_bg=001
-__prompt_cmdstatus_fg=255
-__prompt_cmdstatus_format=' %i '
+# Construct a pleasant prompt that clearly delineates output and command entry
+bold='\033[1m'
+normal='\033[0m'
+bg='\033[48;5;'
+fg='\033[38;5;'
 
-__prompt_ssh_username_bg=003
-__prompt_ssh_username_fg=000
-__prompt_ssh_username_format=' %s '
+bg() {
+  printf "${bg}%sm" "$1"
+}
 
-__prompt_hostname_bg=002
-__prompt_hostname_fg=000
-__prompt_hostname_format=' %s '
+fg() {
+  printf "${fg}%sm" "$1"
+}
 
-__prompt_left_directory_bg=006
-__prompt_left_directory_fg=016
-__prompt_left_directory_format=' %s '
+cmdstatus="\[$(bg 001)$(fg 255)\]"'$(s=$? && [ $s != 0 ] && echo " $s ")'
+# Only display username and hostname if we are over SSH
+if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+  username="\[$(bg 003)$(fg 000)\] \u "
+  hostname="\[$(bg 002)$(fg 000)\] \h "
+else
+  username=""
+  hostname=""
+fi
+dir="\[$(bg 006)$(fg 016)\] \w "
+sigil="\[${normal}\]\n\[${bold}\]\$ \[${normal}\]"
 
-__prompt_bg=000
-__prompt_fg=255
-
-export PS1="\[\033[48;5;${__prompt_cmdstatus_bg}m\033[38;5;${__prompt_cmdstatus_fg}m\]\$(s=\$? && [ \$s != 0 ] && echo "[\$s]")\[\033[48;5;${__prompt_ssh_username_bg}m\033[38;5;${__prompt_ssh_username_fg}m\] \u \[\033[48;5;${__prompt_hostname_bg}m\033[38;5;${__prompt_hostname_fg}m\] \h \[\033[48;5;${__prompt_left_directory_bg}m\033[38;5;${__prompt_left_directory_fg}m\] \w \[\033[48;5;${__prompt_bg}m\033[38;5;${__prompt_fg}m\]\n\$\[\033[0m\] "
+export PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
 
 # Bind M-p and M-n to help with Emacs muscle memory.
 if [[ ! -v INSIDE_EMACS ]]; then
