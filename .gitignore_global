@@ -291,6 +291,3 @@ repl-history
 *.xlk
 ~$*.ppt*
 *.~vsd*
-
-# * psync
-psync_config

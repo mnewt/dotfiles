@@ -1,0 +1,66 @@
+#!/usr/bin/env sh
+
+print_help() {
+  cat <<EOF
+usage: fiat [ lux | nox | quid | verto ]
+
+  lux     Enable light mode
+  nox     Enable dark mode
+  quid    Query
+  verto   Toggle
+EOF
+}
+
+set_os() {
+  [ "$1" = light ] && mode="false" || mode="true"
+  osascript -e "
+tell application \"System Events\"
+  tell appearance preferences to set dark mode to $mode
+end tell"
+}
+
+set_terminal() {
+  [ "$1" = light ] && profile="Pro Light" || profile="Pro"
+  osascript -e "
+tell application \"Terminal\"
+  set default settings to settings set \"$profile\"
+end tell"
+  osascript -e "
+tell application \"Terminal\"
+  set current settings of tabs of windows to settings set \"$profile\"
+end tell"
+}
+
+fiat_lux() {
+  set_os light
+  set_terminal light
+}
+
+fiat_nox() {
+  set_os dark
+  set_terminal dark
+}
+
+is_dark() {
+  [ "$(2>/dev/null defaults read -g AppleInterfaceStyle)" = "Dark" ]
+}
+
+case "$1" in
+  l*)
+    fiat_lux
+    ;;
+  d*|n*)
+    fiat_nox
+    ;;
+  h*)
+    print_help
+    ;;
+  q*)
+    is_dark && echo "Dark" || echo "Light"
+    ;;
+  *)
+    is_dark && fiat_lux || fiat_nox
+    ;;
+esac
+
+
