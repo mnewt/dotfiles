@@ -25,9 +25,17 @@ else
   hostname=""
 fi
 dir="\[$(bg 006)$(fg 016)\] \w "
-sigil="\[${normal}\]\n\[${bold}\]\$ \[${normal}\]"
+sigil="\[${normal}\]\n\[${bold}\]\$\[${normal}\] "
 
-export PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
+# Only display a fancy prompt if we are in an interactive, smart terminal.
+case "$TERM" in
+  xterm*|rxvt*|eterm*|screen*)
+    tty -s && export PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
+    ;;
+  *)
+    export PS1="$PWD> "
+    ;;
+esac
 
 # Bind M-p and M-n to help with Emacs muscle memory.
 if [[ ! -v INSIDE_EMACS ]]; then
