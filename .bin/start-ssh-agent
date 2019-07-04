@@ -6,8 +6,10 @@
 SSH_KEYS=( ${HOME}/.ssh/*rsa )
 
 SSH_ENV="$HOME/.ssh/environment"
-SSH_ADD="/usr/bin/ssh-add"
-SSH_AGENT="/usr/bin/ssh-agent"
+# SSH_ADD="/usr/bin/ssh-add"
+SSH_ADD="$(which ssh-add)"
+# SSH_AGENT="/usr/bin/ssh-agent"
+SSH_AGENT="$(which ssh-agent)"
 
 start_agent () {
   echo "Starting SSH agent..."
