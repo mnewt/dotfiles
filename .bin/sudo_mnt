@@ -107,8 +107,8 @@ mnt_smb_ssh () {
         exe sudo ifconfig lo0 ${localhost} alias up
         log "Return code: $?"
         sleep 1
-        log sudo ssh -fNM -i ${ssh_identity_file} -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
-        sudo ssh -fNM -i ${ssh_identity_file} -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
+        log sudo ssh -fNM -i ${ssh_identity_file} -p "${sshport}" -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
+        sudo ssh -fNM -i ${ssh_identity_file} -p "${sshport}" -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
         log "Return code: $?"
         log mount_smbfs "//${user}:********@${localhost}/${path}" "${mountpoint}"
         mount_smbfs "//${user}:${password}@${localhost}/${path}" "${mountpoint}"

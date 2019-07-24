@@ -102,15 +102,16 @@ mnt_smb_ssh () {
     exit 0
   else
     log "Attempting to mount (${fileserver}/${path}) via ssh tunnel at (${mountpoint})..."
+    mkdir -p "${mountpoint}"
     for i in {1..20}; do
       if timeout 1 bash -c "echo > /dev/tcp/${sshhost}/${sshport}" >/dev/null 2>&1; then
         echo "${sudo_password}" | \
           exe sudo -S ifconfig lo0 ${localhost} alias up
         log "Return code: $?"
         sleep 1
-        log sudo -S ssh -fNM -i ${ssh_identity_file} -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
+        log sudo -S ssh -fNM -i ${ssh_identity_file} -p "${sshport}" -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}"
         echo "${sudo_password}" | \
-          { nohup sudo -S ssh -fNM -i ${ssh_identity_file} -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}" </dev/null >/dev/null 2>&1 & } &
+          { nohup sudo -S ssh -fNM -i ${ssh_identity_file} -p "${sshport}" -S "${socket}" -L "${port_forward_string}" "${user}@${sshhost}" </dev/null >/dev/null 2>&1 & } &
         log "Return code: $?"
         log mount_smbfs "//${user}:********@${localhost}/${path}" "${mountpoint}"
         mount_smbfs "//${user}:${password}@${localhost}/${path}" "${mountpoint}"
