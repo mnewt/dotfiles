@@ -1,8 +1,8 @@
 #!/bin/bash
 # Update Arch Linux
 
-ensure () {
-  echo $pkgs | grep -q $1 >/dev/null || pacman -Sy --noconfirm $1 
+ensure() {
+  echo $pkgs | grep -q $1 >/dev/null || pacman -Sy --noconfirm $1
 }
 
 if [ -e '/etc/arch-release' ]; then
@@ -11,9 +11,11 @@ if [ -e '/etc/arch-release' ]; then
   ensure archlinux-keyring
   ensure pacman-contrib
   sudo pacman -Syyu --noconfirm
-  sudo pacman -Qtdq > /dev/null && \
+  sudo pacman -Qtdq >/dev/null &&
     sudo pacman --noconfirm -Rns $(pacman -Qtdq)
   sudo paccache -ruk1
+
+  yaourt -Syyu --noconfirm
 else
   echo "Not running Arch Linux, skipping"
 fi
