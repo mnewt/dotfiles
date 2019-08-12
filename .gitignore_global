@@ -228,7 +228,7 @@ network-security.data
 emacs.d/recentf
 /straight/
 .org-id-locations
-*_archive
+# *_archive
 *_flymake.*
 /eshell/history
 /eshell/lastdir

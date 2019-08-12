@@ -1,20 +1,20 @@
 * Some dotfiles
-This setup is mostly shell agnostic, supporting [[https://www.gnu.org/software/emacs/manual/html_mono/eshell.html][Eshell]], [[http://fishshell.com/][fish]], [[https://www.gnu.org/software/bash/][bash]], and [[http://www.zsh.org/][zsh]].
+This setup is mostly shell agnostic, supporting primarily [[https://www.gnu.org/software/bash/][bash]], but also [[http://fishshell.com/][fish]], and [[http://www.zsh.org/][zsh]].
 
-In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to Emacs, I am using Eshell and rarely use a terminal outside of Emacs.
+In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to Emacs, I am using Emacs commands, some Eshell, and rarely falling back to bash.
 
-Most scripts are written in bash because it is the lowest common denominator and I'm twisted enough to think trying to write programs in pure bash is fun.
+Most scripts are written in bash because it is the lowest common denominator and shell scripting is still the most effective way to get things done.
 
 NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use [[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there. Feel free to create issues or pull requests on either (but I do prefer [[https://gitlab.com][GitLab]]).
 
 * Tour
 ** Applications & Utilities
 Included are configurations for some programs, such as:
-*** [[https://fishshell.com/][Fish Shell]]
-*** [[https://www.gnu.org/software/emacs/][Emacs]]
+** [[https://www.gnu.org/software/emacs/][Emacs]]
 The Emacs config lives in its own repo, at https://gitlab.com/mnewt/dotemacs
-*** [[https://github.com/tmux/tmux][Tmux]]
-*** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
+** [[https://fishshell.com/][Fish Shell]]
+** [[https://github.com/tmux/tmux][Tmux]]
+** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 * Install
 This procedure will establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at ~$HOME~. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under ~$HOME~). Then we explicitly add just the files we want.
 
@@ -138,38 +138,24 @@ To delete a repo and all its files:
   rm -rf "$HOME/.config/repos/$repo"
 #+end_src
 * Update scripts
-  There are set of update scripts in the ~bin~ directory to keep all the
-  different software on a given system up to date.
+  There are set of update scripts in the ~bin~ directory to keep all the different software on a given system up to date.
+
+  The master ~update~ script runs all of these in succession. Each script is smart enough to figure out whether the appropriate software is installed on the current machine.
 
   These are some of the things that can be updated:
 ** Arch Linux ([[https://www.archlinux.org/pacman/][pacman]])
-** Atom Editor [[https://atom.io/packages][Packages]]
 ** Clojure ([[https://leiningen.org/][Leiningen]])
 ** Debian/Ubuntu ([[https://wiki.debian.org/Apt][apt]])
 ** Emacs ([[https://github.com/raxod502/straight.el][straight.el]])
 ** Fish Shell ([[https://github.com/jorgebucaran/fisher][fisher]])
-** iTerm2 [[https://iterm2.com/documentation**shell**integration.html][Shell Integration]]
 ** macOS [[https://www.apple.com/ca/osx/apps/app**store/][App Store]]
 ** macOS [[https://brew.sh/][Homebrew]]
 ** macOS [[https://www.macports.org/][MacPorts]]
 ** Node.js [[https://www.npmjs.com/][Packages]]
 ** Python [[https://pypi.org/][Packages]]
 ** Ruby [[https://rubygems.org/][Gems]]
-** Tmux Packages ([[https://github.com/tmux**plugins/tpm][tpm]])
 ** Vim/Neovim Packages ([[https://github.com/junegunn/vim-plug][vim-plug]])
-
-  The master ~update~ script runs all of these in succession. Each script is smart enough to figure out whether the appropriate software is installed on the current machine.
 * Application Notes
-
-** Atom
-Install atom, then run this to install packages
-#+BEGIN_EXAMPLE
-  apm install --packages-file ~/.atom/packages.txt
-#+END_EXAMPLE
-To save the list of currently installed packages
-#+BEGIN_EXAMPLE
-  apm list --bare --installed --dev false > ~/.atom/packages.txt
-#+END_EXAMPLE
 ** Emacs
 On macOS, it seems the version of makeinfo is too old and causes problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a newer version, then install Emacs, edit init.el and m-packages.el, launch emacs, and have fun.
 #+BEGIN_EXAMPLE
@@ -193,29 +179,4 @@ packages.
   update-vim
 #+END_EXAMPLE
 * License
-All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]]:
-
-This is free and unencumbered software released into the public domain.
-
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means.
-
-In jurisdictions that recognize copyright laws, the author or authors
-of this software dedicate any and all copyright interest in the
-software to the public domain. We make this dedication for the benefit
-of the public at large and to the detriment of our heirs and
-successors. We intend this dedication to be an overt act of
-relinquishment in perpetuity of all present and future rights to this
-software under copyright law.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-For more information, please refer to <http://unlicense.org/>
+All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]].
