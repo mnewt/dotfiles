@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
 if installed cpan; then
-	cpan -u
+  installed cpanm &&
+    cpanm --self-upgrade ||
+    curl -L https://cpanmin.us | perl - App::cpanminus
+  cpanm --notest App::cpanoutdated
+  cpan-outdated -p | cpanm -q
 fi
