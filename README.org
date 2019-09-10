@@ -1,9 +1,9 @@
 * Some dotfiles
 This setup is mostly shell agnostic, supporting primarily [[https://www.gnu.org/software/bash/][bash]], but also [[http://fishshell.com/][fish]], and [[http://www.zsh.org/][zsh]].
 
-In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to Emacs, I am using Emacs commands, some Eshell, and rarely falling back to bash.
+In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to Emacs, I am using Emacs commands, some Eshell, and rarely falling back to bash. So Emacs sources the bash environment and then builds on top of it.
 
-Most scripts are written in bash because it is the lowest common denominator and shell scripting is still the most effective way to get things done.
+Most scripts are written in bash because it is the lowest common denominator.
 
 NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use [[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there. Feel free to create issues or pull requests on either (but I do prefer [[https://gitlab.com][GitLab]]).
 
@@ -11,14 +11,16 @@ NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] 
 ** Applications & Utilities
 Included are configurations for some programs, such as:
 ** [[https://www.gnu.org/software/emacs/][Emacs]]
-The Emacs config lives in its own repo, at https://gitlab.com/mnewt/dotemacs
+The Emacs config lives in its own repo, at [[https://github.com/mnewt/dotemacs]]
 ** [[https://fishshell.com/][Fish Shell]]
 ** [[https://github.com/tmux/tmux][Tmux]]
 ** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 * Install
-This procedure will establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at ~$HOME~. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under ~$HOME~). Then we explicitly add just the files we want.
+This may seem complicated at first, but bear with me. It is a really nice way to manage dotfiles without trying synchronize a separate repo and ~$HOME~ directory. We just put the repo in the home directory itself!
 
-This is inspired by the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit because it allows any git-based program to interact with the repo). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that our dotfiles are in their proper locations and we explicitly choose which files to track and everything else is ignored by git. No symlinks, no duplication, no scripts to manage the repo.
+We establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at ~$HOME~. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under ~$HOME~). Then we explicitly add just the files we want.
+
+This is approach inspired by the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit because it allows any git-based program to interact with the repo). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that our dotfiles are in their proper locations and we explicitly choose which files to track and everything else is ignored by git. No symlinks, no duplication, no scripts to manage the repo.
 
 Further, we can have multiple repos tracking different sets of files, all with their workdirs pointing to ~$HOME~. I use this to merge my private settings with my public ones.
 ** The Short Version
@@ -142,27 +144,19 @@ To delete a repo and all its files:
 
   The master ~update~ script runs all of these in succession. Each script is smart enough to figure out whether the appropriate software is installed on the current machine.
 
-  These are some of the things that can be updated:
+  These are some of the things which can be updated:
 ** Arch Linux ([[https://www.archlinux.org/pacman/][pacman]])
-** Clojure ([[https://leiningen.org/][Leiningen]])
-** Debian/Ubuntu ([[https://wiki.debian.org/Apt][apt]])
-** Emacs ([[https://github.com/raxod502/straight.el][straight.el]])
-** Fish Shell ([[https://github.com/jorgebucaran/fisher][fisher]])
+** Debian/Ubuntu [[https://wiki.debian.org/Apt][Packages]]
+** Fish Shell [[https://github.com/jorgebucaran/fisher][Packages]]
 ** macOS [[https://www.apple.com/ca/osx/apps/app**store/][App Store]]
 ** macOS [[https://brew.sh/][Homebrew]]
 ** macOS [[https://www.macports.org/][MacPorts]]
 ** Node.js [[https://www.npmjs.com/][Packages]]
+** Perl [[https://www.cpan.org/][Libraries]]
 ** Python [[https://pypi.org/][Packages]]
 ** Ruby [[https://rubygems.org/][Gems]]
-** Vim/Neovim Packages ([[https://github.com/junegunn/vim-plug][vim-plug]])
+** Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
 * Application Notes
-** Emacs
-On macOS, it seems the version of makeinfo is too old and causes problems with [[https://github.com/abo-abo/swiper][ivy]]. Install a newer version, then install Emacs, edit init.el and m-packages.el, launch emacs, and have fun.
-#+BEGIN_EXAMPLE
-  brew install git ripgrep texinfo
-  brew link --force texinfo
-  brew install emacs --with-cocoa --with-imagemagick@6 --with-librsvg --with-mailutils
-#+END_EXAMPLE
 ** Fish
 To install and switch our shell to ~fish~ on macOS:
 #+BEGIN_EXAMPLE
