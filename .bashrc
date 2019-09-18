@@ -29,13 +29,14 @@ xterm* | rxvt* | eterm* | screen*)
   dir="\[$(bg 006)$(fg 016)\] \w "
   sigil="\[${normal}\]\n\[${bold}\]\$\[${normal}\] "
 
-  tty -s && export PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
+  tty -s && PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
+  ;;
+*)
+  PS1="\w \$ "
   ;;
 esac
 
-# Bind M-p and M-n to help with Emacs muscle memory.
-bind '"\ep":previous-history'
-bind '"\en":next-history'
+export PS1
 
 source_if() {
   [ -e "$1" ] && . "$1"
@@ -52,6 +53,10 @@ if [[ -z "$INSIDE_EMACS" || "$EMACS_BASH_COMPLETE" == "t" ]]; then
   source_if "/usr/local/share/bash-completion/bash_completion"
   source_if "/usr/local/etc/bash_completion"
   source_if "/etc/bash_completion"
+
+  # Bind M-p and M-n to help with Emacs muscle memory.
+  bind '"\ep":previous-history'
+  bind '"\en":next-history'
 fi
 
 installed() {
