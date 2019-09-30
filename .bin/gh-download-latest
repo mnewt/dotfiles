@@ -2,11 +2,13 @@
 # Download a github project's latest release
 # $1: username/repo
 # $2: regex to match download file
-# example: ./gh-download-latest atom/atom gz
+# $3: destination
+# example: ./gh-download-latest atom/atom gz atom.gz
 
 repo=$1
 regex=${2:-gz}
+destination=${3:--}
 
-wget -qO- https://api.github.com/repos/$repo/releases/latest | \
-  awk -v regex="$regex" -F '"' '/browser_download_url/ && match($4, regex) { print $4 }' | \
-xargs wget
+wget -qO- https://api.github.com/repos/$repo/releases/latest |
+  awk -v regex="$regex" -F '"' '/browser_download_url/ && match($4, regex) { print $4 }' |
+  xargs wget -O $destination

@@ -38,6 +38,7 @@ add_to_path() {
   old_paths=($(split ":" "${!var}"))
   paths=$(join ":" $(uniquify "$@" "${old_paths[@]}"))
   printf -v "${var}" "${paths[@]}"
+  export ${var}
 }
 
 # Prompt user to confirm

@@ -7,3 +7,11 @@ if installed lein; then
 else
   echo "Leiningen not found, skipping"
 fi
+
+echo "Downloading zprint..."
+# url=$(curl -s https://api.github.com/repos/kkinnear/zprint/releases/latest | awk -F '"' '/browser_download_url.*zprintm-/ {print $4}')
+
+# curl -L $url -o $HOME/.bin/zprint
+
+gh-download-latest kkinnear/zprint zprintm $HOME/zprint
+chmod +x $HOME/zprint
