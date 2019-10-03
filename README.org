@@ -5,14 +5,14 @@ In the past, I spent most of my time in fish. However, lately, as I transition m
 
 Most scripts are written in bash because it is the lowest common denominator.
 
-NOTE: The master repository is on [[https://gitlab.com/mnewt/dotfiles][GitLab]] but since most people use [[https://github.com/mnewt/dotfiles][GitHub]] it has been cloned there. Feel free to create issues or pull requests on either (but I do prefer [[https://gitlab.com][GitLab]]).
-
 * Tour
 ** Applications & Utilities
 Included are configurations for some programs, such as:
 ** [[https://www.gnu.org/software/emacs/][Emacs]]
-The Emacs config lives in its own repo, at [[https://github.com/mnewt/dotemacs]]
+Actually, the Emacs config lives in its own repo, at [[https://github.com/mnewt/dotemacs]]
+** [[https://www.gnu.org/software/bash/][Bash]]
 ** [[https://fishshell.com/][Fish Shell]]
+** [[https://www.zsh.org/][Zsh]]
 ** [[https://github.com/tmux/tmux][Tmux]]
 ** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 * Install
@@ -145,7 +145,8 @@ To delete a repo and all its files:
   The master ~update~ script runs all of these in succession. Each script is smart enough to figure out whether the appropriate software is installed on the current machine.
 
   These are some of the things which can be updated:
-** Arch Linux ([[https://www.archlinux.org/pacman/][pacman]])
+** Arch Linux [[https://www.archlinux.org/pacman/][Pacman]]
+** Clojure [[https://clojure.org/reference/deps_and_cli][deps.edn]] and [[https://leiningen.org/][Leiningen]]
 ** Debian/Ubuntu [[https://wiki.debian.org/Apt][Packages]]
 ** Fish Shell [[https://github.com/jorgebucaran/fisher][Packages]]
 ** macOS [[https://www.apple.com/ca/osx/apps/app**store/][App Store]]
