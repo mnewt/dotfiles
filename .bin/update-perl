@@ -1,9 +1,11 @@
 #!/usr/bin/env sh
 
 if installed cpan; then
-  installed cpanm &&
-    cpanm --self-upgrade ||
-    curl -L https://cpanmin.us | perl - App::cpanminus
-  cpanm --notest App::cpanoutdated
-  cpan-outdated -p | cpanm -q
+	installed cpanm &&
+		cpanm --self-upgrade ||
+		curl -L https://cpanmin.us | perl - App::cpanminus
+	cpanm --local-lib=~/.local/perl5 local::lib &&
+		eval $(perl -I ~/.local/perl5/lib/perl5/ -Mlocal::lib)
+	cpanm --notest App::cpanoutdated
+	cpan-outdated -p | cpanm -q
 fi
