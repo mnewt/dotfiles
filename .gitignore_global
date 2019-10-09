@@ -240,7 +240,7 @@ dist/
 flycheck_*
 /server/
 .projectile
-.dir-locals.el
+# .dir-locals.el
 
 # * Clojure
 #############
