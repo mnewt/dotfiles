@@ -28,7 +28,7 @@ sudo_keepalive() {
 # search for all update-* scripts and run them in succession
 update() {
 	for f in $update_scripts; do
-		heading "$(basename _f)"
+		heading "$(basename $f)"
 		eval $f "$@"
 	done
 }
