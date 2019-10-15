@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+if installed shadowfox; then
+	shadowfox -profile-index 0 -generate-uuids -set-dark-theme
+else
+	echo "Shadowfox not installed, skipping"
+fi

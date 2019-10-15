@@ -4,7 +4,7 @@
 if [ -e '/etc/arch-release' ]; then
 	echo "Updating Arch Linux..."
 	sudo pacman -Sy --noconfirm archlinux-keyring
-	sudo pacman -Sy --noconfirm pacman-contrib
+	sudo pacman -Sy --noconfirm base pacman-contrib
 	sudo pacman -Syyu --noconfirm
 	sudo pacman -Qtdq >/dev/null &&
 		sudo pacman --noconfirm -Rns $(pacman -Qtdq)

@@ -8,4 +8,6 @@ if installed cpan; then
 		eval $(perl -I ~/.local/perl5/lib/perl5/ -Mlocal::lib)
 	cpanm --notest App::cpanoutdated
 	cpan-outdated -p | cpanm -q
+else
+	echo "CPAN is not installed, skipping"
 fi

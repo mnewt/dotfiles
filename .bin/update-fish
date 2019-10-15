@@ -1,10 +1,10 @@
 #!/bin/bash
 # Update fish shell
 
-if command -v fish >/dev/null 2>&1; then
-  echo "Updating fish shell..."
-  curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
-  fish -lc 'fisher self-update; and fisher'
+if installed fish; then
+	echo "Updating fish shell..."
+	curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"
+	fish -lc 'fisher self-update; and fisher'
 else
-  echo "fish shell not found, skipping"
+	echo "fish shell not found, skipping"
 fi
