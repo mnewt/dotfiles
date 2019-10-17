@@ -1,13 +1,14 @@
 #! /usr/bin/env bash
 # Runs at non-login interactive shell
 
-bg() {
-	printf "${bg}%sm" "$1"
+# Source $1 if it exists.
+source_if() {
+	[ -e "$1" ] && . "$1"
 }
 
-fg() {
-	printf "${fg}%sm" "$1"
-}
+source_if "$HOME/.bin/bash_utils"
+source_if "$HOME/.env"
+source_if "$HOME/.aliases"
 
 # If we are in an interactive terminal then use the fancy prompt. Otherwise, use
 # a basic one. Scenarios include:
@@ -16,22 +17,20 @@ fg() {
 #   as "dumb".
 # - Emacs TRAMP, which processes the prompt using regexp.
 if test -t 0; then
-	bold='\033[1m'
-	normal='\033[0m'
-	bg='\033[48;5;'
-	fg='\033[38;5;'
+	set_bold='\033[1m'
+	set_normal='\033[0m'
 
-	cmdstatus="\[$(bg 001)$(fg 255)\]"'$(s=$? && [ $s != 0 ] && echo " $s ")'
+	cmdstatus="\[$(set_bg 001)$(set_fg 255)\]"'$(s=$? && [ $s != 0 ] && echo " $s ")'
 	# Only display username and hostname if we are over SSH
 	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-		username="\[$(bg 003)$(fg 000)\] \u "
-		hostname="\[$(bg 002)$(fg 000)\] \h "
+		username="\[$(set_bg 003)$(set_fg 000)\] \u "
+		hostname="\[$(set_bg 002)$(set_fg 000)\] \h "
 	else
 		username=""
 		hostname=""
 	fi
-	dir="\[$(bg 006)$(fg 016)\] \w "
-	sigil="\[${normal}\]\n\[${bold}\]\$\[${normal}\] "
+	dir="\[$(set_bg 014)$(set_fg 016)\] \w "
+	sigil="\[${set_normal}\]\n\[${set_bold}\]\$\[${set_normal}\] "
 
 	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
 else
@@ -40,13 +39,6 @@ fi
 
 export PS1
 
-source_if() {
-	[ -e "$1" ] && . "$1"
-}
-
-source_if "$HOME/.bin/bash_utils"
-source_if "$HOME/.env"
-source_if "$HOME/.aliases"
 source_if "$HOME/.bin/__prompt"
 
 # `bash-completion` and `emacs-bash-completion`
@@ -60,10 +52,6 @@ if [[ -z "$INSIDE_EMACS" || "$EMACS_BASH_COMPLETE" == "t" ]]; then
 	bind '"\ep":previous-history'
 	bind '"\en":next-history'
 fi
-
-installed() {
-	command -v "$1" >/dev/null 2>&1
-}
 
 # direnv
 installed direnv && eval "$(direnv hook bash)"

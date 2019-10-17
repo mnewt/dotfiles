@@ -48,6 +48,19 @@ with_color() {
 	printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
 }
 
+# Set background color to $1
+set_bg() {
+	printf "\033[48;5;%sm" "$1"
+}
+
+# Set foregrould color to $1
+set_fg() {
+	printf "\033[38;5;%sm" "$1"
+}
+
+bold='\033[1m'
+normal='\033[0m'
+
 # Print the given arguments out in a nice heading
 heading() {
 	printf "\n\033[38;5;013m * %s  \033[0m  \n\n" "$*"
