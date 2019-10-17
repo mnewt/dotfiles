@@ -1,55 +1,236 @@
 #!/usr/bin/env bash
+# Common utilities for bash scripts
+
+# * Logging
+
+# Log to file or stdout
+log() {
+	echo "$@"
+	[ "$logfile" ] && echo "$(date) - $(basename $0) - $@" >>"$logfile"
+}
+
+# Display and execute the command
+exe() {
+	log 2>&1 "\$ $*"
+	"$@" 2>&1
+}
+
+# Print a string with ANSI X3.64 colors
+# Color formats:
+# - 8 color (30-37 for foreground and 40-37 for background), e.g. '31'
+# - 256 color (000-255 -- must use 3 digits with leading zeros), e.g. '001'
+# - 24 bit color, e.g. RGB: 255;255;255, or hex: FFFFFF
+# - Anything else is processed as a raw ANSI escape sequence and passed directly to \e[<arg>m
+
+# $1: background color
+# $2: foreground color
+# remaining args: string to print
+with_color() {
+	bg="$1"
+	fg="$2"
+	shift 2
+
+	case ${#bg} in
+	3)
+		bg="48;5;$bg"
+		fg="38;5;$fg"
+		;;
+	6)
+		bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
+		fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
+		;;
+	11)
+		bg="$(printf "48;2;%d;%d;%d" ${bg:0:3} ${bg:4:3} ${bg:9:3})"
+		fg="$(printf "48;2;%d;%d;%d" ${fg:0:3} ${fg:4:3} ${fg:9:3})"
+		;;
+	esac
+
+	printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
+}
+
+# Print the given arguments out in a nice heading
+heading() {
+	printf "\n\033[38;5;013m * %s  \033[0m  \n\n" "$*"
+}
+
+# Print a divider
+divider() {
+	if [ $# -eq 0 ]; then
+		echo "Usage: divider file"
+		exit 1
+	fi
+	printf '\033]1337;File=inline=1;width=100%%;height=1;preserveAspectRatio=0'
+	printf ":"
+	base64 <"$1"
+	printf '\a\n'
+}
+
+# Print a divider for a simple table
+# $1: NUMBER_OF_COLUMNS
+table_divider() {
+	col_length=$((($(tput cols) - 2) / $1 - 3))
+	printf "+ "
+	for col in $(seq $1); do
+		printf '%0.s-' $(seq $col_length)
+		printf " + "
+	done
+	echo
+}
+
+# Print a justified row for a simple table
+# table_row COLUMN_1 [COLUMN_2 ...]
+table_row() {
+	col_length=$((($(tput cols) - 2) / $# - 3))
+	printf "| "
+	for col in "$@"; do
+		((${#col} > $col_length)) && col="${col:0:(($col_length - 3))}..."
+		printf "%${col_length}s | " "$col"
+	done
+	echo
+}
+
+# Remove ANSI Color Escape Sequences.
+remove_color_codes() {
+	echo "${1//$(printf "\033\[+([0-9;])m")/}"
+}
+
+# * Sourcing
 
 # Source $1 if it exists.
 source_if() {
-  [ -e "$1" ] && . "$1"
+	[ -e "$1" ] && . "$1"
 }
 
 # Check if a command is on the PATH.
 installed() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-# Join all arguments except $1. $1 is the delimiter.
-join() {
-  local IFS="$1"
-  shift
-  echo "$*"
-}
-
-# Split all arguments except $1. $1 is the delimiter.
-split() {
-  local IFS="$1"
-  shift
-  printf "%s\n" $@
-}
-
-# Print the given arguments, filtering out duplicates.
-uniquify() {
-  printf "%s\n" "$@" | awk '!x[$0]++'
+	command -v "$1" >/dev/null 2>&1
 }
 
 # Add all arguments to a path environment variable except $1. $1 is the name of
 # the variable. The delimiter is assumed to be ":", like in $PATH and friends.
 add_to_path() {
-  local var paths old_paths
-  var="$1"
-  shift
-  old_paths=($(split ":" "${!var}"))
-  paths=$(join ":" $(uniquify "$@" "${old_paths[@]}"))
-  printf -v "${var}" "${paths[@]}"
-  export ${var}
+	local var paths old_paths
+	var="$1"
+	shift
+	old_paths=($(split ":" "${!var}"))
+	paths=$(join ":" $(uniquify "$@" "${old_paths[@]}"))
+	printf -v "${var}" "${paths[@]}"
+	export ${var}
 }
+
+# Recursively search up a directory tree (toward root)
+# Useful for finding project files like Makefile and package.json
+upsearch() {
+	directory="${1:-$PWD}"
+	while [ -n "$directory" ]; do
+		[ -e "$directory/$1" ] && echo "$directory/$1" && return 0
+		directory=${directory%/*}
+	done
+	return 1
+}
+
+# * Lists
+
+# Return 0 if element $1 is matched by any of the successive arguments
+contains() {
+	local match="$1"
+	shift
+	[[ " $@ " =~ " $match " ]]
+}
+
+# Join all arguments except $1. $1 is the delimiter.
+join() {
+	local IFS="$1"
+	shift
+	echo "$*"
+}
+
+# Split all arguments except $1. $1 is the delimiter.
+split() {
+	local IFS="$1"
+	shift
+	printf "%s\n" $@
+}
+
+# Get last character of string
+last_char() {
+	local i=$((${#1} - 1))
+	echo "${1:$i:1}"
+}
+
+# Print the given arguments, filtering out duplicates.
+uniquify() {
+	printf "%s\n" "$@" | awk '!x[$0]++'
+}
+
+# * Files
+
+# Find files whose names match a glob pattern.
+find_glob() {
+	local glob="$1"
+	local directory="${2:-.}"
+	if installed fd; then
+		fd --color=never --glob "${glob}" "${directory}"
+	else
+		find "${directory}" -name "${glob}"
+	fi
+}
+
+# * User interaction
 
 # Prompt user to confirm
 prompt_confirm() {
-  local p="$* [y/N]:"
-  local confirm
-  while true; do
-    read -p "echo $p " confirm
-    case $confirm in
-    [yY]*) return 0 ;;
-    [nN]*) return 1 ;;
-    esac
-  done
+	local p="$* [y/N]:"
+	local confirm
+	while true; do
+		read -p "echo $p " confirm
+		case $confirm in
+		[yY]*) return 0 ;;
+		[nN]*) return 1 ;;
+		esac
+	done
+}
+
+# Prevent sudo timeout while parent process is running
+# Based on: https://serverfault.com/a/702019
+sudo_keepalive() {
+	sudo -v # ask for sudo password up-front
+	while true; do
+		# Update user's timestamp without running a command
+		sudo -nv
+		sleep 60
+		# Exit when the parent process is not running any more. In fact this loop
+		# would be killed anyway after being an orphan(when the parent process
+		# exits). But this ensures that and probably exit sooner.
+		kill -0 $$ 2>/dev/null || exit
+	done &
+}
+
+# * Control Flow
+
+# kill the command if not finished in $1 seconds
+# https://gist.github.com/jaytaylor/6527607
+timeout() {
+	perl -e 'alarm shift; exec @ARGV' "$@"
+}
+
+# * Encoding
+
+# URL-encode a string
+# Stolen from https://stackoverflow.com/questions/296536
+rawurlencode() {
+	local string="${1}"
+	local strlen=${#string}
+	local encoded=""
+	local pos c o
+
+	for ((pos = 0; pos < strlen; pos++)); do
+		c=${string:$pos:1}
+		case "$c" in
+		[-_.~a-zA-Z0-9]) o="${c}" ;;
+		*) printf -v o '%%%02x' "'$c" ;;
+		esac
+		encoded+="${o}"
+	done
+	echo "${encoded}"
 }

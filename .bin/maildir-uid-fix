@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\r\n'
+
+while getopts ":y" opt; do
+	case $opt in
+	y) confirm="y" ;;
+	*)
+		echo "usage: $(basename $0) [-y} DIRECTORY"
+		exit 2
+		;;
+	esac
+done
+shift $(expr $OPTIND - 1)
+OPTIND=1
+
+search_directory="${1:-$HOME/.mail}"
+
+dirs=($(fd --color=never -t d 'cur' "$search_directory"))
+
+. bash_utils
+
+for d in "${dirs[@]}"; do
+	dir="$(dirname $d)"
+	uids="$(find_glob '*,U=*:*' "$dir" | awk -F'[,:]' '{print substr($2,3)}' | sort | uniq -d)"
+	if [ -n "$uids" ]; then
+		echo $dir
+		echo $uids
+		for uid in $uids; do
+			duplicates=($(find_glob "*,U=$uid:*" "$dir" | xargs stat -c '%y %n' | sort))
+			for dup in "${duplicates[@]:1}"; do
+				file=$(echo $dup | awk '{print substr($0, index($0,$4))}')
+				newname=$(echo dup | awk -F',' '{print $1}')
+				echo "$file ==> $newname"
+				prompt_confirm "Rename the file?" && mv "$file" "$newname"
+			done
+		done
+	fi
+done

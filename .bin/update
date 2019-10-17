@@ -5,25 +5,7 @@
 
 update_scripts="$HOME/.bin/update-*"
 
-# Print the given arguments out in a nice heading
-heading() {
-	printf "\n\033[38;5;013m * %s  \033[0m  \n\n" "$*"
-}
-
-# Prevent sudo timeout while parent process is running
-# Based on: https://serverfault.com/a/702019
-sudo_keepalive() {
-	sudo -v # ask for sudo password up-front
-	while true; do
-		# Update user's timestamp without running a command
-		sudo -nv
-		sleep 60
-		# Exit when the parent process is not running any more. In fact this loop
-		# would be killed anyway after being an orphan(when the parent process
-		# exits). But this ensures that and probably exit sooner.
-		kill -0 $$ 2>/dev/null || exit
-	done &
-}
+. bash_utils
 
 # search for all update-* scripts and run them in succession
 update() {

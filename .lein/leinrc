@@ -2,5 +2,4 @@
 
 LEIN_FAST_TRAMPOLINE=y
 
-LEIN_JVM_OPTS="-Djava.net.preferIPv4Stack=true -client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx2g -XX:+CMSClassUnloadingEnabled -Xverify:none"
-
+LEIN_JVM_OPTS="-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx2g -XX:+CMSClassUnloadingEnabled"
