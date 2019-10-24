@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. bash_utils
+
 if [ "$(uname)" = "Darwin" ]; then
 	sudo xcode-select --install 2>&1 || echo The Xcode Command Line Tools package is already installed
 else

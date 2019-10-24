@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+. bash_utils
+
 if installed cpan; then
 	installed cpanm &&
 		cpanm --self-upgrade ||

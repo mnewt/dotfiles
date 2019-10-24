@@ -1,6 +1,8 @@
 #!/bin/bash
 # Update python packages
 
+. bash_utils
+
 installed pip && pip=pip
 installed pip3 && pip=pip3
 

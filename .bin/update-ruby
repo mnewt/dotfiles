@@ -1,17 +1,20 @@
 #!/bin/bash
 # Update ruby gems
 
-export LDFLAGS="-L/usr/local/opt/ruby/lib"
-export CPPFLAGS="-I/usr/local/opt/ruby/include"
+. bash_utils
 
 if installed gem; then
-  echo "Updating ruby gems..."
-  # Always use homebrew ruby if it's installed
-  installed brew && brew ls --versions ruby && brew link --overwrite ruby  
-  installed update_rubygems || gem install rubygems-update
-  update_rubygems
-  gem update
-  gem clean
+	echo "Updating ruby gems..."
+
+	export LDFLAGS="-L/usr/local/opt/ruby/lib"
+	export CPPFLAGS="-I/usr/local/opt/ruby/include"
+
+	# Always use homebrew ruby if it's installed
+	installed brew && brew ls --versions ruby && brew link --overwrite ruby
+	installed update_rubygems || gem install rubygems-update
+	update_rubygems
+	gem update
+	gem clean
 else
-  echo "gem not installed, skipping"
+	echo "gem not installed, skipping"
 fi

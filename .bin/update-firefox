@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+. bash_utils
+
 if installed shadowfox; then
 	shadowfox -profile-index 0 -generate-uuids -set-dark-theme
 else

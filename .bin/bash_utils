@@ -142,6 +142,20 @@ upsearch() {
 	return 1
 }
 
+# * Strings
+
+# Test if $2 contains $1
+contains_string() {
+	case "$1" in
+	*"$2"*)
+		return 0
+		;;
+	*)
+		return 1
+		;;
+	esac
+}
+
 # * Lists
 
 # Return 0 if element $1 is matched by any of the successive arguments

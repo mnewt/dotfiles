@@ -1,20 +1,22 @@
 #!/bin/bash
 # Update Clojure stuff
 
+. bash_utils
+
 if installed clojure; then
-  echo "Updating $HOME/.clojure/deps.edn..."
-  clojure -A:outdated "$HOME/.clojure/deps.edn"
+	echo "Updating $HOME/.clojure/deps.edn..."
+	clojure -A:outdated "$HOME/.clojure/deps.edn"
 
-  echo "Updating Leiningen if appropriate..."
-  if installed lein; then
-    lein upgrade
-    lein ancient upgrade-profiles
-  fi
+	echo "Updating Leiningen if appropriate..."
+	if installed lein; then
+		lein upgrade
+		lein ancient upgrade-profiles
+	fi
 
-  echo "Downloading zprint..."
-  gh-download-latest kkinnear/zprint zprintm $HOME/.bin/zprint
-  chmod +x $HOME/.bin/zprint
+	echo "Downloading zprint..."
+	gh-download-latest kkinnear/zprint zprintm $HOME/.bin/zprint
+	chmod +x $HOME/.bin/zprint
 
 else
-  echo "Clojure not found, skipping"
+	echo "Clojure not found, skipping"
 fi

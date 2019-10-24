@@ -1,6 +1,8 @@
 #!/bin/bash
 # Update fish shell
 
+. bash_utils
+
 if installed fish; then
 	echo "Updating fish shell..."
 	curl https://git.io/fisher --create-dirs -sLo "$HOME/.config/fish/functions/fisher.fish"

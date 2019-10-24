@@ -1,31 +1,21 @@
 #!/bin/bash
 # Update Homebrew
 
-# Test if $1 contains $2
-contains () {
-  case "$1" in
-    *"$2"*)
-      return 0 ;;
-    *)
-      return 1 ;;
-  esac
-}
-
 if installed brew; then
-  echo "Updating homebrew..."
-  cd "$(brew --repo)"
-  git prune
-  git gc
-  cd - > /dev/null
-  brew update
-  brew upgrade
-  if contains "$*" "--HEAD"; then
-    echo Reinstalling packages which are set at version HEAD...
-    brew ls --versions | awk '/HEAD/ {print $1}' | xargs brew reinstall --HEAD
-  fi
-  brew cask upgrade
-  brew cleanup
-  brew doctor
+	echo "Updating homebrew..."
+	cd "$(brew --repo)"
+	git prune
+	git gc
+	cd - >/dev/null
+	brew update
+	brew upgrade
+	if contains_string "--HEAD" "$*"; then
+		echo Reinstalling packages which are set at version HEAD...
+		brew ls --versions | awk '/HEAD/ {print $1}' | xargs brew reinstall --HEAD
+	fi
+	brew cask upgrade
+	brew cleanup
+	brew doctor
 else
-  echo "Hombrew is not installed, skipping"
+	echo "Hombrew is not installed, skipping"
 fi
