@@ -10,4 +10,4 @@ source_if "$HOME/.bashrc"
 
 # Use ~/.profile for customizations that should not make it back to repo
 source_if "$HOME/.profile"
-source_if "$HOME/.bin/start-ssh-agent"
+# source_if "$HOME/.bin/start-ssh-agent"
