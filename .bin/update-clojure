@@ -5,7 +5,13 @@
 
 if installed clojure; then
 	echo "Updating $HOME/.clojure/deps.edn..."
-	clojure clojure -m depot.outdated.main --update "$HOME/.clojure/deps.edn"
+
+	# Ensure java is out of quarantine.
+	for dir in /Library/Java/JavaVirtualMachines/*; do
+		xattr -d com.apple.quarantine "$dir"
+	done
+
+	clojure -Sdeps '{:deps {olical/depot {:mvn/version "1.8.4"}}}' -m depot.outdated.main --update "$HOME/.clojure/deps.edn"
 
 	echo "Updating Leiningen if appropriate..."
 	if installed lein; then

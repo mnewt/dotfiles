@@ -1,7 +1,5 @@
 {:aliases {:outdated {:extra-deps #:olical{depot #:mvn{:version "1.8.4"}}
                       :main-opts ["-m" "depot.outdated.main"]}
-           :zprint {:extra-deps {org.clojure/clojure #:mvn{:version "1.9.0"}
-                                 zprint #:mvn{:version "0.4.16"}}
+           :zprint {:extra-deps {zprint #:mvn{:version "0.5.3"}}
                     :main-opts ["-m" "zprint.main"]}}
- :deps {org.clojure/clojure #:mvn{:version "1.10.1"}
-        zprint #:mvn{:version "0.4.16"}}}
+ :deps #:org.clojure{clojure #:mvn{:version "1.10.1"}}}
