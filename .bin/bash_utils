@@ -6,7 +6,7 @@
 # Log to file or stdout
 log() {
 	echo "$@"
-	[ "$logfile" ] && echo "$(date) - $(basename $0) - $@" >>"$logfile"
+	[ "${logfile:-/tmp/script.log}" ] && echo "$(date) - $(basename "$0") - $*" >>"$logfile"
 }
 
 # Display and execute the command
@@ -40,8 +40,8 @@ with_color() {
 		fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
 		;;
 	11)
-		bg="$(printf "48;2;%d;%d;%d" ${bg:0:3} ${bg:4:3} ${bg:9:3})"
-		fg="$(printf "48;2;%d;%d;%d" ${fg:0:3} ${fg:4:3} ${fg:9:3})"
+		bg="$(printf "48;2;%d;%d;%d" "${bg:0:3}" "${bg:4:3}" "${bg:9:3}")"
+		fg="$(printf "48;2;%d;%d;%d" "${fg:0:3}" "${fg:4:3}" "${fg:9:3}")"
 		;;
 	esac
 
@@ -57,9 +57,6 @@ set_bg() {
 set_fg() {
 	printf "\033[38;5;%sm" "$1"
 }
-
-bold='\033[1m'
-normal='\033[0m'
 
 # Print the given arguments out in a nice heading
 heading() {
@@ -83,7 +80,7 @@ divider() {
 table_divider() {
 	col_length=$((($(tput cols) - 2) / $1 - 3))
 	printf "+ "
-	for col in $(seq $1); do
+	for col in $(seq "$1"); do
 		printf '%0.s-' $(seq $col_length)
 		printf " + "
 	done
@@ -96,7 +93,7 @@ table_row() {
 	col_length=$((($(tput cols) - 2) / $# - 3))
 	printf "| "
 	for col in "$@"; do
-		((${#col} > $col_length)) && col="${col:0:(($col_length - 3))}..."
+		((${#col} > col_length)) && col="${col:0:(($col_length - 3))}..."
 		printf "%${col_length}s | " "$col"
 	done
 	echo
@@ -122,13 +119,16 @@ installed() {
 # Add all arguments to a path environment variable except $1. $1 is the name of
 # the variable. The delimiter is assumed to be ":", like in $PATH and friends.
 add_to_path() {
-	local var paths old_paths
+	local var old_paths new_paths
 	var="$1"
 	shift
 	old_paths=($(split ":" "${!var}"))
-	paths=$(join ":" $(uniquify "$@" "${old_paths[@]}"))
-	printf -v "${var}" "${paths[@]}"
-	export ${var}
+	new_paths=()
+	for p in "$@" "${old_paths[@]}"; do
+		! list_contains "$p" "${new_paths[@]}" && [ -d "$p" ] && new_paths+=("$p")
+	done
+	printf -v "${var}" "$(join ":" "${new_paths[@]}")"
+	export ${var?}
 }
 
 # Recursively search up a directory tree (toward root)
@@ -145,7 +145,7 @@ upsearch() {
 # * Strings
 
 # Test if $2 contains $1
-contains_string() {
+string_contains() {
 	case "$1" in
 	*"$2"*)
 		return 0
@@ -159,7 +159,7 @@ contains_string() {
 # * Lists
 
 # Return 0 if element $1 is matched by any of the successive arguments
-contains() {
+list_contains() {
 	local match="$1"
 	shift
 	[[ " $@ " =~ " $match " ]]
@@ -174,6 +174,11 @@ join() {
 
 # Split all arguments except $1. $1 is the delimiter.
 split() {
+	# local vals delimiter
+	# delimiter="$1"
+	# shift
+	# read -ra vals -d "$delimiter" <<<"$@"
+	# printf "%s\n" ${vals[@]}
 	local IFS="$1"
 	shift
 	printf "%s\n" $@
@@ -188,6 +193,16 @@ last_char() {
 # Print the given arguments, filtering out duplicates.
 uniquify() {
 	printf "%s\n" "$@" | awk '!x[$0]++'
+}
+
+list_sort() {
+	local IFS=$'\n'
+	sort <<<"$*"
+}
+
+list_sort_reverse() {
+	local IFS=$'\n'
+	sort -r <<<"$*"
 }
 
 # * Files

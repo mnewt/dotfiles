@@ -6,10 +6,13 @@
 if installed clojure; then
 	echo "Updating $HOME/.clojure/deps.edn..."
 
-	# Ensure java is out of quarantine.
-	for dir in /Library/Java/JavaVirtualMachines/*; do
-		xattr -d com.apple.quarantine "$dir"
-	done
+	if installed xattr; then
+		# Ensure java is out of quarantine.
+		for dir in /Library/Java/JavaVirtualMachines/*; do
+			xattr -l "$dir" | grep -q com.apple.quarantine ||
+				xattr -d com.apple.quarantine "$dir"
+		done
+	fi
 
 	clojure -Sdeps '{:deps {olical/depot {:mvn/version "1.8.4"}}}' -m depot.outdated.main --update "$HOME/.clojure/deps.edn"
 

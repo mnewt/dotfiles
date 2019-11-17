@@ -1,17 +1,19 @@
 #!/bin/bash
 # Update Homebrew
 
+. bash_utils
+
 if installed brew; then
 	echo "Updating homebrew..."
-	cd "$(brew --repo)"
+	cd "$(brew --repo)" || exit
 	git prune
 	git gc
-	cd - >/dev/null
+	cd - >/dev/null || exit
 	brew update
 	brew upgrade
-	if contains_string "--HEAD" "$*"; then
+	if string_contains "--HEAD" "$*"; then
 		echo Reinstalling packages which are set at version HEAD...
-		brew ls --versions | awk '/HEAD/ {print $1}' | xargs brew reinstall --HEAD
+		brew ls --versions | awk '/HEAD/ {print $1}' | xargs brew reinstall
 	fi
 	brew cask upgrade
 	brew cleanup
