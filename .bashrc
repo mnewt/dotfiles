@@ -7,7 +7,6 @@ source_if() {
 }
 
 source_if "$HOME/.bin/bash_utils"
-source_if "$HOME/.env"
 source_if "$HOME/.aliases"
 
 # If we are in an interactive terminal then use the fancy prompt. Otherwise, use
