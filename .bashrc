@@ -1,66 +1,71 @@
-#! /usr/bin/env bash
-# Runs at non-login interactive shell
+#!/bin/bash
+# Runs in interactive, non-login shells
 
-# Source $1 if it exists.
-source_if() {
-	[ -e "$1" ] && . "$1"
-}
+. $HOME/.bin/shell_utils
 
-source_if "$HOME/.bin/bash_utils"
-source_if "$HOME/.aliases"
+# locale
+export LANG=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+export LC_MESSAGES=en_US.UTF-8
+export LC_COLLATE=C
 
-# If we are in an interactive terminal then use the fancy prompt. Otherwise, use
-# a basic one. Scenarios include:
-# - xterm like terminals.
-# - Emacs shell, which can interpret color codes but doesn't do ncurses. Reports
-#   as "dumb".
-# - Emacs TRAMP, which processes the prompt using regexp.
-if test -t 0; then
-	set_bold='\033[1m'
-	set_normal='\033[0m'
+paths=(
+  /sbin
+  /usr/sbin
+  /bin
+  /usr/bin
+  /Library/Apple/bin
+  /Library/Apple/usr/bin
+  /opt/X11/bin
+  /usr/local/sbin
+  /usr/local/bin
+  /opt/local/bin
+  /opt/local/sbin
+  /usr/local/opt/coreutils/libexec/gnubin
+  /usr/local/opt/texinfo/bin
+  /Library/TeX/texbin
+  /usr/local/opt/gnutls/bin
+  /usr/local/Cellar/poppler/*/bin
+  /usr/local/opt/sqlite/bin
+  /Library/Frameworks/Mono.framework/Versions/Current/bin
+  /Library/Frameworks/Mono.framework/Versions/Current/Commands
+  /usr/local/share/dotnet
+  $HOME/.dotnet/tools
+  $HOME/.cargo/bin
+  $GOPATH/bin/usr/local/sbin
+  /usr/local/opt/llvm/bin
+  /usr/local/Cellar/perl/*/bin
+  /usr/local/opt/ruby/bin
+  $HOME/.gem/ruby/*/bin
+  /usr/local/opt/python/libexec/bin
+  $HOME/Library/Python/*/bin
+  $HOME/.local/bin
+  $HOME/.bin
+)
 
-	cmdstatus="\[$(set_bg 001)$(set_fg 255)\]"'$(s=$? && [ $s != 0 ] && echo " $s ")'
-	# Only display username and hostname if we are over SSH
-	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-		username="\[$(set_bg 003)$(set_fg 000)\] \u "
-		hostname="\[$(set_bg 002)$(set_fg 000)\] \h "
-	else
-		username=""
-		hostname=""
-	fi
-	dir="\[$(set_bg 014)$(set_fg 016)\] \w "
-	sigil="\[${set_normal}\]\n\[${set_bold}\]\$\[${set_normal}\] "
+pkg_config_paths=(
+  /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Aliases/pkgconfig
+  /usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig
+  /usr/local/opt/ruby/lib/pkgconfig
+  /usr/local/lib/pkgconfig
+  /usr/local/share/pkgconfig
+  /usr/lib/pkgconfig
+)
 
-	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
-else
-	PS1="[\u@\h \w]$ "
-fi
+man_paths=(
+  /opt/local/share/man
+  /usr/local/share/man
+  /usr/share/man
+)
 
-export PS1
+add_to_path PATH "${paths[@]}"
+add_to_path PKG_CONFIG_PATH "${pkg_config_paths[@]}"
+add_to_path MANPATH "${man_paths[@]}"
 
-source_if "$HOME/.bin/__prompt"
+# python venv
+export VIRTUAL_ENV_DISABLE_PROMPT=true
 
-# `bash-completion` and `emacs-bash-completion`
-# brew install bash-completion@2
-if [[ -z "$INSIDE_EMACS" || "$EMACS_BASH_COMPLETE" == "t" ]]; then
-	source_if "/usr/local/share/bash-completion/bash_completion"
-	source_if "/usr/local/etc/bash_completion"
-	source_if "/etc/bash_completion"
+# boot-clj
+export BOOT_JVM_OPTIONS='-client -XX\:+TieredCompilation -XX\:TieredStopAtLevel\=1 -Xmx2g -XX\:+UseConcMarkSweepGC -XX\:+CMSClassUnloadingEnabled -XX\:+AggressiveOpts'
 
-	# Bind M-p and M-n to help with Emacs muscle memory.
-	bind '"\ep":previous-history'
-	bind '"\en":next-history'
-fi
-
-# direnv
-installed direnv && eval "$(direnv hook bash)"
-
-# rbenv
-installed rbenv && eval "$(rbenv init -)"
-
-# nvm
-if [ -f "/usr/local/opt/nvm/nvm.sh" ]; then
-	mkdir "$HOME/.nvm"
-	export NVM_DIR="$HOME/.nvm"
-	. "/usr/local/opt/nvm/nvm.sh"
-fi
+source_if "$HOME/.private.sh"

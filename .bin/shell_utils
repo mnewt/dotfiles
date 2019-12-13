@@ -119,16 +119,21 @@ installed() {
 # Add all arguments to a path environment variable except $1. $1 is the name of
 # the variable. The delimiter is assumed to be ":", like in $PATH and friends.
 add_to_path() {
-	local var old_paths new_paths
+	local var old_val old_paths new_paths
 	var="$1"
 	shift
-	old_paths=($(split ":" "${!var}"))
+  [ -n "$ZSH_VERSION" ] && old_val="${(P)var}" || old_val="${!var}"
+	old_paths=($(split ":" "$old_val"))
 	new_paths=()
 	for p in "$@" "${old_paths[@]}"; do
-		! list_contains "$p" "${new_paths[@]}" && [ -d "$p" ] && new_paths+=("$p")
+		! list_contains "$p" "${new_paths[@]}" && [ -d "$p" ] && \
+      new_paths=("$p" "${new_paths[@]}")
+		# echo adding path: $p
 	done
 	printf -v "${var}" "$(join ":" "${new_paths[@]}")"
 	export ${var?}
+	# echo "$var="
+	# echo "${!var}"
 }
 
 # Recursively search up a directory tree (toward root)
@@ -167,6 +172,7 @@ list_contains() {
 
 # Join all arguments except $1. $1 is the delimiter.
 join() {
+	[ -n "$ZSH_VERSION" ] && setopt SH_WORD_SPLIT
 	local IFS="$1"
 	shift
 	echo "$*"
@@ -174,11 +180,7 @@ join() {
 
 # Split all arguments except $1. $1 is the delimiter.
 split() {
-	# local vals delimiter
-	# delimiter="$1"
-	# shift
-	# read -ra vals -d "$delimiter" <<<"$@"
-	# printf "%s\n" ${vals[@]}
+	[ -n "$ZSH_VERSION" ] && setopt SH_WORD_SPLIT
 	local IFS="$1"
 	shift
 	printf "%s\n" $@
