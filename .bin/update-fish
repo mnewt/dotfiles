@@ -1,7 +1,7 @@
 #!/bin/bash
 # Update fish shell
 
-. bash_utils
+. shell_utils
 
 if installed fish; then
 	echo "Updating fish shell..."

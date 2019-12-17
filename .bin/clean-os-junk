@@ -2,7 +2,7 @@
 
 shopt -s extglob globstar dotglob
 
-. bash_utils
+. shell_utils
 
 pattern='*@(*.DS_Store|desktop.ini|Icon\r|Thumbs.db|$RECYCLE_BIN)'
 declare -a files=()

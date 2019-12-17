@@ -1,7 +1,7 @@
 #!/bin/bash
 # Update Arch Linux
 
-. bash_utils
+. shell_utils
 
 if [ -e '/etc/arch-release' ]; then
 	echo "Updating Arch Linux..."

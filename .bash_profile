@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Runs at login
 
 [ -f "$HOME/.bin/shell_utils" ] && . "$HOME/.bin/shell_utils"
 [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"

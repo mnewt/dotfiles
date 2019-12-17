@@ -1,7 +1,7 @@
 #!/bin/bash
 # Update ruby gems
 
-. bash_utils
+. shell_utils
 
 if installed gem; then
 	echo "Updating ruby gems..."

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-. bash_utils
+. shell_utils
 
 if installed cpan; then
 	installed cpanm &&

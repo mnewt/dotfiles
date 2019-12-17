@@ -1,7 +1,7 @@
 #!/bin/bash
 # Update Debian based distributions
 
-. bash_utils
+. shell_utils
 
 if [ -e '/etc/debian_version' ] || [ -e '/etc/lsb_release' ]; then
 	echo "Updating Debian based distribution..."

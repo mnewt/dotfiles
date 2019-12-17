@@ -29,7 +29,7 @@
 # Pull in variables
 [ "$1" ] && [ -e "$1" ] && . "$1"
 
-. bash_utils
+. shell_utils
 
 mnt_smb() {
 	# Mount a share via smb

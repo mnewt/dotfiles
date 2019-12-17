@@ -1,7 +1,7 @@
 #!/bin/bash
 # Update Clojure stuff
 
-. bash_utils
+. shell_utils
 
 if installed clojure; then
 	echo "Updating $HOME/.clojure/deps.edn..."

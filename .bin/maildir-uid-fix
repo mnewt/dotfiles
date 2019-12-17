@@ -19,7 +19,7 @@ search_directory="${1:-$HOME/.mail}"
 
 dirs=($(fd --color=never -t d 'cur' "$search_directory"))
 
-. bash_utils
+. shell_utils
 
 for d in "${dirs[@]}"; do
 	dir="$(dirname $d)"

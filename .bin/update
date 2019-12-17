@@ -5,7 +5,7 @@
 
 update_scripts="$HOME/.bin/update-*"
 
-. bash_utils
+. shell_utils
 
 # search for all update-* scripts and run them in succession
 update() {
