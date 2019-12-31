@@ -9,7 +9,7 @@ if installed clojure; then
 	if installed xattr; then
 		# Ensure java is out of quarantine.
 		for dir in /Library/Java/JavaVirtualMachines/*; do
-			xattr -l "$dir" | grep -q com.apple.quarantine ||
+			xattr -l "$dir" | grep -q com.apple.quarantine &&
 				xattr -d com.apple.quarantine "$dir"
 		done
 	fi

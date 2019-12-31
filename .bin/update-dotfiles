@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+. shell_utils
+
+if [ -e "#$HOME/.git" ] && [ -n "$(git -C "$HOME" status --porcelain)" ]; then
+	echo "Pulling changes from the current remote..."
+	git -C "$HOME" pull
+else
+	echo "Not pulling becase no clean repo was found at $HOME."
+fi
