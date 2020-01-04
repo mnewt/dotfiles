@@ -1,3 +1,3 @@
 #!/usr/bin/env zsh
 
-source "$HOME/.bashrc"
+[ -f "$HOME/.env" ] && source "$HOME/.env"
