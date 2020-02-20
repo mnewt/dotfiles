@@ -26,10 +26,10 @@ end
 
 function table.key_to_str(k)
   if "string" == type(k) and string.match(k, "^[_%a][_%a%d]*$") then
-        return k
-    else
-        return "[" .. table.val_to_str(k) .. "]"
-    end
+    return k
+  else
+    return "[" .. table.val_to_str(k) .. "]"
+  end
 end
 
 function table.tostring(tbl)
@@ -90,11 +90,11 @@ end
 
 -- ** Defeat paste blocking
 bind(
-    mash,
-    "v",
-    function()
-        hs.eventtap.keyStrokes(hs.pasteboard.getContents())
-    end
+  mash,
+  "v",
+  function()
+    hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+  end
 )
 
 --------------------------------------------------------------------------------
@@ -131,9 +131,9 @@ hs.hotkey.showHotkeys(mash, "/")
 hs.console.smartInsertDeleteEnabled(false)
 -- hs.console.darkMode(true)
 if hs.console.darkMode() then
-    hs.preferencesDarkMode(true)
-    hs.console.outputBackgroundColor({white = 0})
-    hs.console.consoleCommandColor({white = 1})
+  hs.preferencesDarkMode(true)
+  hs.console.outputBackgroundColor({white = 0})
+  hs.console.consoleCommandColor({white = 1})
 else
   hs.preferences.darkMode(false)
   hs.console.windowBackgroundColor({red = .7, blue = .7, green = .7})
