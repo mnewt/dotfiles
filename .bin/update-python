@@ -3,13 +3,13 @@
 
 . shell_utils
 
-installed pip && pip=pip
-installed pip3 && pip=pip3
-
-for pip in pip2 pip3; do
-	if installed "$pip"; then
-		echo "Updating $pip..."
-		"$pip" install --user --upgrade pip setuptools pipenv
-		"$pip" list --user --format=columns --outdated | awk 'NR>2 {print $1}' | xargs "$pip" install --user --upgrade
-	fi
-done
+if installed pip; then
+	echo "Updating pip packages..."
+	brew_prefix="$(brew --prefix)"
+	CFLAGS=-I$brew_prefix/include LDFLAGS=-L$brew_prefix/lib \
+		pip install --user --upgrade pip setuptools pipenv
+	pip list --user --format=columns --outdated |
+		awk 'NR>2 {print $1}' |
+		CFLAGS=-I$brew_prefix/include LDFLAGS=-L$brew_prefix/lib \
+			xargs pip install --user --upgrade
+fi
