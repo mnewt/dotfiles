@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
 
-emacs_dir="$HOME/.emacs.d"
+emacs_update="$HOME/.emacs.d/bin/update"
 
-if [ -e "#$emacs_dir/.git" ] && [ -n "$(git -C "$emacs_dir" status --porcelain)" ]; then
-	echo "Pulling changes from the current remote..."
-	git -C "$HOME" pull
+if installed emacs && [ -f "$emacs_update" ]; then
+	echo "Updating Emacs..."
+	"$emacs_update"
 else
-	echo "Not pulling becase no clean repo was found at $HOME."
-fi
-
-if [ -f "$emacs_dir/bin/setup" ]; then
-	echo "Building a new version of Emacs..."
-	"$emacs_dir/bin/setup"
-else
-	echo "Emacs build script not found, skipping"
+	echo "Emacs config not found, skipping..."
 fi
