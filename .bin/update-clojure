@@ -7,7 +7,7 @@ if installed clojure; then
 	echo "Updating $HOME/.clojure/deps.edn..."
 
 	if installed xattr; then
-		# Ensure java is out of quarantine.
+		# Ensure java is out of the macOS "downloaded program" quarantine.
 		for dir in /Library/Java/JavaVirtualMachines/*; do
 			xattr -l "$dir" | grep -q com.apple.quarantine &&
 				xattr -d com.apple.quarantine "$dir"

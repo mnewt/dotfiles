@@ -3,6 +3,7 @@
 . shell_utils
 
 if [ "$(uname)" = "Darwin" ]; then
+	softwareupdate --all --install --force
 	sudo xcode-select --install 2>&1 || echo The Xcode Command Line Tools package is already installed
 else
 	echo "macos not found, skipping"
