@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ -L "./node_modules" ]; then
+	echo "Not linking because ./node_modules is already a symlink."
+else
+	destination="/tmp/node_modules/$(basename $PWD)"
+	mkdir -p "$destination"
+	if [ -d "./node_modules" ]; then
+		mv "./node_modules/"* "$destination/"
+		rmdir "./node_modules"
+	fi
+	ln -s "$destination" "$PWD/node_modules"
+	echo "$PWD/node_modules -> $destination"
+fi

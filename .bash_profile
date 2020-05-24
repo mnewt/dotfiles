@@ -26,7 +26,7 @@ if test -t 0; then
 	dir="\[$(set_bg 014)$(set_fg 016)\] \w "
 	sigil="\[${set_normal}\]\n\[${set_bold}\]\$\[${set_normal}\] "
 
-	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
+	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}\[$(vterm_prompt_end)\]"
 else
 	PS1="[\u@\h \w]$ "
 fi

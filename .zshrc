@@ -24,12 +24,13 @@ if test -t 0; then
 		username=""
 		hostname=""
 	fi
-	dir="$(set_bg 014)$(set_fg 016) %1~ "
+	dir="$(set_bg 014)$(set_fg 016) %~ "
 	sigil="${set_normal}\\n${set_bold}%#%{$reset_color%} "
 	newline=$'\n'
 	sigil="${set_normal}${newline}%B%# %b"
 
-	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}"
+	setopt PROMPT_SUBST
+	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}%{$(vterm_prompt_end)%}"
 
 else
 	PS1="[%n@%m %1~]%# "
