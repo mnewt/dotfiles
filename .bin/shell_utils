@@ -128,12 +128,9 @@ add_to_path() {
 	for p in "$@" "${old_paths[@]}"; do
 		! list_contains "$p" "${new_paths[@]}" && [ -d "$p" ] && \
       new_paths=("$p" "${new_paths[@]}")
-		# echo adding path: $p
 	done
 	printf -v "${var}" "$(join ":" "${new_paths[@]}")"
 	export ${var?}
-	# echo "$var="
-	# echo "${!var}"
 }
 
 # Recursively search up a directory tree (toward root)
