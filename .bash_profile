@@ -14,19 +14,19 @@ if test -t 0; then
 	set_bold='\033[1m'
 	set_normal='\033[0m'
 
-	cmdstatus="\[$(set_bg 001)$(set_fg 255)\]"'$(s=$? && [ $s != 0 ] && echo " $s ")'
+	cmdstatus='$(s=$? && [ $s != 0 ] && echo "$(set_bg 009)$(set_fg 255) $s ")'
 	# Only display username and hostname if we are over SSH
 	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-		username="\[$(set_bg 003)$(set_fg 000)\] \u "
-		hostname="\[$(set_bg 002)$(set_fg 000)\] \h "
+		username="$(set_bg 003)$(set_fg 000) \u "
+		hostname="$(set_bg 002)$(set_fg 000) \h "
 	else
 		username=""
 		hostname=""
 	fi
-	dir="\[$(set_bg 014)$(set_fg 016)\] \w "
-	sigil="\[${set_normal}\]\n\[${set_bold}\]\$\[${set_normal}\] "
+	dir="$(set_bg 014)$(set_fg 016) \w "
+	sigil="${set_normal}\n${set_bold}\$${set_normal} "
 
-	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}\[$(vterm_prompt_end)\]"
+	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}$(vterm_prompt_end)"
 else
 	PS1="[\u@\h \w]$ "
 fi
