@@ -4,26 +4,29 @@
 [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
 [ -f "$HOME/.aliases" ] && . "$HOME/.aliases"
 
-# If we are in an interactive terminal then use the fancy prompt. Otherwise, use
-# a basic one. Scenarios include:
-# - xterm like terminals.
-# - Emacs shell, which can interpret color codes but doesn't do ncurses. Reports
-#   as "dumb".
-# - Emacs TRAMP, which processes the prompt using regexp.
-if test -t 0; then
-	set_bold='\033[1m'
-	set_normal='\033[0m'
+# If we are in a smart terminal then use the fancy prompt. Otherwise, use
+# a basic one.
+#
+# TERM can be one of:
+# - xterm*
+# - eterm*
+# - dumb, which might be
+#   - Emacs shell, which can interpret color codes.
+#   - Emacs TRAMP, which processes the prompt using regexp.
+if [[ $TERM = *term* ]]; then
+	set_bold='\[\033[1m\]'
+	set_normal='\[\033[0m\]'
 
-	cmdstatus='$(s=$? && [ $s != 0 ] && echo "$(set_bg 009)$(set_fg 255) $s ")'
+	cmdstatus='$(s=$? && [ $s != 0 ] && echo "\[$(set_bg 009)$(set_fg 255)\] $s ")'
 	# Only display username and hostname if we are over SSH
 	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-		username="$(set_bg 003)$(set_fg 000) \u "
-		hostname="$(set_bg 002)$(set_fg 000) \h "
+		username="\[$(set_bg 003)$(set_fg 000)\] \u "
+		hostname="\[$(set_bg 002)$(set_fg 000)\] \h "
 	else
 		username=""
 		hostname=""
 	fi
-	dir="$(set_bg 014)$(set_fg 016) \w "
+	dir="\[$(set_bg 014)$(set_fg 016)\] \w "
 	sigil="${set_normal}\n${set_bold}\$${set_normal} "
 
 	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}$(vterm_prompt_end)"
