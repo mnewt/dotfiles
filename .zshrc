@@ -11,11 +11,12 @@
 # - Emacs shell, which can interpret color codes but doesn't do ncurses. Reports
 #   as "dumb".
 # - Emacs TRAMP, which processes the prompt using regexp.
-if test -t 0; then
+if [[ $TERM = *term* ]]; then
 	set_bold='%B'
 	set_normal=$'\033[0m'
 
 	cmdstatus="%(?..$(set_bg 009)$(set_fg 255) %? )"
+
 	# Only display username and hostname if we are over SSH
 	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
 		username="$(set_bg 003)$(set_fg 000) %n "
@@ -24,14 +25,34 @@ if test -t 0; then
 		username=""
 		hostname=""
 	fi
+
 	dir="$(set_bg 014)$(set_fg 016) %~ "
-	sigil="${set_normal}\\n${set_bold}%#%{$reset_color%} "
+
 	newline=$'\n'
-	sigil="${set_normal}${newline}${set_bold}%# %b"
+	sigil="${set_normal}${newline}${set_bold}%#${set_normal} %b"
+
+	if [[ $TERM = *vterm* ]]; then
+		vterm_part="%{$(vterm_prompt_end)%}"
+	else
+		vterm_part=""
+	fi
 
 	setopt PROMPT_SUBST
-	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}%{$(vterm_prompt_end)%}"
+	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}${vterm_part}"
 
 else
 	PS1="[%n@%m %1~]%# "
+fi
+
+# direnv
+installed direnv && eval "$(direnv hook bash)"
+
+# rbenv
+installed rbenv && eval "$(rbenv init -)"
+
+# nvm
+if [ -f "/usr/local/opt/nvm/nvm.sh" ]; then
+	mkdir "$HOME/.nvm"
+	export NVM_DIR="$HOME/.nvm"
+	. "/usr/local/opt/nvm/nvm.sh"
 fi

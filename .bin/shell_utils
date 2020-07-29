@@ -287,7 +287,7 @@ vterm_printf(){
     # GNU screen (screen, screen-256color, screen-256color-bce)
     printf "\eP\e]%s\007\e\\" "$1"
   else
-    printf "\e]%s\e\\" "$1"
+    printf "\033]%s\033\\" "$1"
   fi
 }
 
