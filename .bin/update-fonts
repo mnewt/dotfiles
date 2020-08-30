@@ -15,7 +15,7 @@ Linux)
 	;;
 esac
 
-wget "$input_mono_url" -O "$tmp/input.zip"
+curl -L "$input_mono_url" -o "$tmp/input.zip"
 unzip -j -u -d "$destination" "$tmp/input.zip" "Input_Fonts/Input*"
 
 # Clear font cache.
