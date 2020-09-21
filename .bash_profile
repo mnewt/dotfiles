@@ -43,13 +43,11 @@ if [[ $TERM = *term* ]]; then
 		vterm_part=""
 	fi
 
-	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}$(vterm_prompt_end)"
+	PS1="${cmdstatus}${username}${hostname}${dir}${sigil}${vterm_part}"
 
 else
 	PS1="[\u@\h \w]$ "
 fi
-
-source_if "$HOME/.bin/__prompt"
 
 # `bash-completion` and `emacs-bash-completion`
 # brew install bash-completion@2
