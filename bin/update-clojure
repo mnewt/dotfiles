@@ -23,8 +23,8 @@ if installed clojure; then
 	fi
 
 	echo "Downloading zprint..."
-	gh-download-latest kkinnear/zprint zprintm $HOME/.bin/zprint
-	chmod +x $HOME/.bin/zprint
+	gh-download-latest kkinnear/zprint zprintm $HOME/bin/zprint
+	chmod +x $HOME/bin/zprint
 
 else
 	echo "Clojure not found, skipping"

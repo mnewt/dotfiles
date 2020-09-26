@@ -1,0 +1,7 @@
+bin
+.config
+.clojure
+.hammerspoon
+.terminfo
+.gnupg
+.vim

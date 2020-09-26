@@ -57,8 +57,6 @@ mnt_smb_ssh() {
 	url="//${user}@${localhost}/${path}"
 	socket="${socket:-/tmp/mnt_smb_ssh.sock}"
 
-	. "$HOME/.bin/start-ssh-agent"
-
 	password="$(rawurlencode "${password}")"
 
 	if mount | grep -q "${mountpoint}"; then

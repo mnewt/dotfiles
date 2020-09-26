@@ -3,7 +3,7 @@
 # Calls other scripts on the path with the form 'update-*'
 # Passes all arguments straight through to those scripts
 
-update_scripts="$HOME/.bin/update-*"
+update_scripts="$HOME/bin/update-*"
 
 . shell_utils
 

@@ -1,6 +1,0 @@
-#! /usr/bin/env bash
-
-brew install emacs --with-cocoa --with-imagemagick@6 --with-librsvg --with-mailutils
-defaults write org.gnu.Emacs AppleFontSmoothing -int 4
-brew tap dunn/emacs
-brew install --HEAD pdf-tools

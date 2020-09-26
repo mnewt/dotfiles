@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+# Install dotfiles.
+
+set -eo pipefail
+
+force=""
+test=""
+verbose=""
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+if [ -e "$script_dir/child_dirs" ]; then
+	IFS=$'\r\n' GLOBIGNORE='*' command eval 'child_dirs=($(cat "$script_dir/../child_dirs"))'
+else
+	child_dirs=(bin .config .clojure .hammerspoon .terminfo .gnupg .vim)
+fi
+
+print_help() {
+	cat <<EOF
+USAGE: ${0##*/} [-f] [-h] [-t] [-v] [ SOURCE_DIRECTORY ]
+
+Link dotfiles to \$HOME. Directories listed in "child_dirs" have their children
+linked so as not to interfere with other things in those directories.
+
+SOURCE_DIRECTORY, if not specified, is this script's parent directory.
+
+OPTIONS:
+  -f   Force overwrite of files or directories in \$HOME
+  -h   Display this help message
+  -t   Test mode - don't make any changes
+  -v   Verbose - print each action
+EOF
+}
+
+while getopts fhtv OPT; do
+	case $OPT in
+	f)
+		force="-f"
+		;;
+	h)
+		print_help
+		exit
+		;;
+	t)
+		test="-t"
+		;;
+	v)
+		verbose="-v"
+		;;
+	*)
+		print_help
+		exit 2
+		;;
+	esac
+done
+shift $((OPTIND - 1))
+OPTIND=1
+
+repo="$(cd "${1:-$script_dir/..}" && pwd)"
+
+echo "Linking files from repo: $repo"
+echo "    Into home directory: $HOME"
+[ "$test" != "-t" ] || echo "    Testing only, no changes will be made..."
+[ "$force" != "-f" ] || echo "    Overwriting symlinks as needed..."
+[ "$verbose" != "-v" ] || echo "    Verbose output enabled..."
+echo
+
+cmd() {
+	[ "$verbose" != "-v" ] || echo "> $@"
+	[ "$test" = "-t" ] || eval "$@" || true
+}
+
+# Link
+link_files() {
+	destination="$1"
+	shift
+	for file in "$@"; do
+		path="$destination/$(basename "$file")"
+		if [ "$(readlink "$path")" = "$file" ]; then
+			echo "$(with_color 0 32 " LINKED ") $path $(with_color 0 37 "-->") $file"
+		else
+			echo "$(with_color 0 34 "LINKING ") $path $(with_color 0 37 "-->") $file"
+			cmd ln -s $force "$file" "$path"
+		fi
+	done
+}
+
+# Delete dead symlinks (perhaps if files got renamed)
+unlink_broken() {
+	for link in $(find -L "$1" -maxdepth 1 -type l); do
+		echo "$(with_color 0 31 "DELETING") broken symlink $link"
+		cmd rm "$link"
+	done
+}
+
+# Link files and directories, but not `child_dirs` or .git
+ignore=$(printf " -not -name %s" .git "${child_dirs[@]}")
+link_files "$HOME" $(find "$repo" -depth 1 -name '.*' $ignore)
+
+# Link children of directories in `child_dirs` list.
+for dir in "${child_dirs[@]}"; do
+	destination="$HOME/$dir"
+	[ -d "$destination" ] || cmd mkdir -p "$destination"
+	link_files "$destination" $(find "$repo/$dir" -depth 1)
+	unlink_broken "$destination"
+done

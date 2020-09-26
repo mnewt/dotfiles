@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 # Runs in interactive shells
 
-[ -f "$HOME/.bin/shell_utils" ] && source "$HOME/.bin/shell_utils"
-[ -f "$HOME/.env" ] && source "$HOME/.env"
-[ -f "$HOME/.aliases" ] && source "$HOME/.aliases"
+source "$HOME/bin/shell_utils"
+source_if "$HOME/.env"
+source_if "$HOME/.aliases"
 
 # If we are in an interactive terminal then use the fancy prompt. Otherwise, use
 # a basic one. Scenarios include:

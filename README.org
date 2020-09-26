@@ -1,162 +1,78 @@
 * Some dotfiles
-This setup is mostly shell agnostic, supporting primarily [[https://www.gnu.org/software/bash/][bash]], but also [[http://fishshell.com/][fish]], and [[http://www.zsh.org/][zsh]].
+  A shell configuration supporting [[https://www.gnu.org/software/bash/][bash]], [[http://www.zsh.org/][zsh]], and [[https://fishshell.com/][fish]].
 
-In the past, I spent most of my time in fish. However, lately, as I transition more of my workflows to Emacs, I am using Emacs commands, some Eshell, and rarely falling back to bash. So Emacs sources the bash environment and then builds on top of it.
+  I spend most of my time in Emacs on macOS. This configuration can work fine on its own, and it has a companion [[https://github.com/mnewt/dotemacs][Emacs config]].
 
-Most scripts are written in bash because it is the lowest common denominator.
+  Most scripts are written in bash because it is the lowest common denominator.
 
 * Tour
 ** Applications & Utilities
 Included are configurations for some programs, such as:
-** [[https://www.gnu.org/software/emacs/][Emacs]]
-Actually, the Emacs config lives in its own repo, at [[https://github.com/mnewt/dotemacs]]
-** [[https://www.gnu.org/software/bash/][Bash]]
-** [[https://fishshell.com/][Fish Shell]]
-** [[https://www.zsh.org/][Zsh]]
-** [[https://github.com/tmux/tmux][Tmux]]
-** [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
+- [[https://www.gnu.org/software/bash/][Bash]]
+- [[https://clojure.org][Clojure]]
+- [[https://github.com/universal-ctags/ctags][Ctags]]
+- [[https://www.gnu.org/software/emacs/][Emacs]] (actually, the Emacs config [[https://github.com/mnewt/dotemacs][lives in its own repo]].)
+- [[https://fishshell.com/][Fish Shell]]
+- [[https://gnupg.org/][gnupg]]
+- [[https://www.hammerspoon.org/][Hammerspoon]]
+- [[https://karabiner-elements.pqrs.org/][Karabiner Elements]]
+- [[https://www.python.org/][Python]] [[https://pypi.org/][Pip]]
+- [[https://www.ruby-lang.org/][Ruby]] [[https://rubygems.org/][Gem]]
+- [[https://github.com/tmux/tmux][Tmux]]
+- [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
+- [[https://www.zsh.org/][Zsh]]
+
 * Install
-This may seem complicated at first, but bear with me. It is a really nice way to manage dotfiles without trying synchronize a separate repo and ~$HOME~ directory. We just put the repo in the home directory itself!
+  Clone the repository and link files into the current user's =$HOME= directory.
+  #+begin_src sh
+  git clone https://github.com/mnewt/dotfiles
+  dotfiles/bin/install-dotfiles
+  #+end_src
 
-We establish a git repository to hold dotfiles in ~$HOME/.config/repos/$repo~, while pointing the workdir at ~$HOME~. To make this function without causing problems, we will configure the repo to not show untracked files (since we don't want to track most of what is under ~$HOME~). Then we explicitly add just the files we want.
+* What it does
+  The =install-dotfiles= script links
+  #+begin_src
+USAGE: install-dotfiles [-f] [-t] [-v] [ SOURCE_DIRECTORY ]
 
-This is approach inspired by the bare repo technique outlined in [[https://developer.atlassian.com/blog/2016/02/best-way-to-store-dotfiles-git-bare-repo/][Nicola Paolucci's blog]]. However, it does not use a bare repo. Instead, it incorporates modications suggested by [[https://emacsair.me/][Jonas Bernoulli]] for [[https://github.com/magit/magit/issues/460#issuecomment-36139308][use with Magit]] (but really this is the best way to do it even without Magit because it allows any git-based program to interact with the repo). This technique is deceptively simple and yet powerful enough to handle complex dotfile configurations with multiple repos. The beauty is that our dotfiles are in their proper locations and we explicitly choose which files to track and everything else is ignored by git. No symlinks, no duplication, no scripts to manage the repo.
+Link dotfiles to $HOME. Directories listed in "child_dirs" have their children
+linked so as not to interfere with other things in those directories.
 
-Further, we can have multiple repos tracking different sets of files, all with their workdirs pointing to ~$HOME~. I use this to merge my private settings with my public ones.
-** The Short Version
-*** Set up a a local repo from an existing remote
-We already have a repo and we know what we're doing. No need to back anything up. Overwrite existing files.
-#+BEGIN_SRC sh
-curl 'https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap' | bash -s 'https://gitlab.com/mnewt/dotfiles.git'
-#+END_SRC
-Or on Windows:
-#+BEGIN_SRC powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://gitlab.com/mnewt/dotfiles/raw/master/.scripts/bootstrap.ps1'))
-#+END_SRC
-** The Long Version (discussing various scenarios)
-If we want to set up a repo, we'll want to consider how to transition from whatever is in place at the moment. Here are some basic plans for the main scenarios. To learn about the factors at play, follow along here.
-*** STEP 1: Initialize or Clone
-Choose one of the following.
-**** Initialize a new repo
-Create a repository locally.
-#+BEGIN_SRC sh
-mkdir -p $HOME/.config/repos
-rm $HOME/.git # if necessary
-git init --separate-git-dir $HOME/.config/repos/dotfiles $HOME
-#+END_SRC
-**** Clone an existing repo
-Clone a remote repository.
-#+BEGIN_SRC sh
-git clone --separate-git-dir $HOME/.config/repos/dotfiles https://gitlab.com/mnewt/dotfiles.git --no-checkout $HOME/.config/repos/temp
-mv $HOME/.config/repos/temp/.git $HOME
-rm -rf $HOME/.config/repos/temp
-git fetch
-git reset --mixed HEAD
-#+END_SRC
-*** STEP 2: Configure the Repo
-Now we need to configure the repo, regardless of whether we have initialized it anew or cloned a remote.
-**** Don't show untracked files
-Configure the repo to not show untracked files since there will always be lots of stuff in ~$HOME~ that we don't want in our repo.
-#+BEGIN_SRC sh
-env GITDIR=$HOME/.config/repos/dotfiles git config --local status.showUntrackedFiles no
-#+END_SRC
-**** Link the repo
-The ~git-home-link~ function creates writes a .git file in ~$HOME~ pointing to one of the repos. By using this function, we can "activate" one of the repos such that we can use normal git comamnds in ~$HOME~ without specifying ~GITDIR~.
+SOURCE_DIRECTORY, if not specified, is this script's parent directory.
 
-Put this function in our ~.bashrc~ or similar (It's in my ~.aliases~ file).
-#+BEGIN_SRC sh
-git-home-link () {
-  # Link repo specified by $1 to $HOME using a .git file link
-  if [ -n "$1" ] && [ -e "$HOME/.config/repos/$1" ]; then
-    echo "gitdir: .config/repos/$1" >"$HOME/.git"
-  else
-    echo "repo \"$1\" not found in $HOME/.config/repos/"
-    echo "ls $HOME/.config/repos/:"
-    ls $HOME/.config/repos/
-  fi
-}
-#+END_SRC
-**** Start working
-Now use the repo pretty much how we would a normal one. However, note that .git in ~$HOME~ is just a file pointing to the actual directory at ~$HOME/.config/repos/dotfiles~. So before we use ~$HOME~ as a repo, link it. Then when we're done, unlink it so we don't accidentally commit something in a project subdirectory in the dotfiles repo.
+OPTIONS:
+  -f   Force overwrite of files or directories in $HOME
+  -t   Test mode - don't make any changes
+  -v   Verbose - print each action
+  #+end_src
+  The =install-dotfiles= script performs the following functions:
+  1. Look for a =child_dirs= directory in the root of the repo. It should have one directory entered per line. If it's found, those directories will not be linked directly to =$HOME=.
+  2. Create a soft link in =$HOME= to each file in the repo that (a) starts with a =.=, and (b) isn't listed in =child_dirs=.
+  3. For each directory in =child_dirs=, ensure the directory is created in =$HOME= and then create links in that directory back to the corresponding file in the repo.
+  
+* Note on Install
+  In a previous iteration of this repo, I had a somewhat lengthy "bare repo" setup. This worked great, except for the fact that various [[https://microsoft.github.io/language-server-protocol/][LSP]] servers, notably [[https://github.com/bash-lsp/bash-language-server][bash-language-server]], kept trying to index my entire home directory because it found a =.git= root there. This was pretty annoying and is the main reason I decided to switch back to a linking model.
 
-Further, note that files will not be tracked by default. We must manually add each new file to the repo. Changes will be tracked. This is the only tricky part as it's easy to overlook a file that should be part of the repo but is really just sitting in place, not tracked. The config will work on the local computer but when cloned to the next one things will be broken. This is really a feature though since we don't ever want files to be added accidentally.
-#+BEGIN_SRC sh
-git-home-link dotfiles
-git add .bashrc
-git commit -m "add .bashrc to new dotfiles repo"
-git push -u origin master
-rm $HOME/.git
-#+END_SRC
-**** Working in Emacs
-There are Emacs Lisp commands called ~git-home-link~ and ~git-home-unlink~ in ~init.el~. They make it easy to work with this setup in git tools such as Magit, Projectile. Note that the Emacs config is in a separate repo at https://gitlab.com/mnewt/dotemacs.
-*** STEP 3: Housekeeping
-Before we start committing we need to make sure that we are not going to destroy what we have created.
-**** Back up conflicting dotfiles
-If there are conflicting files between the repo and the existing files in ~$HOME~ then the ~git reset~ above will not have populated all the files in the branch. So, back up the conflicting files.
-#+BEGIN_SRC sh
-modified=$(git diff --name-status | awk '/^M/{print $2}')
-[ -n "$modified" ] && mkdir -p $HOME/.dotfiles-backup && cp -R $modified $HOME/.dotfiles-backup
-#+END_SRC
-**** Remove symlinks to the old repository
-If we currently have symlinked dotfiles, let's remove them. Here are two possible ways of cleaning up the links to the old repo. *Let's be careful though!*
-***** Delete the old repository, then delete orphaned symlinks
-#+BEGIN_SRC sh
-rm -rf $HOME/dotfiles
-find -L $HOME -maxdepth 3 -type l -print
-find -L $HOME -maxdepth 3 -type l -exec unlink -- "{}" \;
-#+END_SRC
-***** Delete all symlinks
-#+BEGIN_SRC sh
-  # Find links that we may want to delete
-  find $HOME -maxdepth 1 -type l -print
-  # Maybe go deeper and do some additional filtering. This is what I did on my macOS setup:
-  find $HOME -maxdepth 3 -type l -not -path "$HOME/Library/*" -print
-  # Delete them
-  find $HOME -maxdepth 3 -type l -not -path $HOME/Library/*" -delete
-#+END_SRC
-**** Overwrite conflicting files
-If there were conflicting files or links and we've taken care of them, reset hard to overwrite.
-#+BEGIN_SRC sh
-git reset --merge HEAD
-#+END_SRC
-  git-home-link "$repo"
-  for f in $(git ls-files); do
-    rm "$f"
-    dir="$(dirname "$f")"
-    [ -z "$(ls -A "$dir")" ] && rmdir "$dir"
-  done
-  rm -rf "$HOME/.config/repos/$repo"
-#+end_src
-**** Delete a repo and its files
-To delete a repo and all its files:
-#+begin_src sh
-  repo="dotfiles"
-  git-home-link "$repo"
-  for f in $(git ls-files); do
-    rm "$f"
-    dir="$(dirname "$f")"
-    [ -z "$(ls -A "$dir")" ] && rmdir "$dir"
-  done
-  rm -rf "$HOME/.config/repos/$repo"
-#+end_src
 * Update scripts
   There are set of update scripts in the ~bin~ directory to keep all the different software on a given system up to date.
 
   The master ~update~ script runs all of these in succession. Each script is smart enough to figure out whether the appropriate software is installed on the current machine.
 
   These are some of the things which can be updated:
-** Arch Linux [[https://www.archlinux.org/pacman/][Pacman]]
-** Clojure [[https://clojure.org/reference/deps_and_cli][deps.edn]] and [[https://leiningen.org/][Leiningen]]
-** Debian/Ubuntu [[https://wiki.debian.org/Apt][Packages]]
-** Fish Shell [[https://github.com/jorgebucaran/fisher][Packages]]
-** macOS [[https://www.apple.com/ca/osx/apps/app**store/][App Store]]
-** macOS [[https://brew.sh/][Homebrew]]
-** macOS [[https://www.macports.org/][MacPorts]]
-** Node.js [[https://www.npmjs.com/][Packages]]
-** Perl [[https://www.cpan.org/][Libraries]]
-** Python [[https://pypi.org/][Packages]]
-** Ruby [[https://rubygems.org/][Gems]]
-** Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
+- Arch Linux [[https://www.archlinux.org/pacman/][Pacman]]
+- Clojure [[https://clojure.org/reference/deps_and_cli][deps.edn]] and [[https://leiningen.org/][Leiningen]]
+- Debian/Ubuntu [[https://wiki.debian.org/Apt][Packages]]
+- This dotfiles repo
+- Fish Shell [[https://github.com/jorgebucaran/fisher][Packages]]
+- macos Fonts
+- macOS [[https://www.apple.com/ca/osx/apps/app-store/][App Store]]
+- macOS [[https://brew.sh/][Homebrew]]
+- macOS [[https://www.macports.org/][MacPorts]]
+- Node.js [[https://www.npmjs.com/][Packages]]
+- Perl [[https://www.cpan.org/][Libraries]]
+- Python [[https://pypi.org/][Packages]]
+- Ruby [[https://rubygems.org/][Gems]]
+- Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
+
 * Application Notes
 ** Fish
 To install and switch our shell to ~fish~ on macOS:
@@ -173,5 +89,6 @@ packages.
 #+BEGIN_EXAMPLE
   update-vim
 #+END_EXAMPLE
+
 * License
 All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]].
