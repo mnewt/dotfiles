@@ -114,6 +114,8 @@ function reloadConfig(files)
         hs.reload()
     end
 end
+
+-- FIXME Resolve symlinks so this pathwatcher actually works
 local myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", hs.reload):start()
 hs.alert.show("Config loaded")
 
@@ -527,7 +529,7 @@ bind(
     mashshift,
     "t",
     function()
-        os.execute(os.getenv("HOME") .. "/.bin/toggle-dark-mode")
+        os.execute(os.getenv("HOME") .. "/bin/toggle-dark-mode")
     end
 )
 
@@ -535,4 +537,4 @@ bind(
 -- * Load private stuff
 --------------------------------------------------------------------------------
 
-dofile_if("private.lua")
+dofile_if(os.getenv("HOME") .. "/private/private.lua")

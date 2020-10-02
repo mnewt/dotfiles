@@ -14,7 +14,7 @@ if installed clojure; then
 		done
 	fi
 
-	clojure -Sdeps '{:deps {olical/depot {:mvn/version "1.8.4"}}}' -m depot.outdated.main --update "$HOME/.clojure/deps.edn"
+	clojure -Sdeps '{:deps {olical/depot {:mvn/version "2.0.1"}}}' -m depot.outdated.main --update "$HOME/.clojure/deps.edn"
 
 	echo "Updating Leiningen if appropriate..."
 	if installed lein; then

@@ -9,12 +9,6 @@ test=""
 verbose=""
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-if [ -e "$script_dir/child_dirs" ]; then
-	IFS=$'\r\n' GLOBIGNORE='*' command eval 'child_dirs=($(cat "$script_dir/../child_dirs"))'
-else
-	child_dirs=(bin .config .clojure .hammerspoon .terminfo .gnupg .vim)
-fi
-
 print_help() {
 	cat <<EOF
 USAGE: ${0##*/} [-f] [-h] [-t] [-v] [ SOURCE_DIRECTORY ]
@@ -22,7 +16,7 @@ USAGE: ${0##*/} [-f] [-h] [-t] [-v] [ SOURCE_DIRECTORY ]
 Link dotfiles to \$HOME. Directories listed in "child_dirs" have their children
 linked so as not to interfere with other things in those directories.
 
-SOURCE_DIRECTORY, if not specified, is this script's parent directory.
+SOURCE_DIRECTORY, if not specified, is $PWD.
 
 OPTIONS:
   -f   Force overwrite of files or directories in \$HOME
@@ -56,51 +50,121 @@ done
 shift $((OPTIND - 1))
 OPTIND=1
 
-repo="$(cd "${1:-$script_dir/..}" && pwd)"
+source_dir="$(cd "${1:-.}" && pwd)"
 
-echo "Linking files from repo: $repo"
-echo "    Into home directory: $HOME"
-[ "$test" != "-t" ] || echo "    Testing only, no changes will be made..."
-[ "$force" != "-f" ] || echo "    Overwriting symlinks as needed..."
-[ "$verbose" != "-v" ] || echo "    Verbose output enabled..."
-echo
+# Read configuration variables from a file, if it exists
+if [ -e "$source_dir/install-dotfiles-config" ]; then
+	. "$source_dir/install-dotfiles-config"
+fi
 
+ignore=(install-dotfiles-config "${ignore[@]:-.git}")
+child_dirs=${child_dirs:-(bin .config)}
+
+# Print a string with ANSI X3.64 colors
+# Color formats:
+# - 8 color (30-37 for foreground and 40-37 for background), e.g. '31'
+# - 256 color (000-255 -- must use 3 digits with leading zeros), e.g. '001'
+# - 24 bit color, e.g. RGB: 255;255;255, or hex: FFFFFF
+# - Anything else is processed as a raw ANSI escape sequence and passed directly
+# - to \e[<arg>m
+#
+# This function is copy/pasted from shell_utils because in some cases it might
+# not be available yet.
+#
+# $1: background color (0 for no color)
+# $2: foreground color
+# remaining args: string to print
+with_color() {
+	bg="$1"
+	fg="$2"
+	shift 2
+
+	case ${#bg} in
+	3)
+		bg="48;5;$bg"
+		fg="38;5;$fg"
+		;;
+	6)
+		bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
+		fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
+		;;
+	11)
+		bg="$(printf "48;2;%d;%d;%d" "${bg:0:3}" "${bg:4:3}" "${bg:9:3}")"
+		fg="$(printf "48;2;%d;%d;%d" "${fg:0:3}" "${fg:4:3}" "${fg:9:3}")"
+		;;
+	esac
+
+	printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
+}
+
+# Set foreground to bold
+set_bold="\033[1m"
+
+# Set colors to reset / normal
+set_normal="\033[0m"
+
+# Conditionally evaluate arguments and/or print them
 cmd() {
 	[ "$verbose" != "-v" ] || echo "> $@"
 	[ "$test" = "-t" ] || eval "$@" || true
 }
 
-# Link
+# Create links in $1 (links are all the subsequent arguments)
 link_files() {
 	destination="$1"
 	shift
 	for file in "$@"; do
 		path="$destination/$(basename "$file")"
 		if [ "$(readlink "$path")" = "$file" ]; then
-			echo "$(with_color 0 32 " LINKED ") $path $(with_color 0 37 "-->") $file"
+			echo "$(with_color 0 32 "LINKED   ") $path $(with_color 0 37 "-->") $file"
 		else
-			echo "$(with_color 0 34 "LINKING ") $path $(with_color 0 37 "-->") $file"
-			cmd ln -s $force "$file" "$path"
+			echo "$(with_color 0 34 "LINKING  ") $path $(with_color 0 37 "-->") $file"
+			if [ -d "$path" ]; then
+				echo "$(with_color 0 31 "EXISTS   ") $path"
+			else
+				cmd ln -s $force "$file" "$path"
+			fi
 		fi
 	done
+}
+
+# Ensure the directory is created
+make_dir() {
+	if [ -d "$destination" ]; then
+		echo "$(with_color 0 32 "DIRECTORY") $destination"
+	else
+		echo "$(with_color 0 33 "CREATING  ") $destination"
+		cmd mkdir "$destination"
+	fi
 }
 
 # Delete dead symlinks (perhaps if files got renamed)
 unlink_broken() {
 	for link in $(find -L "$1" -maxdepth 1 -type l); do
-		echo "$(with_color 0 31 "DELETING") broken symlink $link"
+		echo "$(with_color 0 31 "DELETING ") broken symlink $link"
 		cmd rm "$link"
 	done
 }
 
-# Link files and directories, but not `child_dirs` or .git
-ignore=$(printf " -not -name %s" .git "${child_dirs[@]}")
-link_files "$HOME" $(find "$repo" -depth 1 -name '.*' $ignore)
+[ "$verbose" != "-v" ] || echo "Verbose output enabled..."
+[ "$test" != "-t" ] || echo "Testing only, no changes will be made..."
+[ "$force" != "-f" ] || echo "Overwriting symlinks as needed..."
+cat <<EOF
+$(with_color 0 37 " Linking files from repo:") $source_dir 
+$(with_color 0 37 "     Into home directory:") $HOME
+$(with_color 0 37 "   Ignoring source files:") ${ignore[@]}
+$(with_color 0 37 "Linking children of dirs:") ${child_dirs[@]}
+
+EOF
+
+# Link files and directories, except those in `ignore` or `child_dirs`
+find_ignore=$(printf " -not -name %s" "${ignore[@]}" "${child_dirs[@]}")
+link_files "$HOME" $(find "$source_dir" -depth 1 -name '.*' $find_ignore)
 
 # Link children of directories in `child_dirs` list.
 for dir in "${child_dirs[@]}"; do
 	destination="$HOME/$dir"
-	[ -d "$destination" ] || cmd mkdir -p "$destination"
-	link_files "$destination" $(find "$repo/$dir" -depth 1)
+	make_dir "$destination"
+	link_files "$destination" $(find "$source_dir/$dir" -depth 1)
 	unlink_broken "$destination"
 done

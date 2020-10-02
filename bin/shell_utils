@@ -20,9 +20,13 @@ exe() {
 # - 8 color (30-37 for foreground and 40-37 for background), e.g. '31'
 # - 256 color (000-255 -- must use 3 digits with leading zeros), e.g. '001'
 # - 24 bit color, e.g. RGB: 255;255;255, or hex: FFFFFF
-# - Anything else is processed as a raw ANSI escape sequence and passed directly to \e[<arg>m
-
-# $1: background color
+# - Anything else is processed as a raw ANSI escape sequence and passed directly
+# - to \e[<arg>m
+#
+# This function is copy/pasted from shell_utils because in some cases it might
+# not be available yet.
+#
+# $1: background color (0 for no color)
 # $2: foreground color
 # remaining args: string to print
 with_color() {
@@ -31,18 +35,18 @@ with_color() {
 	shift 2
 
 	case ${#bg} in
-	3)
-		bg="48;5;$bg"
-		fg="38;5;$fg"
-		;;
-	6)
-		bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
-		fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
-		;;
-	11)
-		bg="$(printf "48;2;%d;%d;%d" "${bg:0:3}" "${bg:4:3}" "${bg:9:3}")"
-		fg="$(printf "48;2;%d;%d;%d" "${fg:0:3}" "${fg:4:3}" "${fg:9:3}")"
-		;;
+	  3)
+		  bg="48;5;$bg"
+		  fg="38;5;$fg"
+		  ;;
+	  6)
+		  bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
+		  fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
+		  ;;
+	  11)
+		  bg="$(printf "48;2;%d;%d;%d" "${bg:0:3}" "${bg:4:3}" "${bg:9:3}")"
+		  fg="$(printf "48;2;%d;%d;%d" "${fg:0:3}" "${fg:4:3}" "${fg:9:3}")"
+		  ;;
 	esac
 
 	printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
@@ -53,10 +57,16 @@ set_bg() {
 	printf "\033[48;5;%sm" "$1"
 }
 
-# Set foregrould color to $1
+# Set foreground color to $1
 set_fg() {
 	printf "\033[38;5;%sm" "$1"
 }
+
+# Set foreground to bold
+set_bold="\033[1m"
+
+# Set colors to reset / normal
+set_normal="\033[0m"
 
 # Print the given arguments out in a nice heading
 heading() {
