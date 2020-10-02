@@ -1,0 +1,3 @@
+# -*- sh -*-
+
+child_dirs=(bin .config .clojure .hammerspoon .terminfo .vim)
