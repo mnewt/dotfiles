@@ -97,12 +97,6 @@ with_color() {
 	printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
 }
 
-# Set foreground to bold
-set_bold="\033[1m"
-
-# Set colors to reset / normal
-set_normal="\033[0m"
-
 # Conditionally evaluate arguments and/or print them
 cmd() {
 	[ "$verbose" != "-v" ] || echo "> $@"
@@ -140,10 +134,12 @@ make_dir() {
 
 # Delete dead symlinks (perhaps if files got renamed)
 unlink_broken() {
-	for link in $(find -L "$1" -maxdepth 1 -type l); do
-		echo "$(with_color 0 31 "DELETING ") broken symlink $link"
-		cmd rm "$link"
-	done
+	if [ -d "$1" ]; then
+		for link in $(find -L "$1" -maxdepth 1 -type l); do
+			echo "$(with_color 0 31 "DELETING ") $(with_color 0 37 "broken symlink") $link"
+			cmd rm "$link"
+		done
+	fi
 }
 
 [ "$verbose" != "-v" ] || echo "Verbose output enabled..."
