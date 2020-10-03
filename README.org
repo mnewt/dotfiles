@@ -32,24 +32,28 @@ Included are configurations for some programs, such as:
 * What it does
   The =install-dotfiles= script links
   #+begin_src
-USAGE: install-dotfiles [-f] [-t] [-v] [ SOURCE_DIRECTORY ]
+USAGE: install-dotfiles [-f] [-h] [-t] [-v] [ SOURCE_DIRECTORY ]
 
 Link dotfiles to $HOME. Directories listed in "child_dirs" have their children
 linked so as not to interfere with other things in those directories.
 
-SOURCE_DIRECTORY, if not specified, is this script's parent directory.
+SOURCE_DIRECTORY, if not specified, is /Users/mn/code/dotfiles.
 
 OPTIONS:
   -f   Force overwrite of files or directories in $HOME
+  -h   Display this help message
   -t   Test mode - don't make any changes
   -v   Verbose - print each action
   #+end_src
   The =install-dotfiles= script performs the following functions:
-  1. Look for a =child_dirs= directory in the root of the repo. It should have one directory entered per line. If it's found, those directories will not be linked directly to =$HOME=.
+  1. Look for an =install-dotfiles-config= file in the root of the =SOURCE_DIRECTORY=. Read variables from that file:
+     - =child-dirs=: A list of directories that will be created.
+     - =ignore=: A list of top level files/directories to be ignored (not linked).
   2. Create a soft link in =$HOME= to each file in the repo that (a) starts with a =.=, and (b) isn't listed in =child_dirs=.
-  3. For each directory in =child_dirs=, ensure the directory is created in =$HOME= and then create links in that directory back to the corresponding file in the repo.
+  3. For each directory in =child_dirs=, ensure the directory is created in =$HOME= and then create links in that directory back to the corresponding files in the respective directory within the repo.
+  4. Remove any stale links in the destination locations.
   
-* Note on Install
+* A note on bare repos
   In a previous iteration of this repo, I had a somewhat lengthy "bare repo" setup. This worked great, except for the fact that various [[https://microsoft.github.io/language-server-protocol/][LSP]] servers, notably [[https://github.com/bash-lsp/bash-language-server][bash-language-server]], kept trying to index my entire home directory because it found a =.git= root there. This was pretty annoying and is the main reason I decided to switch back to a linking model.
 
 * Update scripts
@@ -58,37 +62,39 @@ OPTIONS:
   The master ~update~ script runs all of these in succession. Each script is smart enough to figure out whether the appropriate software is installed on the current machine.
 
   These are some of the things which can be updated:
-- Arch Linux [[https://www.archlinux.org/pacman/][Pacman]]
-- Clojure [[https://clojure.org/reference/deps_and_cli][deps.edn]] and [[https://leiningen.org/][Leiningen]]
-- Debian/Ubuntu [[https://wiki.debian.org/Apt][Packages]]
-- This dotfiles repo
-- Fish Shell [[https://github.com/jorgebucaran/fisher][Packages]]
-- macos Fonts
-- macOS [[https://www.apple.com/ca/osx/apps/app-store/][App Store]]
-- macOS [[https://brew.sh/][Homebrew]]
-- macOS [[https://www.macports.org/][MacPorts]]
-- Node.js [[https://www.npmjs.com/][Packages]]
-- Perl [[https://www.cpan.org/][Libraries]]
-- Python [[https://pypi.org/][Packages]]
-- Ruby [[https://rubygems.org/][Gems]]
-- Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
+  - =update-arch=: Arch Linux [[https://www.archlinux.org/pacman/][Pacman]]
+  - =update-clojure=: Clojure [[https://clojure.org/reference/deps_and_cli][deps.edn]] and [[https://leiningen.org/][Leiningen]]
+  - =update-debian=: Debian/Ubuntu [[https://wiki.debian.org/Apt][Packages]]
+  - =update-dotfiles=: This dotfiles repo
+  - =update-fish=: Fish Shell [[https://github.com/jorgebucaran/fisher][Packages]]
+  - =update-fonts=: macos Fonts
+  - =update-macos=: macOS [[https://www.apple.com/ca/osx/apps/app-store/][App Store]]
+  - =update-homebrew=: macOS [[https://brew.sh/][Homebrew]]
+  - =update-macports=: macOS [[https://www.macports.org/][MacPorts]]
+  - =update-node=: Node.js [[https://www.npmjs.com/][Packages]]
+  - =update-perl=: Perl [[https://www.cpan.org/][Libraries]]
+  - =update-python=: Python [[https://pypi.org/][Packages]]
+  - =update-ruby=: Ruby [[https://rubygems.org/][Gems]]
+  - =update-vim=: Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
 
 * Application Notes
+
 ** Fish
-To install and switch our shell to ~fish~ on macOS:
-#+BEGIN_EXAMPLE
-  brew install fish
-  chsh -s $(which fish)
-  fish -l
-  curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
-  fisher "$HOME/.config/fish_config" mnewt/fix
-#+END_EXAMPLE
+   To install and switch our shell to ~fish~ on macOS:
+   #+BEGIN_EXAMPLE
+     brew install fish
+     chsh -s $(which fish)
+     fish -l
+     curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
+     fisher "$HOME/.config/fish_config" mnewt/fix
+   #+END_EXAMPLE
+
 ** Vim
-Install Vim or Neovim, edit .vimrc, then run ~update-vim~ to install
-packages.
-#+BEGIN_EXAMPLE
-  update-vim
-#+END_EXAMPLE
+   Install Vim or Neovim, edit .vimrc, then run ~update-vim~ to install
+   packages.
+   #+BEGIN_EXAMPLE
+     update-vim
+   #+END_EXAMPLE
 
 * License
-All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]].
+  All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]].
