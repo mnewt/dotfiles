@@ -2,9 +2,10 @@
 
 . shell_utils
 
-if [ -e "#$HOME/.git" ] && [ -n "$(git -C "$HOME" status --porcelain)" ]; then
-	echo "Pulling changes from the current remote..."
-	git -C "$HOME" pull
+dotfiles="$HOME/code/dotfiles"
+if [ -e "$dotfiles" ] && [ -n "$(git -C "$dotfiles" status --porcelain)" ]; then
+	echo "Pulling upstream changes to dotfiles..."
+	git -C "$dotfiles" pull
 else
-	echo "Not pulling because no clean repo was found at $HOME."
+	echo "Not pulling because no clean repo was found at $dotfiles."
 fi
