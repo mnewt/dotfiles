@@ -155,12 +155,12 @@ EOF
 
 # Link files and directories, except those in `ignore` or `child_dirs`
 find_ignore=$(printf " -not -name %s" "${ignore[@]}" "${child_dirs[@]}")
-link_files "$HOME" $(find "$source_dir" -depth 1 -name '.*' $find_ignore)
+link_files "$HOME" $(find "$source_dir" -mindepth 1 -maxdepth 1 -name '.*' $find_ignore)
 
 # Link children of directories in `child_dirs` list.
 for dir in "${child_dirs[@]}"; do
 	destination="$HOME/$dir"
 	make_dir "$destination"
-	link_files "$destination" $(find "$source_dir/$dir" -depth 1)
+	link_files "$destination" $(find "$source_dir/$dir" -mindepth 1 -maxdepth 1)
 	unlink_broken "$destination"
 done
