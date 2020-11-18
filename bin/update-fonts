@@ -1,6 +1,6 @@
 #!/bin/bash
-# Update Fonts
-# Ensures that the Input family of fonts is installed and up to date.
+# Update Fonts Ensures that the Input family of fonts is installed and up to
+# date.
 
 . shell_utils
 
@@ -9,10 +9,8 @@ input_mono_url="https://input.fontbureau.com/build/?fontSelection=whole&a=ss&g=s
 tmp="$(mktemp -d)"
 
 case "$(uname)" in
-Darwin) destination="$HOME/Library/Fonts" ;;
-Linux)
-	destination="$HOME/.local/share/fonts/"
-	;;
+  Darwin) destination="$HOME/Library/Fonts" ;;
+  Linux) destination="$HOME/.local/share/fonts/" ;;
 esac
 
 curl -L "$input_mono_url" -o "$tmp/input.zip"

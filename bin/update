@@ -1,18 +1,18 @@
 #!/bin/bash
-# Master script to perform updates on the computer
-# Calls other scripts on the path with the form 'update-*'
-# Passes all arguments straight through to those scripts
-
-update_scripts="$HOME/bin/update-*"
+# Master script to perform updates on the computer. Calls other scripts on the
+# path with the form 'update-*'. Passes all arguments straight through to each
+# respective script.
 
 . shell_utils
 
 # search for all update-* scripts and run them in succession
 update() {
-	for f in $update_scripts; do
-		heading "$(basename $f)"
-		eval $f "$@"
-	done
+  for f in "$HOME/bin/update-"*; do
+    if [ -x "$f" ]; then
+      heading "$(basename $f)"
+      eval $f "$@"
+    fi
+  done
 }
 
 echo "Grant superuser access to all subsequent update scripts:"
