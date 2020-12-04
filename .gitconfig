@@ -1,5 +1,5 @@
 [include]
-  path = ~/.gitconfig.private
+  path = ~/private/.gitconfig.private
 [push]
   default = tracking
 [format]
