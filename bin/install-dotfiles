@@ -10,7 +10,7 @@ verbose=""
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 print_help() {
-	cat <<EOF
+  cat <<EOF
 USAGE: ${0##*/} [-f] [-h] [-t] [-v] [ SOURCE_DIRECTORY ]
 
 Link dotfiles to \$HOME. Directories listed in "child_dirs" have their children
@@ -27,34 +27,34 @@ EOF
 }
 
 while getopts fhtv OPT; do
-	case $OPT in
-	f)
-		force="-f"
-		;;
-	h)
-		print_help
-		exit
-		;;
-	t)
-		test="-t"
-		;;
-	v)
-		verbose="-v"
-		;;
-	*)
-		print_help
-		exit 2
-		;;
-	esac
+  case $OPT in
+    f)
+      force="-f"
+      ;;
+    h)
+      print_help
+      exit
+      ;;
+    t)
+      test="-t"
+      ;;
+    v)
+      verbose="-v"
+      ;;
+    *)
+      print_help
+      exit 2
+      ;;
+  esac
 done
 shift $((OPTIND - 1))
 OPTIND=1
 
-source_dir="$(cd "${1:-.}" && pwd)"
+source_dir="$(cd "${1:-$(git rev-parse --show-toplevel)}" && pwd)"
 
 # Read configuration variables from a file, if it exists
 if [ -e "$source_dir/install-dotfiles-config" ]; then
-	. "$source_dir/install-dotfiles-config"
+  . "$source_dir/install-dotfiles-config"
 fi
 
 ignore=(install-dotfiles-config "${ignore[@]:-.git}")
@@ -75,71 +75,71 @@ child_dirs=${child_dirs:-(bin .config)}
 # $2: foreground color
 # remaining args: string to print
 with_color() {
-	bg="$1"
-	fg="$2"
-	shift 2
+  bg="$1"
+  fg="$2"
+  shift 2
 
-	case ${#bg} in
-	3)
-		bg="48;5;$bg"
-		fg="38;5;$fg"
-		;;
-	6)
-		bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
-		fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
-		;;
-	11)
-		bg="$(printf "48;2;%d;%d;%d" "${bg:0:3}" "${bg:4:3}" "${bg:9:3}")"
-		fg="$(printf "48;2;%d;%d;%d" "${fg:0:3}" "${fg:4:3}" "${fg:9:3}")"
-		;;
-	esac
+  case ${#bg} in
+    3)
+      bg="48;5;$bg"
+      fg="38;5;$fg"
+      ;;
+    6)
+      bg="$(printf "48;2;%d;%d;%d" "0x${bg:0:2}" "0x${bg:2:2}" "0x${bg:4:2}")"
+      fg="$(printf "38;2;%d;%d;%d" "0x${fg:0:2}" "0x${fg:2:2}" "0x${fg:4:2}")"
+      ;;
+    11)
+      bg="$(printf "48;2;%d;%d;%d" "${bg:0:3}" "${bg:4:3}" "${bg:9:3}")"
+      fg="$(printf "48;2;%d;%d;%d" "${fg:0:3}" "${fg:4:3}" "${fg:9:3}")"
+      ;;
+  esac
 
-	printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
+  printf "\033[${bg}m\033[${fg}m%s\033[0m" "$@"
 }
 
 # Conditionally evaluate arguments and/or print them
 cmd() {
-	[ "$verbose" != "-v" ] || echo "> $@"
-	[ "$test" = "-t" ] || eval "$@" || true
+  [ "$verbose" != "-v" ] || echo "> $@"
+  [ "$test" = "-t" ] || eval "$@" || true
 }
 
 # Create links in $1 (links are all the subsequent arguments)
 link_files() {
-	destination="$1"
-	shift
-	for file in "$@"; do
-		path="$destination/$(basename "$file")"
-		if [ "$(readlink "$path")" = "$file" ]; then
-			echo "$(with_color 0 32 "LINKED   ") $path $(with_color 0 37 "-->") $file"
-		else
-			echo "$(with_color 0 34 "LINKING  ") $path $(with_color 0 37 "-->") $file"
-			if [ -d "$path" ]; then
-				echo "$(with_color 0 31 "EXISTS   ") $path"
-			else
-				cmd ln -s $force "$file" "$path"
-			fi
-		fi
-	done
+  destination="$1"
+  shift
+  for file in "$@"; do
+    path="$destination/$(basename "$file")"
+    if [ "$(readlink "$path")" = "$file" ]; then
+      echo "$(with_color 0 32 "LINKED   ") $path $(with_color 0 37 "-->") $file"
+    else
+      echo "$(with_color 0 34 "LINKING  ") $path $(with_color 0 37 "-->") $file"
+      if [ -d "$path" ]; then
+        echo "$(with_color 0 31 "EXISTS   ") $path"
+      else
+        cmd ln -s $force "$file" "$path"
+      fi
+    fi
+  done
 }
 
 # Ensure the directory is created
 make_dir() {
-	if [ -d "$destination" ]; then
-		echo "$(with_color 0 32 "DIRECTORY") $destination"
-	else
-		echo "$(with_color 0 33 "CREATING  ") $destination"
-		cmd mkdir "$destination"
-	fi
+  if [ -d "$destination" ]; then
+    echo "$(with_color 0 32 "DIRECTORY") $destination"
+  else
+    echo "$(with_color 0 33 "CREATING  ") $destination"
+    cmd mkdir "$destination"
+  fi
 }
 
 # Delete dead symlinks (perhaps if files got renamed)
 unlink_broken() {
-	if [ -d "$1" ]; then
-		for link in $(find -L "$1" -maxdepth 1 -type l); do
-			echo "$(with_color 0 31 "DELETING ") $(with_color 0 37 "broken symlink") $link"
-			cmd rm "$link"
-		done
-	fi
+  if [ -d "$1" ]; then
+    for link in $(find -L "$1" -maxdepth 1 -type l); do
+      echo "$(with_color 0 31 "DELETING ") $(with_color 0 37 "broken symlink") $link"
+      cmd rm "$link"
+    done
+  fi
 }
 
 [ "$verbose" != "-v" ] || echo "Verbose output enabled..."
@@ -159,8 +159,8 @@ link_files "$HOME" $(find "$source_dir" -mindepth 1 -maxdepth 1 -name '.*' $find
 
 # Link children of directories in `child_dirs` list.
 for dir in "${child_dirs[@]}"; do
-	destination="$HOME/$dir"
-	make_dir "$destination"
-	link_files "$destination" $(find "$source_dir/$dir" -mindepth 1 -maxdepth 1)
-	unlink_broken "$destination"
+  destination="$HOME/$dir"
+  make_dir "$destination"
+  link_files "$destination" $(find "$source_dir/$dir" -mindepth 1 -maxdepth 1)
+  unlink_broken "$destination"
 done
