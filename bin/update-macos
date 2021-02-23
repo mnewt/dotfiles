@@ -122,6 +122,14 @@ if [ "$(uname)" = "Darwin" ]; then
   defaults write com.apple.ActivityMonitor SortColumn -string "CPUUsage"
   defaults write com.apple.ActivityMonitor SortDirection -int 0
 
+  # * Screen Capture
+
+  # Change the screen capture location
+  defaults write com.apple.screencapture location "$HOME/Downloads"
+
+  # Reload SystemUIServer
+  killall SystemUIServer
+
 else
   echo "macos not found, skipping"
 fi
