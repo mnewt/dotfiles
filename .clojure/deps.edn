@@ -1,7 +1,9 @@
-{:aliases {:new {:extra-deps #:seancorfield{clj-new #:mvn{:version "1.1.228"}}
-                 :main-opts ["-m" "clj-new.create"]}
-           :outdated {:extra-deps #:olical{depot #:mvn{:version "2.0.1"}}
-                      :main-opts ["-m" "depot.outdated.main"]}
-           :zprint {:extra-deps {zprint/zprint #:mvn{:version "1.0.1"}}
-                    :main-opts ["-m" "zprint.main"]}}
- :deps #:org.clojure{clojure #:mvn{:version "1.10.1"}}}
+{:aliases
+ {:new {:exec-args {:template "app"}
+        :exec-fn clj-new/create
+        :extra-deps {com.github.seancorfield/clj-new {:mvn/version "1.1.297"}}}
+  :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}
+             :main-opts ["-m" "antq.core"]}
+  :zprint {:extra-deps {zprint/zprint #:mvn{:version "1.1.1"}}
+           :main-opts ["-m" "zprint.main"]}}
+ :deps #:org.clojure{clojure #:mvn{:version "1.10.3"}}}
