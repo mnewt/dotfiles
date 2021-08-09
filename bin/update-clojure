@@ -14,7 +14,7 @@ if installed clojure; then
     done
   fi
 
-  clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -m antq.core --update --directory "$HOME/.clojure"
+  clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -m antq.core --upgrade --force --directory="$HOME/.clojure"
 
   echo "Updating Leiningen if appropriate..."
   if installed lein; then

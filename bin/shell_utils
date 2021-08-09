@@ -214,15 +214,6 @@ list_sort_reverse() {
 	sort -r <<<"$*"
 }
 
-# Run command and read into the specified variable.
-# $1: variable name
-# All other args are the command
-into_array () {
-  local array_var="$1"
-  shift
-  IFS=$'\n' read -r -d '' -a "$array_var" < <($@ && printf '\0')
-}
-
 # * Files
 
 # Find files whose names match a glob pattern.
