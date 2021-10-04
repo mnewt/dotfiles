@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install bash fish libvterm lua node ripgrep
-brew cask install 1password dropbox hammerspoon iina karabiner-elements
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install bash node ripgrep fd coreutils bind node python ruby openjdk
+brew install --cask 1password hammerspoon karabiner-elements alfred
