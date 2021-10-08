@@ -3,9 +3,9 @@
 . shell_utils
 
 dotfiles="$HOME/code/dotfiles"
-if [ -e "$dotfiles" ] && [ -n "$(git -C "$dotfiles" status --porcelain)" ]; then
-	echo "Pulling upstream changes to dotfiles..."
-	git -C "$dotfiles" pull
+if [ -e "$dotfiles" ] && [ -z "$(git -C "$dotfiles" status --porcelain)" ]; then
+  echo "Pulling upstream changes to dotfiles..."
+  git -C "$dotfiles" pull
 else
-	echo "Not pulling because no clean repo was found at $dotfiles."
+  echo "Not pulling because no clean repo was found at $dotfiles."
 fi
