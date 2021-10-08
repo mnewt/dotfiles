@@ -4,7 +4,7 @@
 
 if [ "$(uname)" = "Darwin" ]; then
   softwareupdate --all --install --force
-  sudo xcode-select --install 2>&1 || echo The Xcode Command Line Tools package is already installed
+  # sudo xcode-select --install 2>&1 || echo The Xcode Command Line Tools package is already installed
 
   # * Trackpad, mouse, keyboard, Bluetooth accessories, and input
 
@@ -13,7 +13,7 @@ if [ "$(uname)" = "Darwin" ]; then
   osascript -e 'tell application "System Preferences" to quit'
 
   # Disable the sound effects on boot
-  sudo nvram SystemAudioVolume=" "
+  # sudo nvram SystemAudioVolume=" "
 
   # Increase window resize speed for Cocoa applications
   defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
@@ -28,7 +28,7 @@ if [ "$(uname)" = "Darwin" ]; then
 
   # Reveal IP address, hostname, OS version, etc. when clicking the clock
   # in the login window
-  sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo HostName
+  # sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo HostName
 
   # Enable full keyboard access for all controls
   # (e.g. enable Tab in modal dialogs)
