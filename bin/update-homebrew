@@ -5,10 +5,11 @@
 
 if installed brew; then
   echo "Updating homebrew..."
-  cd "$(brew --repo)" || exit
-  git prune
-  git gc
-  cd - >/dev/null || exit
+  if cd "$(brew --repo)"; then
+    git prune
+    git gc
+    cd - >/dev/null || exit
+  fi
   brew update
   brew upgrade --formula
   if string_contains "--HEAD" "$*"; then
