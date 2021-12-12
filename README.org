@@ -22,7 +22,6 @@ Included are configurations for some programs, such as:
 - [[https://www.python.org/][Python]] [[https://pypi.org/][Pip]]
 - [[https://www.ruby-lang.org/][Ruby]] [[https://rubygems.org/][Gem]]
 - [[https://github.com/tmux/tmux][Tmux]]
-- [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 - [[https://www.zsh.org/][Zsh]]
 
 * Install
@@ -78,16 +77,6 @@ OPTIONS:
   - =update-perl=: Perl [[https://www.cpan.org/][Libraries]]
   - =update-python=: Python [[https://pypi.org/][Packages]]
   - =update-ruby=: Ruby [[https://rubygems.org/][Gems]]
-  - =update-vim=: Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
-
-* Application Notes
-
-** Vim
-   Install Vim or Neovim, edit .vimrc, then run ~update-vim~ to install
-   packages.
-   #+BEGIN_EXAMPLE
-     update-vim
-   #+END_EXAMPLE
 
 * License
   All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]].
