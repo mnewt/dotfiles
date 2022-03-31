@@ -15,6 +15,6 @@ update() {
   done
 }
 
-echo "Grant superuser access to all subsequent update scripts:"
-sudo_keepalive
+# echo "Grant superuser access to all subsequent update scripts:"
+# sudo_keepalive
 update "$@"
