@@ -1,3 +1,5 @@
+
+
 * Some dotfiles
   A shell configuration supporting [[https://www.gnu.org/software/bash/][bash]], [[http://www.zsh.org/][zsh]], and [[https://fishshell.com/][fish]].
 
@@ -6,20 +8,20 @@
   Most scripts are written in bash because it is the lowest common denominator.
 
 * Tour
+
 ** Applications & Utilities
 Included are configurations for some programs, such as:
 - [[https://www.gnu.org/software/bash/][Bash]]
 - [[https://clojure.org][Clojure]]
 - [[https://github.com/universal-ctags/ctags][Ctags]]
 - [[https://www.gnu.org/software/emacs/][Emacs]] (actually, the Emacs config [[https://github.com/mnewt/dotemacs][lives in its own repo]].)
-- [[https://fishshell.com/][Fish Shell]]
-- [[https://gnupg.org/][gnupg]]
+- [[https://git-scm.com/][Git]]
+- [[https://gnupg.org/][GnuPG]]
 - [[https://www.hammerspoon.org/][Hammerspoon]]
 - [[https://karabiner-elements.pqrs.org/][Karabiner Elements]]
 - [[https://www.python.org/][Python]] [[https://pypi.org/][Pip]]
 - [[https://www.ruby-lang.org/][Ruby]] [[https://rubygems.org/][Gem]]
 - [[https://github.com/tmux/tmux][Tmux]]
-- [[https://vim.sourceforge.io/][Vim]] / [[https://neovim.io/][NeoVim]]
 - [[https://www.zsh.org/][Zsh]]
 
 * Install
@@ -75,26 +77,6 @@ OPTIONS:
   - =update-perl=: Perl [[https://www.cpan.org/][Libraries]]
   - =update-python=: Python [[https://pypi.org/][Packages]]
   - =update-ruby=: Ruby [[https://rubygems.org/][Gems]]
-  - =update-vim=: Vim/Neovim [[https://github.com/junegunn/vim-plug][Packages]]
-
-* Application Notes
-
-** Fish
-   To install and switch our shell to ~fish~ on macOS:
-   #+BEGIN_EXAMPLE
-     brew install fish
-     chsh -s $(which fish)
-     fish -l
-     curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs https://git.io/fisher
-     fisher "$HOME/.config/fish_config" mnewt/fix
-   #+END_EXAMPLE
-
-** Vim
-   Install Vim or Neovim, edit .vimrc, then run ~update-vim~ to install
-   packages.
-   #+BEGIN_EXAMPLE
-     update-vim
-   #+END_EXAMPLE
 
 * License
   All the stuff in this repository is licensed to the public domain under the [[https://unlicense.org/][unlicense]].
