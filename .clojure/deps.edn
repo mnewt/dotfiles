@@ -1,7 +1,7 @@
 {:aliases
  {:new {:exec-args {:template "app"}
         :exec-fn clj-new/create
-        :extra-deps {com.github.seancorfield/clj-new {:mvn/version "1.1.331"}}}
+        :extra-deps {com.github.seancorfield/clj-new {:mvn/version "1.2.380"}}}
   :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}
              :main-opts ["-m" "antq.core"]}
   :zprint {:extra-deps {zprint/zprint #:mvn{:version "1.1.2"}}
