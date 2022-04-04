@@ -2,6 +2,7 @@
 # Update Fonts Ensures that the Input family of fonts is installed and up to
 # date.
 
+set -eou pipefail
 . shell_utils
 
 input_mono_url="https://input.djr.com/build/?fontSelection=whole&a=ss&g=ss&i=serifs_round&l=serifs_round&zero=0&asterisk=0&braces=0&preset=default&line-height=1.2&accept=I+do"
@@ -14,7 +15,7 @@ case "$(uname)" in
 esac
 
 curl -L "$input_mono_url" -o "$tmp/input.zip"
-unzip -j -u -d "$destination" "$tmp/input.zip" "Input_Fonts/Input*"
+unzip -j -u -o -d "$destination" "$tmp/input.zip" "Input_Fonts/Input*"
 
 # Clear font cache.
 which fc-cache && fc-cache -fv

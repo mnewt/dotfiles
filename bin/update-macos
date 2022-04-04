@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -eou pipefail
 . shell_utils
 
 if [ "$(uname)" = "Darwin" ]; then
@@ -73,7 +74,7 @@ if [ "$(uname)" = "Darwin" ]; then
   defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
   # Show the ~/Library folder
-  chflags nohidden ~/Library && xattr -d com.apple.FinderInfo ~/Library
+  chflags nohidden ~/Library && xattr -d com.apple.FinderInfo ~/Library || true
 
   # Reload Finder to enable the new settings
   killall -KILL Finder
