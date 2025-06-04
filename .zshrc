@@ -31,7 +31,7 @@ if [[ $TERM = *term* ]]; then
     hostname=""
   fi
 
-  dir="$(set_bg 014)$(set_fg 016) %~ "
+  dir="$(set_bg 051)$(set_fg 016) %~ "
 
   newline=$'\n'
   sigil="${set_normal}${newline}${set_bold}%#${set_normal}%b "
