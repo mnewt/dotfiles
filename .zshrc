@@ -31,13 +31,20 @@ if [[ $TERM = *term* ]]; then
     hostname=""
   fi
 
-  dir="$(set_bg 051)$(set_fg 016) %~ "
+  # Display Python venv
+  if [ -n "$VIRTUAL_ENV_PROMPT" ]; then
+    virtualenv="$(set_bg 004)$(set_fg 015)[${VIRTUAL_ENV_PROMPT}]"
+  else
+    virtualenv=""
+  fi
+
+  dir="$(set_bg 189)$(set_fg 016) %~ "
 
   newline=$'\n'
   sigil="${set_normal}${newline}${set_bold}%#${set_normal}%b "
 
   setopt PROMPT_SUBST
-  PROMPT="${cmdstatus}${username}${hostname}${dir}${sigil}${vterm_part}"
+  PROMPT="${cmdstatus}${virtualenv}${username}${hostname}${dir}${sigil}${vterm_part}"
 
 else
   PROMPT="[%n@%m %1~]%# "
