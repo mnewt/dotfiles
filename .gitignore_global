@@ -43,7 +43,8 @@ Icon?
 *.DS_Store
 .AppleDouble
 .LSOverride
-Icon
+Icon
+
 ._*
 .DocumentRevisions-V100
 .fseventsd
@@ -141,6 +142,7 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.pytest_cache
 
 # * Ruby
 *.gem
@@ -243,7 +245,7 @@ flycheck_*
 *-autoloads.el
 
 # * Clojure
-#############
+.clj-kondo/
 
 # * Syncthing
 .stversions
@@ -294,3 +296,9 @@ repl-history
 
 # psync
 psync_config
+
+# LSP
+.vscode/
+.history/
+*.code-workspace
+.lsp/

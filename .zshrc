@@ -17,34 +17,37 @@ fi
 #   as "dumb".
 # - Emacs TRAMP, which processes the prompt using regexp.
 if [[ $TERM = *term* ]]; then
+  setopt PROMPT_SUBST
+
   set_bold='%B'
   set_normal=$'\033[0m'
-
-  cmdstatus="%(?..$(set_bg 009)$(set_fg 255) %? )"
-
-  # Only display username and hostname if we are over SSH
-  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-    username="$(set_bg 003)$(set_fg 000) %n "
-    hostname="$(set_bg 002)$(set_fg 000) %m "
-  else
-    username=""
-    hostname=""
-  fi
-
-  # Display Python venv
-  if [ -n "$VIRTUAL_ENV_PROMPT" ]; then
-    virtualenv="$(set_bg 004)$(set_fg 015)[${VIRTUAL_ENV_PROMPT}]"
-  else
-    virtualenv=""
-  fi
-
-  dir="$(set_bg 189)$(set_fg 016) %~ "
-
   newline=$'\n'
-  sigil="${set_normal}${newline}${set_bold}%#${set_normal}%b "
 
-  setopt PROMPT_SUBST
-  PROMPT="${cmdstatus}${virtualenv}${username}${hostname}${dir}${sigil}${vterm_part}"
+  precmd() {
+    cmdstatus="%(?..$(set_bg 009)$(set_fg 255) %? )"
+
+    # Only display username and hostname if we are over SSH
+    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+      username="$(set_bg 003)$(set_fg 000) %n "
+      hostname="$(set_bg 002)$(set_fg 000) %m "
+    else
+      username=""
+      hostname=""
+    fi
+
+    # Display Python venv
+    if [ -n "$VIRTUAL_ENV_PROMPT" ]; then
+      virtualenv="$(set_bg 004)$(set_fg 015) ${VIRTUAL_ENV_PROMPT} "
+    else
+      virtualenv=""
+    fi
+
+    dir="$(set_bg 189)$(set_fg 016) %~ "
+
+    print -P "${cmdstatus}${virtualenv}${username}${hostname}${dir}"
+  }
+  
+  PROMPT="${set_bold}%#${set_normal}%b ${vterm_part}"
 
 else
   PROMPT="[%n@%m %1~]%# "
