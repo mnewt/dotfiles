@@ -11,12 +11,12 @@ if installed brew; then
     cd - >/dev/null || exit
   fi
   brew update
-  brew upgrade --formula
+  brew upgrade --formula --yes
   if string_contains "--HEAD" "$*"; then
     echo Reinstalling packages which are set at version HEAD...
     brew ls --versions | awk '/HEAD/ {print $1}' | xargs brew reinstall
   fi
-  brew upgrade --cask
+  brew upgrade --cask --yes
   brew cleanup
   brew doctor
 else

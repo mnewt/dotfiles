@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+generator="$repo_dir/.bettertouchtool/generate-preset.mjs"
+preset="$repo_dir/.bettertouchtool/dotfiles-unified.bttpreset"
+bttcli="/Applications/BetterTouchTool.app/Contents/SharedSupport/bin/bttcli"
+socket="/tmp/com.hegenberg.BetterTouchTool.sock"
+legacy_autoload="$HOME/.btt_autoload_preset.json"
+
+node "$generator"
+
+if [[ "${1:-}" == "--generate-only" ]]; then
+  exit 0
+fi
+
+if [[ -L "$legacy_autoload" ]] &&
+   [[ "$(readlink "$legacy_autoload")" == "$repo_dir/.btt_autoload_preset.json" ]]; then
+  unlink "$legacy_autoload"
+fi
+
+if [[ ! -x "$bttcli" ]]; then
+  echo "BetterTouchTool is not installed at /Applications/BetterTouchTool.app" >&2
+  exit 1
+fi
+
+if [[ ! -S "$socket" ]]; then
+  cat >&2 <<'EOF'
+Enable BetterTouchTool Settings → Scripting BTT → Command Line, then restart
+BetterTouchTool. After that this command will replace the existing preset in
+place; no manual deletion or BetterTouchTool restart is required.
+EOF
+  exit 1
+fi
+
+"$bttcli" import_preset path="$preset" replaceExisting=true

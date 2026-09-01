@@ -17,8 +17,7 @@ Included are configurations for some programs, such as:
 - [[https://www.gnu.org/software/emacs/][Emacs]] (actually, the Emacs config [[https://github.com/mnewt/dotemacs][lives in its own repo]].)
 - [[https://git-scm.com/][Git]]
 - [[https://gnupg.org/][GnuPG]]
-- [[https://www.hammerspoon.org/][Hammerspoon]]
-- [[https://karabiner-elements.pqrs.org/][Karabiner Elements]]
+- [[https://folivora.ai/][BetterTouchTool]] (unified Hammerspoon, Karabiner-Elements, and Alfred replacement)
 - [[https://www.python.org/][Python]] [[https://pypi.org/][Pip]]
 - [[https://www.ruby-lang.org/][Ruby]] [[https://rubygems.org/][Gem]]
 - [[https://github.com/tmux/tmux][Tmux]]

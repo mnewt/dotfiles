@@ -1,3 +1,4 @@
 # -*- sh -*-
 
 child_dirs=(bin .config .clojure .hammerspoon .terminfo .vim)
+ignore=(.git .bettertouchtool .btt_autoload_preset.json)
