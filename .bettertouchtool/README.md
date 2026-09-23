@@ -62,6 +62,11 @@ same terminal/editor/remote-desktop exclusions, plus explicit Visual Studio
 Code, Microsoft Office, and Eclipse variants. The duplicated Karabiner rule
 sets are intentionally emitted only once.
 
+Jump Desktop and its web-session helper contain disabled app-specific overrides
+for ordinary editing shortcuts and key sequences. This gives remote Windows
+sessions the original events for chords such as Control+N and Control+P, while
+Caps Lock, Hyper, and Hyper+Shift shortcuts remain active.
+
 The Karabiner Fn mappings are preserved: Fn+F3 Mission Control, Fn+F4 Launchpad,
 Fn+F5/F6 keyboard illumination, and Fn+F9 next track.
 

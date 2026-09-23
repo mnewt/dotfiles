@@ -207,6 +207,41 @@ function stepResize(name, axis, amount) {
   });
 }
 
+const caffeinateLabel = "com.mnewt.bettertouchtool.caffeinate";
+const caffeinateIndicatorLabel = "com.mnewt.bettertouchtool.caffeinate-indicator";
+const caffeinateIndicatorBinary = resolve(here, "caffeinate-indicator");
+const caffeinateToggleScript = `label="${caffeinateLabel}"
+service="gui/\${UID}/$label"
+indicator_label="${caffeinateIndicatorLabel}"
+indicator_service="gui/\${UID}/$indicator_label"
+indicator_binary="${caffeinateIndicatorBinary}"
+if /bin/launchctl print "$service" >/dev/null 2>&1; then
+  /bin/launchctl remove "$label"
+  /bin/launchctl remove "$indicator_label" >/dev/null 2>&1 || true
+  osascript -e 'display notification "Sleep enabled" with title "BetterTouchTool"'
+else
+  /bin/launchctl submit -l "$label" -- /usr/bin/caffeinate -dimsu
+  if /bin/launchctl print "$service" >/dev/null 2>&1; then
+    /bin/launchctl remove "$indicator_label" >/dev/null 2>&1 || true
+    /bin/launchctl submit -l "$indicator_label" -- "$indicator_binary"
+    if /bin/launchctl print "$indicator_service" >/dev/null 2>&1; then
+      osascript -e 'display notification "Sleep disabled" with title "BetterTouchTool"'
+    else
+      osascript -e 'display notification "Sleep disabled, but indicator failed" with title "BetterTouchTool"'
+    fi
+  else
+    osascript -e 'display notification "Could not start caffeinate" with title "BetterTouchTool"'
+    exit 1
+  fi
+fi`;
+
+function caffeinateToggleAction() {
+  return action(206, {
+    BTTShellTaskActionConfig: "/bin/bash:::-c:::-:::",
+    BTTShellTaskActionScript: caffeinateToggleScript,
+  });
+}
+
 function keySequence(name, secondKey, replacement, releaseControlBetween = false) {
   const event = (character, keyCode, down, time) => ({
     BTTKEYCharacter: character,
@@ -325,19 +360,7 @@ global.push(
       BTTAppleScriptString: "set clipText to the clipboard as text\ntell application \"System Events\" to keystroke clipText",
     },
   })),
-  shortcut("System: toggle caffeinate", KEY.q, HYPER, action(206, {
-    BTTShellTaskActionConfig: "/bin/bash:::-c:::-:::",
-    BTTShellTaskActionScript: `state_file="\${TMPDIR:-/tmp}/bettertouchtool-caffeinate-\${UID}.pid"
-if [[ -r "$state_file" ]] && read -r caffeine_pid < "$state_file" && kill -0 "$caffeine_pid" 2>/dev/null; then
-  kill "$caffeine_pid"
-  rm -f "$state_file"
-  osascript -e 'display notification "Sleep enabled" with title "BetterTouchTool"'
-else
-  caffeinate -dimsu &
-  printf '%s\\n' "$!" > "$state_file"
-  osascript -e 'display notification "Sleep disabled" with title "BetterTouchTool"'
-fi`,
-  })),
+  shortcut("System: toggle caffeinate", KEY.q, HYPER, caffeinateToggleAction()),
   shortcut("Fn+F3: Mission Control", KEY.f3, MOD.fn, action(7)),
   shortcut("Fn+F4: Launchpad", KEY.f4, MOD.fn, action(115)),
   shortcut("Fn+F5: keyboard illumination down", KEY.f5, MOD.fn, action(32)),
@@ -398,6 +421,26 @@ const eclipse = [
   ...remapShortcuts("Emacs C-e: line end", KEY.e, ["control"], ["shift"], [{ key: KEY.right, modifiers: ["command"] }], "eclipse"),
 ];
 
+function jumpPassthroughTriggers(bundle) {
+  return global
+    .filter((trigger) => {
+      if (trigger.BTTTriggerType === 624) return true;
+      if (trigger.BTTTriggerType !== 0) return false;
+
+      const isCapsLockHyper = trigger.BTTShortcutKeyCode === 1004;
+      const usesHyper = (trigger.BTTShortcutModifierKeys & HYPER) === HYPER;
+      return !isCapsLockHyper && !usesHyper;
+    })
+    .map((trigger) => ({
+      ...structuredClone(trigger),
+      BTTTriggerTypeDescription: `Pass through: ${trigger.BTTTriggerTypeDescription}`,
+      BTTGestureNotes: `Pass through in Jump Desktop: ${trigger.BTTGestureNotes}`,
+      BTTUUID: uuid(`jump-pass-through:${bundle}:${trigger.BTTUUID}`),
+      BTTEnabled: 0,
+      BTTEnabled2: 0,
+    }));
+}
+
 const preset = {
   BTTPresetCreatorNotes: "Generated from this repository. Replaces Hammerspoon, Karabiner-Elements, and the repo's Alfred installation with BetterTouchTool.",
   BTTPresetInfoURL: "https://github.com/mnewt/dotfiles",
@@ -412,6 +455,18 @@ const preset = {
       BTTAppSpecificSettings: { BTTDisableGlobalTriggers: false },
       BTTTriggers: global,
     },
+    ...[
+      ["com.p5sys.jump.mac.viewer", "Jump Desktop"],
+      ["com.p5sys.jump.mac.viewer.web", "Jump Desktop Web"],
+    ].map(([bundle, name]) => ({
+      BTTAppBundleIdentifier: bundle,
+      BTTAppName: name,
+      BTTAppAutoInvertIcon: 1,
+      // Keep Caps Lock / Hyper shortcuts active, while allowing ordinary
+      // editing chords and key sequences to reach the remote session intact.
+      BTTAppSpecificSettings: { BTTDisableGlobalTriggers: false },
+      BTTTriggers: jumpPassthroughTriggers(bundle),
+    })),
     {
       BTTAppBundleIdentifier: "com.microsoft.VSCode",
       BTTAppName: "Visual Studio Code",

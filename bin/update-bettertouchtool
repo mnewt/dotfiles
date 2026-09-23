@@ -2,14 +2,30 @@
 
 set -euo pipefail
 
-repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+script_path="${BASH_SOURCE[0]}"
+while [[ -L "$script_path" ]]; do
+  script_dir="$(cd -P -- "$(dirname -- "$script_path")" && pwd)"
+  link_target="$(readlink "$script_path")"
+  if [[ "$link_target" == /* ]]; then
+    script_path="$link_target"
+  else
+    script_path="$script_dir/$link_target"
+  fi
+done
+repo_dir="$(cd -P -- "$(dirname -- "$script_path")/.." && pwd)"
 generator="$repo_dir/.bettertouchtool/generate-preset.mjs"
 preset="$repo_dir/.bettertouchtool/dotfiles-unified.bttpreset"
+indicator_source="$repo_dir/.bettertouchtool/caffeinate-indicator.swift"
+indicator_binary="$repo_dir/.bettertouchtool/caffeinate-indicator"
 bttcli="/Applications/BetterTouchTool.app/Contents/SharedSupport/bin/bttcli"
 socket="/tmp/com.hegenberg.BetterTouchTool.sock"
 legacy_autoload="$HOME/.btt_autoload_preset.json"
 
 node "$generator"
+
+if [[ ! -x "$indicator_binary" ]] || [[ "$indicator_source" -nt "$indicator_binary" ]]; then
+  /usr/bin/swiftc -O "$indicator_source" -o "$indicator_binary"
+fi
 
 if [[ "${1:-}" == "--generate-only" ]]; then
   exit 0
@@ -35,3 +51,12 @@ EOF
 fi
 
 "$bttcli" import_preset path="$preset" replaceExisting=true
+
+caffeinate_label="com.mnewt.bettertouchtool.caffeinate"
+indicator_label="com.mnewt.bettertouchtool.caffeinate-indicator"
+if /bin/launchctl print "gui/${UID}/$caffeinate_label" >/dev/null 2>&1; then
+  /bin/launchctl remove "$indicator_label" >/dev/null 2>&1 || true
+  /bin/launchctl submit -l "$indicator_label" -- "$indicator_binary"
+else
+  /bin/launchctl remove "$indicator_label" >/dev/null 2>&1 || true
+fi
